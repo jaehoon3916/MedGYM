@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rollout — {{ case_info.get('case_id','?') }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
+    header { background: #1a3c5e; color: #fff; padding: 18px 32px; display: flex; align-items: center; gap: 16px; }
+    header a { color: #8ab8d8; font-size: 0.85rem; text-decoration: none; }
+    header a:hover { text-decoration: underline; }
+    header h1 { font-size: 1.2rem; font-weight: 600; }
+    main { max-width: 860px; margin: 32px auto; padding: 0 24px 64px; }
+
+    /* Case Info */
+    .case-card { background: #fff; border-radius: 8px; padding: 20px 24px;
+                 box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; }
+    .case-card h2 { font-size: 0.75rem; text-transform: uppercase; color: #888;
+                    letter-spacing: 0.6px; margin-bottom: 10px; }
+    .scenario { font-size: 0.92rem; line-height: 1.65; color: #333; margin-bottom: 14px; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .option { padding: 8px 12px; border-radius: 6px; font-size: 0.85rem;
+              border: 1px solid #ddd; background: #fafafa; }
+    .option.correct { background: #e9f7ef; border-color: #82c99a; color: #1a6b35; font-weight: 600; }
+    .meta-row { font-size: 0.8rem; color: #888; display: flex; gap: 20px; }
+
+    /* Timeline */
+    .timeline { display: flex; flex-direction: column; gap: 20px; }
+    .turn { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .turn-header { padding: 10px 16px; font-size: 0.75rem; font-weight: 700;
+                   text-transform: uppercase; letter-spacing: 0.6px; display: flex;
+                   justify-content: space-between; align-items: center; }
+    .turn-header.turn-label-0 { background: #e8f4fd; color: #1a5f8a; }
+    .turn-body { padding: 0 16px 16px; }
+
+    .bubble { margin-top: 12px; }
+    .bubble-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+                    color: #888; margin-bottom: 4px; }
+    .bubble-text { font-size: 0.9rem; line-height: 1.6; padding: 10px 14px;
+                   border-radius: 8px; border-left: 3px solid; }
+    .bubble-medical .bubble-text { background: #f0f7ff; border-color: #5b9bd5; }
+    .bubble-user    .bubble-text { background: #f5faf0; border-color: #6bbf6b; }
+
+    /* Action badge */
+    .action-tag { font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+                  border-radius: 999px; letter-spacing: 0.4px; }
+    .a-ACCEPT      { background: #d4edda; color: #155724; }
+    .a-CHALLENGE   { background: #f8d7da; color: #721c24; }
+    .a-ASK_EVIDENCE{ background: #cce5ff; color: #004085; }
+    .a-DEFER       { background: #e2e3e5; color: #383d41; }
+    .a-SUMMARIZE   { background: #fff3cd; color: #856404; }
+
+    /* User state */
+    .state-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+    .state-item { background: #f8f9fa; border-radius: 6px; padding: 8px 10px; font-size: 0.8rem; }
+    .state-item .sk { color: #888; font-size: 0.7rem; margin-bottom: 2px; }
+    .state-item .sv { font-weight: 600; color: #333; }
+    .state-summary { margin-top: 8px; font-size: 0.82rem; color: #555; font-style: italic;
+                     padding: 6px 10px; background: #f8f9fa; border-radius: 6px; }
+
+    .action-prompt-box { margin-top: 10px; background: #fffbf0; border: 1px solid #ffe58f;
+                         border-radius: 6px; padding: 8px 12px; font-size: 0.83rem; color: #5a4500; }
+    .section-label { font-size: 0.7rem; text-transform: uppercase; color: #aaa;
+                     letter-spacing: 0.5px; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <a href="/">← All Rollouts</a>
+    <h1>Case {{ case_info.get('case_id','?') }}</h1>
+  </div>
+</header>
+<main>
+
+  <!-- Case Info -->
+  <div class="case-card">
+    <h2>Case Info</h2>
+    <p class="scenario">{{ case_info.get('scenario','') }}</p>
+    <div class="options-grid">
+      {% set correct = case_info.get('correct_option','') %}
+      {% for k, v in case_info.get('options', {}).items() %}
+      <div class="option {% if k == correct %}correct{% endif %}">
+        <strong>{{ k }}.</strong> {{ v }}
+        {% if k == correct %} ✓{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="meta-row">
+      <span>Turns: <strong>{{ turns|length }}</strong></span>
+      <span>Policy: <strong>{{ turns[0].model_name.policy if turns else '—' }}</strong></span>
+      <span>{{ turns[0].get('timestamp','')[:19].replace('T',' ') if turns else '' }}</span>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    {% for t in turns %}
+    <div class="turn">
+      <div class="turn-header turn-label-0">
+        <span>Turn {{ t.turn_id + 1 }}</span>
+        <span class="action-tag a-{{ t.selected_action }}">{{ t.selected_action }}</span>
+      </div>
+      <div class="turn-body">
+
+        <!-- Action Prompt -->
+        <div class="action-prompt-box">
+          <div class="section-label">Action Prompt</div>
+          {{ t.action_prompt }}
+        </div>
+
+        <!-- Medical -->
+        <div class="bubble bubble-medical">
+          <div class="bubble-label">Medical AI</div>
+          <div class="bubble-text">{{ t.medical_response }}</div>
+        </div>
+
+        <!-- User -->
+        <div class="bubble bubble-user">
+          <div class="bubble-label">Clinician (User)</div>
+          <div class="bubble-text">{{ t.user_utterance }}</div>
+        </div>
+
+        <!-- User State -->
+        {% set us = t.user_state %}
+        <div class="state-grid">
+          <div class="state-item"><div class="sk">Intent</div><div class="sv">{{ us.intent }}</div></div>
+          <div class="state-item"><div class="sk">Certainty</div><div class="sv">{{ us.certainty }}</div></div>
+          <div class="state-item"><div class="sk">Stance</div><div class="sv">{{ us.stance_toward_medical_llm }}</div></div>
+        </div>
+        {% if us.summary %}
+        <div class="state-summary">{{ us.summary }}</div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</main>
+</body>
+</html>

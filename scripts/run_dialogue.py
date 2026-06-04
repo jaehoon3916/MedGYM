@@ -14,13 +14,18 @@ from core.schemas import CaseInfo
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True, help="Path to YAML config")
-    parser.add_argument("--case", required=True, help="Path to case JSON file")
+    parser.add_argument("--case", default=None, help="Path to case JSON file (overrides config)")
     parser.add_argument("--output", default=None, help="Output JSONL path (default: auto)")
     parser.add_argument("--max_turns", type=int, default=None)
     args = parser.parse_args()
 
     config = load_yaml(args.config)
-    case_info = CaseInfo(**json.loads(Path(args.case).read_text()))
+    case_path = args.case or config.get("experiment", {}).get("data_path")
+    if not case_path:
+        raise ValueError("Specify --case or set experiment.data_path in config")
+    raw = json.loads(Path(case_path).read_text())
+    case_data = raw[0] if isinstance(raw, list) else raw
+    case_info = CaseInfo(**case_data)
 
     user_llm, medical_llm, extractor_llm, policy = build_plugins(config)
     env = MedicalHACEnvironment(

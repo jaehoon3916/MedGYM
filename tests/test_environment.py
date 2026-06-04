@@ -18,9 +18,10 @@ def sample_case():
     return CaseInfo(
         case_id="env_test_001",
         scenario="Patient with chronic cough and heavy smoking history.",
-        question="What is the diagnosis?",
         options={"A": "COPD", "B": "Asthma"},
-        correct_answer="A",
+        correct_option="A",
+        answer="COPD",
+        distractors=["Asthma"],
     )
 
 

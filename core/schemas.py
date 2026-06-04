@@ -5,13 +5,25 @@ from pydantic import BaseModel, Field
 
 
 class CaseInfo(BaseModel):
+    """JAMA Clinical Challenge case schema."""
     case_id: str
     scenario: str
-    question: str
-    options: dict[str, str]
-    correct_answer: str | None = None
-    expert_explanation: str | None = None
+    options: dict[str, str]                  # {"A": "...", "B": "...", ...}
+    correct_option: str                       # e.g. "D"
+    answer: str                              # full text of the correct option
+    distractors: list[str] = Field(default_factory=list)  # incorrect option texts
+    caption: str | None = None               # image/figure caption
+    explanation: str | None = None           # expert explanation
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def question(self) -> str:
+        """JAMA cases don't have an explicit question field; derive from context."""
+        return "What is the most appropriate next step in management?"
+
+    @property
+    def correct_answer(self) -> str:
+        return self.answer
 
 
 class MedicalClaim(BaseModel):

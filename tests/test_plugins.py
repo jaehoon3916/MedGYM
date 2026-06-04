@@ -17,9 +17,10 @@ def case_info():
     return CaseInfo(
         case_id="test_001",
         scenario="Patient with shortness of breath and 40 pack-year smoking history.",
-        question="What is the most likely diagnosis?",
         options={"A": "COPD", "B": "Asthma", "C": "Fibrosis", "D": "CHF"},
-        correct_answer="A",
+        correct_option="A",
+        answer="COPD",
+        distractors=["Asthma", "Fibrosis", "CHF"],
     )
 
 

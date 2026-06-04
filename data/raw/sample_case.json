@@ -1,15 +1,17 @@
 {
   "case_id": "case_001",
   "scenario": "A 58-year-old male presents with progressive shortness of breath over the past 3 months, a chronic cough producing whitish sputum, and a 40 pack-year smoking history. Spirometry shows FEV1/FVC ratio of 0.62 (below the 0.70 threshold). Chest X-ray shows hyperinflation.",
-  "question": "What is the most likely diagnosis for this patient?",
   "options": {
     "A": "Chronic Obstructive Pulmonary Disease (COPD)",
     "B": "Asthma",
     "C": "Pulmonary Fibrosis",
     "D": "Congestive Heart Failure"
   },
-  "correct_answer": "A",
-  "expert_explanation": "The combination of a heavy smoking history, obstructive spirometry pattern (FEV1/FVC < 0.70), chronic productive cough, and hyperinflation is classic for COPD. Asthma typically presents younger with reversible obstruction. Pulmonary fibrosis shows restrictive pattern. CHF would show cardiomegaly and pulmonary edema on X-ray.",
+  "correct_option": "A",
+  "answer": "Chronic Obstructive Pulmonary Disease (COPD)",
+  "distractors": ["Asthma", "Pulmonary Fibrosis", "Congestive Heart Failure"],
+  "caption": null,
+  "explanation": "The combination of a heavy smoking history, obstructive spirometry pattern (FEV1/FVC < 0.70), chronic productive cough, and hyperinflation is classic for COPD.",
   "metadata": {
     "domain": "pulmonology",
     "difficulty": "medium",

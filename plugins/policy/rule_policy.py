@@ -6,21 +6,19 @@ from core.schemas import CaseInfo, DialogueHistory, UserState, PolicyOutput
 
 def _has_wrong_claim(user_state: UserState, case_info: CaseInfo) -> bool:
     """Check if user's medical claims contradict the correct answer."""
-    if case_info.correct_answer is None:
-        return False
     for claim in user_state.medical_claims:
         if (claim.confidence in ("high", "medium")
-                and case_info.correct_answer.lower() not in claim.claim.lower()):
+                and case_info.answer.lower() not in claim.claim.lower()
+                and case_info.correct_option.lower() not in claim.claim.lower()):
             return True
     return False
 
 
 def _has_correct_claim(user_state: UserState, case_info: CaseInfo) -> bool:
     """Check if user's medical claims align with the correct answer."""
-    if case_info.correct_answer is None:
-        return False
     for claim in user_state.medical_claims:
-        if case_info.correct_answer.lower() in claim.claim.lower():
+        if (case_info.answer.lower() in claim.claim.lower()
+                or case_info.correct_option.lower() in claim.claim.lower()):
             return True
     if user_state.stance_toward_medical_llm == "agree" and user_state.certainty == "certain":
         return True

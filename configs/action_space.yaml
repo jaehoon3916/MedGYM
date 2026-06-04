@@ -1,0 +1,20 @@
+action_space:
+  - id: ACCEPT
+    description: "Support the user's clinical hypothesis or decision."
+    prompt: "Accept the user's hypothesis if clinically justified and explain the supporting reasoning."
+
+  - id: CHALLENGE
+    description: "Challenge the user's hypothesis or decision."
+    prompt: "Challenge the user's hypothesis if it is clinically questionable and provide evidence-based reasoning."
+
+  - id: ASK_EVIDENCE
+    description: "Ask for additional evidence before agreeing or disagreeing."
+    prompt: "Ask for missing clinical information needed to evaluate the user's hypothesis."
+
+  - id: DEFER
+    description: "Avoid premature judgment due to insufficient evidence."
+    prompt: "Defer final judgment and explain what remains uncertain."
+
+  - id: SUMMARIZE
+    description: "Summarize the current clinical reasoning state."
+    prompt: "Summarize the current clinical facts, uncertainty, and possible next steps."

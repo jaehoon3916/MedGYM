@@ -1,0 +1,14 @@
+training:
+  mode: sft
+  batch_size: 8
+  learning_rate: 2.0e-5
+  epochs: 3
+  warmup_steps: 100
+  max_seq_length: 512
+  weight_decay: 0.01
+
+grpo:
+  group_size: 4
+  temperature: 0.8
+  max_new_tokens: 256
+  kl_coef: 0.01

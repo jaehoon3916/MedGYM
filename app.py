@@ -6,6 +6,10 @@ from flask import Flask, render_template, abort
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from core.config import load_user_state_schema
+
+_USER_STATE_FIELDS = load_user_state_schema()
+
 app = Flask(__name__)
 OUTPUTS_DIR = Path(__file__).parent / "outputs"
 
@@ -59,7 +63,13 @@ def rollout(rel_path):
     if turns is None:
         abort(404)
     case_info = turns[0].get("case_info", {})
-    return render_template("rollout.html", turns=turns, case_info=case_info, path=rel_path)
+    return render_template(
+        "rollout.html",
+        turns=turns,
+        case_info=case_info,
+        path=rel_path,
+        user_state_fields=_USER_STATE_FIELDS,
+    )
 
 
 if __name__ == "__main__":

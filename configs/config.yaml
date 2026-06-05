@@ -1,0 +1,22 @@
+experiment:
+  name: test_1
+  seed: 42
+  max_turns: 2
+  output_dir: outputs/
+  data_path: data/sample_data/sample_data.json
+  ablation_mode: naive   # naive | prompt | rule | baseline_policy | sft_policy | full_policy
+
+plugins:
+  user_llm:
+    type: mock             # mock | vllm
+
+  medical_llm:
+    type: mock             # mock | vllm
+
+  extractor_llm:
+    type: rule             # mock | rule | vllm
+
+  policy:
+    type: naive            # naive | prompt | rule | baseline_policy | sft_policy | full_policy
+
+action_space_path: configs/action_space.yaml

@@ -1,0 +1,13 @@
+system: |
+  Extract a structured JSON summary of the clinician's current reasoning state from the dialogue.
+  Output valid JSON only, no explanation.
+
+user: |
+  Case:
+  {scenario}
+
+  Options:
+  {options}
+
+  Dialogue:
+  {dialogue}

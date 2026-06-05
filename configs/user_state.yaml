@@ -1,0 +1,61 @@
+fields:
+  - name: intent
+    label: Intent
+    type: categorical
+    values: [accept, challenge, ask_question, express_uncertainty, provide_evidence, other]
+    default: other
+    extraction:
+      keyword_map:
+        accept:              ["agree", "that makes sense", "correct", "right", "yes"]
+        challenge:           ["disagree", "wrong", "incorrect", "no,", "that's not"]
+        ask_question:        ["what", "how", "why", "?"]
+        express_uncertainty: ["not sure", "uncertain", "don't know", "unclear", "unsure", "confused"]
+        provide_evidence:    ["test", "results", "findings", "data", "evidence", "symptoms"]
+
+  - name: certainty
+    label: Certainty
+    type: categorical
+    values: [certain, uncertain, neutral]
+    default: neutral
+    extraction:
+      keyword_map:
+        uncertain: ["not sure", "uncertain", "don't know", "unclear", "unsure", "confused"]
+        certain:   ["definitely", "clearly", "obviously", "certainly"]
+
+  - name: stance_toward_medical_llm
+    label: Stance
+    type: categorical
+    values: [agree, disagree, skeptical, confused, unknown]
+    default: unknown
+    extraction:
+      keyword_map:
+        agree:     ["agree", "that makes sense", "correct", "right", "yes"]
+        disagree:  ["disagree", "wrong", "incorrect", "no,", "that's not"]
+        skeptical: ["challenge", "doubt", "question", "not convinced", "evidence"]
+
+  - name: missing_information
+    label: Missing Info
+    type: list
+    default: []
+    extraction:
+      triggers:
+        - keywords: ["test", "results", "findings", "data", "evidence", "symptoms"]
+          value: "additional clinical evidence"
+        - from_field: certainty
+          when_value: uncertain
+          value: "clarification on the diagnosis"
+
+  - name: facts_to_check
+    label: Facts to Check
+    type: categorical
+    values: [true, false, unknown]
+    default: unknown
+    extraction:
+      method: case_match
+
+  - name: summary
+    label: Summary
+    type: text
+    default: ""
+    extraction:
+      template: "User stance: {stance_toward_medical_llm}. Certainty: {certainty}."

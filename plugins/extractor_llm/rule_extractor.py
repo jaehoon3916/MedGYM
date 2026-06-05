@@ -3,17 +3,11 @@ from typing import Any
 from plugins.extractor_llm.base import ExtractorLLMPlugin
 from core.schemas import CaseInfo, DialogueHistory, UserState
 
-_UNCERTAIN_KEYWORDS = ["not sure", "uncertain", "don't know", "unclear", "unsure", "confused"]
-_AGREE_KEYWORDS = ["agree", "that makes sense", "correct", "right", "yes"]
-_DISAGREE_KEYWORDS = ["disagree", "wrong", "incorrect", "no,", "that's not"]
-_SKEPTICAL_KEYWORDS = ["challenge", "doubt", "question", "not convinced", "evidence"]
-_CHALLENGE_KEYWORDS = ["but", "however", "actually", "instead", "rather"]
-_EVIDENCE_KEYWORDS = ["test", "results", "findings", "data", "evidence", "symptoms"]
-
 
 class RuleExtractorLLM(ExtractorLLMPlugin):
     def __init__(self, config: dict[str, Any]):
         super().__init__(config)
+        self._schema: list[dict[str, Any]] = config.get("_user_state_schema", [])
 
     def name(self) -> str:
         return "rule-extractor"
@@ -34,37 +28,56 @@ class RuleExtractorLLM(ExtractorLLMPlugin):
             return UserState(summary="No user utterance yet.")
 
         text = last_user_turns[-1].text.lower()
+        extracted: dict[str, Any] = {}
 
-        certainty = "uncertain" if any(kw in text for kw in _UNCERTAIN_KEYWORDS) else "neutral"
+        for field in self._schema:
+            name = field["name"]
+            ftype = field["type"]
+            default = field.get("default", "" if ftype == "text" else [])
+            extraction = field.get("extraction", {})
 
-        if any(kw in text for kw in _AGREE_KEYWORDS):
-            stance = "agree"
-            intent = "accept"
-        elif any(kw in text for kw in _SKEPTICAL_KEYWORDS):
-            stance = "skeptical"
-            intent = "challenge"
-        elif any(kw in text for kw in _DISAGREE_KEYWORDS):
-            stance = "disagree"
-            intent = "challenge"
-        else:
-            stance = "unknown"
-            intent = "express_uncertainty" if certainty == "uncertain" else "other"
+            if ftype == "categorical":
+                value = default
+                if extraction.get("method") == "case_match":
+                    correct_kws = [case_info.correct_option.lower(), *case_info.answer.lower().split()]
+                    distractor_kws = [w for d in case_info.distractors for w in d.lower().split()]
+                    if any(kw in text for kw in correct_kws if len(kw) > 3):
+                        value = "true"
+                    elif distractor_kws and any(kw in text for kw in distractor_kws if len(kw) > 3):
+                        value = "false"
+                    else:
+                        value = "unknown"
+                else:
+                    for val, keywords in extraction.get("keyword_map", {}).items():
+                        if any(kw in text for kw in keywords):
+                            value = val
+                            break
+                extracted[name] = value
 
-        missing = []
-        if any(kw in text for kw in _EVIDENCE_KEYWORDS):
-            missing.append("additional clinical evidence")
-        if certainty == "uncertain":
-            missing.append("clarification on the diagnosis")
+            elif ftype == "list":
+                items = []
+                for trigger in extraction.get("triggers", []):
+                    if "keywords" in trigger:
+                        if any(kw in text for kw in trigger["keywords"]):
+                            items.append(trigger["value"])
+                    elif "from_field" in trigger:
+                        src = extracted.get(trigger["from_field"], None)
+                        when_val = trigger.get("when_value")
+                        if when_val is not None:
+                            # trigger when src field equals a specific value
+                            if src == when_val:
+                                items.append(trigger["value"])
+                        else:
+                            # trigger when src field is non-empty
+                            if src:
+                                items.append(trigger["value"])
+                extracted[name] = items
 
-        key_facts = []
-        if any(kw in text for kw in _CHALLENGE_KEYWORDS):
-            key_facts.append("user raised a counterpoint")
+            elif ftype == "text":
+                template = extraction.get("template", "")
+                try:
+                    extracted[name] = template.format(**extracted)
+                except KeyError:
+                    extracted[name] = default
 
-        return UserState(
-            intent=intent,
-            certainty=certainty,
-            stance_toward_medical_llm=stance,
-            key_facts=key_facts,
-            missing_information=missing,
-            summary=f"User stance: {stance}. Certainty: {certainty}.",
-        )
+        return UserState(**extracted)

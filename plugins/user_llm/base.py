@@ -11,7 +11,7 @@ class UserLLMPlugin(BasePlugin):
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
-        system_utterance: str,
+        turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
     ) -> str:
         pass

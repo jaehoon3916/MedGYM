@@ -109,27 +109,35 @@
           {{ t.action_prompt }}
         </div>
 
-        <!-- Medical -->
-        <div class="bubble bubble-medical">
-          <div class="bubble-label">Medical AI</div>
-          <div class="bubble-text">{{ t.medical_response }}</div>
+        {% for dlg in t.dialogue_history[-2:] %}
+        <div class="bubble bubble-{{ dlg.speaker }}">
+          <div class="bubble-label">{% if dlg.speaker == 'medical' %}Medical AI{% else %}Clinician (User){% endif %}</div>
+          <div class="bubble-text">{{ dlg.text }}</div>
         </div>
-
-        <!-- User -->
-        <div class="bubble bubble-user">
-          <div class="bubble-label">Clinician (User)</div>
-          <div class="bubble-text">{{ t.user_utterance }}</div>
-        </div>
+        {% endfor %}
 
         <!-- User State -->
         {% set us = t.user_state %}
         <div class="state-grid">
-          <div class="state-item"><div class="sk">Intent</div><div class="sv">{{ us.intent }}</div></div>
-          <div class="state-item"><div class="sk">Certainty</div><div class="sv">{{ us.certainty }}</div></div>
-          <div class="state-item"><div class="sk">Stance</div><div class="sv">{{ us.stance_toward_medical_llm }}</div></div>
+          {% for f in user_state_fields %}
+          {% if f.type == "categorical" %}
+          <div class="state-item">
+            <div class="sk">{{ f.label }}</div>
+            <div class="sv">{{ us.get(f.name, f.default) }}</div>
+          </div>
+          {% elif f.type == "list" %}
+          <div class="state-item">
+            <div class="sk">{{ f.label }}</div>
+            <div class="sv">
+              {% set items = us.get(f.name, []) %}
+              {% if items %}{{ items | join(", ") }}{% else %}—{% endif %}
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
         </div>
-        {% if us.summary %}
-        <div class="state-summary">{{ us.summary }}</div>
+        {% if us.get("summary") %}
+        <div class="state-summary">{{ us.get("summary") }}</div>
         {% endif %}
 
       </div>

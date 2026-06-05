@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CaseInfo(BaseModel):
@@ -26,30 +26,9 @@ class CaseInfo(BaseModel):
         return self.answer
 
 
-class MedicalClaim(BaseModel):
-    claim: str
-    confidence: Literal["high", "medium", "low", "unknown"] = "unknown"
-
-
-class UserNoise(BaseModel):
-    irrelevant_info: bool = False
-    contradiction: bool = False
-    emotional_expression: bool = False
-
-
 class UserState(BaseModel):
-    intent: Literal[
-        "accept", "challenge", "ask_question",
-        "express_uncertainty", "provide_evidence", "other"
-    ] = "other"
-    certainty: Literal["certain", "uncertain", "neutral"] = "neutral"
-    stance_toward_medical_llm: Literal[
-        "agree", "disagree", "skeptical", "confused", "unknown"
-    ] = "unknown"
-    medical_claims: list[MedicalClaim] = Field(default_factory=list)
-    user_noise: UserNoise = Field(default_factory=UserNoise)
-    key_facts: list[str] = Field(default_factory=list)
-    missing_information: list[str] = Field(default_factory=list)
+    """Fields and allowed values are defined in configs/user_state.yaml."""
+    model_config = ConfigDict(extra="allow")
     summary: str = ""
 
 

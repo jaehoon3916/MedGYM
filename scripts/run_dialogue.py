@@ -19,7 +19,8 @@ def main():
     parser.add_argument("--max_turns", type=int, default=None)
     args = parser.parse_args()
 
-    config = load_yaml(args.config)
+    config = load_yaml(
+        args.config)
     case_path = args.case or config.get("experiment", {}).get("data_path")
     if not case_path:
         raise ValueError("Specify --case or set experiment.data_path in config")

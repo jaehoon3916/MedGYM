@@ -6,145 +6,210 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
-    header { background: #1a3c5e; color: #fff; padding: 18px 32px; display: flex; align-items: center; gap: 16px; }
+
+    header { background: #1a3c5e; color: #fff; padding: 14px 24px;
+             display: flex; align-items: center; justify-content: space-between; }
     header a { color: #8ab8d8; font-size: 0.85rem; text-decoration: none; }
     header a:hover { text-decoration: underline; }
-    header h1 { font-size: 1.2rem; font-weight: 600; }
-    main { max-width: 860px; margin: 32px auto; padding: 0 24px 64px; }
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+    #toggle-sidebar {
+      background: #2e5f8a; border: none; color: #fff; padding: 6px 14px;
+      border-radius: 6px; cursor: pointer; font-size: 0.82rem; white-space: nowrap;
+    }
+    #toggle-sidebar:hover { background: #3a72a8; }
+
+    /* Layout */
+    .layout { display: flex; height: calc(100vh - 52px); overflow: hidden; }
+    .main-panel { flex: 1; overflow-y: auto; padding: 24px; min-width: 0; }
+    .sidebar {
+      width: 320px; min-width: 320px; background: #fff;
+      border-left: 1px solid #dde3ea; overflow-y: auto;
+      transition: width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease;
+    }
+    .sidebar.hidden { width: 0; min-width: 0; opacity: 0; overflow: hidden; }
 
     /* Case Info */
-    .case-card { background: #fff; border-radius: 8px; padding: 20px 24px;
-                 box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; }
-    .case-card h2 { font-size: 0.75rem; text-transform: uppercase; color: #888;
+    .case-card { background: #fff; border-radius: 8px; padding: 18px 22px;
+                 box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 24px; }
+    .case-card h2 { font-size: 0.7rem; text-transform: uppercase; color: #888;
                     letter-spacing: 0.6px; margin-bottom: 10px; }
-    .scenario { font-size: 0.92rem; line-height: 1.65; color: #333; margin-bottom: 14px; }
+    .scenario { font-size: 0.9rem; line-height: 1.65; color: #333; margin-bottom: 14px; }
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .option { padding: 8px 12px; border-radius: 6px; font-size: 0.85rem;
+    .option { padding: 8px 12px; border-radius: 6px; font-size: 0.82rem;
               border: 1px solid #ddd; background: #fafafa; }
     .option.correct { background: #e9f7ef; border-color: #82c99a; color: #1a6b35; font-weight: 600; }
-    .meta-row { font-size: 0.8rem; color: #888; display: flex; gap: 20px; }
+    .meta-row { font-size: 0.78rem; color: #888; display: flex; gap: 20px; }
 
     /* Timeline */
-    .timeline { display: flex; flex-direction: column; gap: 20px; }
-    .turn { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
-    .turn-header { padding: 10px 16px; font-size: 0.75rem; font-weight: 700;
+    .timeline { display: flex; flex-direction: column; gap: 16px; }
+    .turn { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; }
+    .turn.active { border-color: #5b9bd5; }
+    .turn-header { padding: 10px 16px; font-size: 0.73rem; font-weight: 700;
                    text-transform: uppercase; letter-spacing: 0.6px; display: flex;
-                   justify-content: space-between; align-items: center; }
-    .turn-header.turn-label-0 { background: #e8f4fd; color: #1a5f8a; }
+                   justify-content: space-between; align-items: center;
+                   background: #e8f4fd; color: #1a5f8a; }
     .turn-body { padding: 0 16px 16px; }
-
     .bubble { margin-top: 12px; }
-    .bubble-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+    .bubble-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
                     color: #888; margin-bottom: 4px; }
-    .bubble-text { font-size: 0.9rem; line-height: 1.6; padding: 10px 14px;
+    .bubble-text { font-size: 0.88rem; line-height: 1.6; padding: 10px 14px;
                    border-radius: 8px; border-left: 3px solid; }
     .bubble-medical .bubble-text { background: #f0f7ff; border-color: #5b9bd5; }
     .bubble-user    .bubble-text { background: #f5faf0; border-color: #6bbf6b; }
 
-    /* Action badge */
-    .action-tag { font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+    .action-tag { font-size: 0.7rem; font-weight: 700; padding: 3px 10px;
                   border-radius: 999px; letter-spacing: 0.4px; }
-    .a-ACCEPT      { background: #d4edda; color: #155724; }
-    .a-CHALLENGE   { background: #f8d7da; color: #721c24; }
-    .a-ASK_EVIDENCE{ background: #cce5ff; color: #004085; }
-    .a-DEFER       { background: #e2e3e5; color: #383d41; }
-    .a-SUMMARIZE   { background: #fff3cd; color: #856404; }
+    .a-ACCEPT       { background: #d4edda; color: #155724; }
+    .a-CHALLENGE    { background: #f8d7da; color: #721c24; }
+    .a-ASK_EVIDENCE { background: #cce5ff; color: #004085; }
+    .a-DEFER        { background: #e2e3e5; color: #383d41; }
+    .a-SUMMARIZE    { background: #fff3cd; color: #856404; }
 
-    /* User state */
-    .state-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
-    .state-item { background: #f8f9fa; border-radius: 6px; padding: 8px 10px; font-size: 0.8rem; }
-    .state-item .sk { color: #888; font-size: 0.7rem; margin-bottom: 2px; }
+    /* Sidebar content */
+    .sidebar-inner { padding: 0; }
+    .sidebar-turn {
+      border-bottom: 1px solid #eef0f3; padding: 14px 16px;
+      display: none;
+    }
+    .sidebar-turn.active { display: block; }
+    .sb-section { margin-bottom: 14px; }
+    .sb-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.6px;
+                color: #aaa; margin-bottom: 8px; }
+    .action-prompt-box { background: #fffbf0; border: 1px solid #ffe58f;
+                         border-radius: 6px; padding: 8px 10px;
+                         font-size: 0.82rem; color: #5a4500; line-height: 1.55; }
+    .state-grid { display: flex; flex-direction: column; gap: 6px; }
+    .state-item { background: #f8f9fa; border-radius: 6px; padding: 7px 10px; font-size: 0.8rem; }
+    .state-item .sk { color: #888; font-size: 0.68rem; margin-bottom: 2px; }
     .state-item .sv { font-weight: 600; color: #333; }
-    .state-summary { margin-top: 8px; font-size: 0.82rem; color: #555; font-style: italic;
-                     padding: 6px 10px; background: #f8f9fa; border-radius: 6px; }
-
-    .action-prompt-box { margin-top: 10px; background: #fffbf0; border: 1px solid #ffe58f;
-                         border-radius: 6px; padding: 8px 12px; font-size: 0.83rem; color: #5a4500; }
-    .section-label { font-size: 0.7rem; text-transform: uppercase; color: #aaa;
-                     letter-spacing: 0.5px; margin-bottom: 4px; }
+    .state-summary { font-size: 0.82rem; color: #555; font-style: italic;
+                     padding: 7px 10px; background: #f8f9fa; border-radius: 6px; line-height: 1.55; }
+    .sidebar-header { padding: 14px 16px 10px; font-size: 0.8rem; font-weight: 600;
+                      color: #1a3c5e; border-bottom: 1px solid #eef0f3; }
+    .no-selection { padding: 20px 16px; font-size: 0.82rem; color: #aaa; text-align: center; }
   </style>
 </head>
 <body>
+
 <header>
-  <div>
+  <div style="display:flex;align-items:center;gap:16px;">
     <a href="/">← All Rollouts</a>
     <h1>Case {{ case_info.get('case_id','?') }}</h1>
   </div>
+  <button id="toggle-sidebar" onclick="toggleSidebar()">Hide Detail</button>
 </header>
-<main>
 
-  <!-- Case Info -->
-  <div class="case-card">
-    <h2>Case Info</h2>
-    <p class="scenario">{{ case_info.get('scenario','') }}</p>
-    <div class="options-grid">
-      {% set correct = case_info.get('correct_option','') %}
-      {% for k, v in case_info.get('options', {}).items() %}
-      <div class="option {% if k == correct %}correct{% endif %}">
-        <strong>{{ k }}.</strong> {{ v }}
-        {% if k == correct %} ✓{% endif %}
+<div class="layout">
+  <!-- Main Panel -->
+  <div class="main-panel">
+
+    <div class="case-card">
+      <h2>Case Info</h2>
+      <p class="scenario">{{ case_info.get('scenario','') }}</p>
+      <div class="options-grid">
+        {% set correct = case_info.get('correct_option','') %}
+        {% for k, v in case_info.get('options', {}).items() %}
+        <div class="option {% if k == correct %}correct{% endif %}">
+          <strong>{{ k }}.</strong> {{ v }}{% if k == correct %} ✓{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="meta-row">
+        <span>Turns: <strong>{{ turns|length }}</strong></span>
+        <span>Policy: <strong>{{ turns[0].model_name.policy if turns else '—' }}</strong></span>
+        <span>{{ turns[0].get('timestamp','')[:19].replace('T',' ') if turns else '' }}</span>
+      </div>
+    </div>
+
+    <div class="timeline">
+      {% for t in turns %}
+      <div class="turn" id="turn-{{ t.turn_id }}" onclick="selectTurn({{ t.turn_id }})">
+        <div class="turn-header">
+          <span>Turn {{ t.turn_id + 1 }}</span>
+          <span class="action-tag a-{{ t.selected_action }}">{{ t.selected_action }}</span>
+        </div>
+        <div class="turn-body">
+          {% for dlg in t.dialogue_history[-2:] %}
+          <div class="bubble bubble-{{ dlg.speaker }}">
+            <div class="bubble-label">{% if dlg.speaker == 'medical' %}Medical AI{% else %}Clinician (User){% endif %}</div>
+            <div class="bubble-text">{{ dlg.text }}</div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
       {% endfor %}
     </div>
-    <div class="meta-row">
-      <span>Turns: <strong>{{ turns|length }}</strong></span>
-      <span>Policy: <strong>{{ turns[0].model_name.policy if turns else '—' }}</strong></span>
-      <span>{{ turns[0].get('timestamp','')[:19].replace('T',' ') if turns else '' }}</span>
-    </div>
+
   </div>
 
-  <!-- Timeline -->
-  <div class="timeline">
-    {% for t in turns %}
-    <div class="turn">
-      <div class="turn-header turn-label-0">
-        <span>Turn {{ t.turn_id + 1 }}</span>
-        <span class="action-tag a-{{ t.selected_action }}">{{ t.selected_action }}</span>
-      </div>
-      <div class="turn-body">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-header">Turn Detail</div>
+      <div class="no-selection" id="no-selection">Turn을 클릭하면 상세 정보가 표시됩니다.</div>
 
-        <!-- Action Prompt -->
-        <div class="action-prompt-box">
-          <div class="section-label">Action Prompt</div>
-          {{ t.action_prompt }}
+      {% for t in turns %}
+      <div class="sidebar-turn" id="sb-{{ t.turn_id }}">
+
+        <div class="sb-section">
+          <div class="sb-title">Action Prompt</div>
+          <div class="action-prompt-box">{{ t.action_prompt }}</div>
         </div>
 
-        {% for dlg in t.dialogue_history[-2:] %}
-        <div class="bubble bubble-{{ dlg.speaker }}">
-          <div class="bubble-label">{% if dlg.speaker == 'medical' %}Medical AI{% else %}Clinician (User){% endif %}</div>
-          <div class="bubble-text">{{ dlg.text }}</div>
-        </div>
-        {% endfor %}
-
-        <!-- User State -->
-        {% set us = t.user_state %}
-        <div class="state-grid">
-          {% for f in user_state_fields %}
-          {% if f.type == "categorical" %}
-          <div class="state-item">
-            <div class="sk">{{ f.label }}</div>
-            <div class="sv">{{ us.get(f.name, f.default) }}</div>
-          </div>
-          {% elif f.type == "list" %}
-          <div class="state-item">
-            <div class="sk">{{ f.label }}</div>
-            <div class="sv">
-              {% set items = us.get(f.name, []) %}
-              {% if items %}{{ items | join(", ") }}{% else %}—{% endif %}
+        <div class="sb-section">
+          <div class="sb-title">User State</div>
+          {% set us = t.user_state %}
+          <div class="state-grid">
+            {% for f in user_state_fields %}
+            {% if f.type in ("categorical", "list") %}
+            <div class="state-item">
+              <div class="sk">{{ f.label }}</div>
+              <div class="sv">
+                {% if f.type == "list" %}
+                  {% set items = us.get(f.name, []) %}
+                  {% if items %}{{ items | join(", ") }}{% else %}—{% endif %}
+                {% else %}
+                  {{ us.get(f.name, f.default) or '—' }}
+                {% endif %}
+              </div>
             </div>
+            {% endif %}
+            {% endfor %}
           </div>
+          {% if us.get("summary") %}
+          <div class="state-summary" style="margin-top:8px;">{{ us.get("summary") }}</div>
           {% endif %}
-          {% endfor %}
         </div>
-        {% if us.get("summary") %}
-        <div class="state-summary">{{ us.get("summary") }}</div>
-        {% endif %}
 
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
+</div>
 
-</main>
+<script>
+  let sidebarVisible = true;
+
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('toggle-sidebar');
+    sidebarVisible = !sidebarVisible;
+    sb.classList.toggle('hidden', !sidebarVisible);
+    btn.textContent = sidebarVisible ? 'Hide Detail' : 'Show Detail';
+  }
+
+  function selectTurn(id) {
+    document.querySelectorAll('.turn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sidebar-turn').forEach(el => el.classList.remove('active'));
+    document.getElementById('no-selection').style.display = 'none';
+    document.getElementById('turn-' + id).classList.add('active');
+    document.getElementById('sb-' + id).classList.add('active');
+    if (!sidebarVisible) toggleSidebar();
+  }
+
+  // Auto-select first turn
+  window.onload = () => { {% if turns %}selectTurn({{ turns[0].turn_id }});{% endif %} };
+</script>
 </body>
 </html>

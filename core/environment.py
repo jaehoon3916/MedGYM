@@ -7,7 +7,7 @@ from core.schemas import CaseInfo, DialogueHistory, StepResult
 from core.logger import RolloutLogger
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
-from plugins.extractor_llm.base import ExtractorLLMPlugin
+from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from plugins.policy.base import PolicyPlugin
 
 
@@ -16,13 +16,13 @@ class MedicalHACEnvironment:
         self,
         user_llm: UserLLMPlugin,
         medical_llm: MedicalLLMPlugin,
-        extractor_llm: ExtractorLLMPlugin,
+        fact_validator_llm: FactValidatorLLMPlugin,
         policy: PolicyPlugin,
         config: dict[str, Any],
     ):
         self.user_llm = user_llm
         self.medical_llm = medical_llm
-        self.extractor_llm = extractor_llm
+        self.fact_validator_llm = fact_validator_llm
         self.policy = policy
         self.config = config
 
@@ -49,20 +49,22 @@ class MedicalHACEnvironment:
         # 2. Update dialogue history with user utterance
         self._history.add_turn("user", user_utterance)
 
-        # 3. Extractor LLM extracts user state from updated history
-        user_state = self.extractor_llm.extract_user_state(
+        # 3. Fact Validator LLM validates facts from current user utterance
+        verification_template = self.fact_validator_llm.validate_facts(
             case_info=self._case_info,
             dialogue_history=self._history,
+            current_user_utterance=user_utterance,
         )
 
-        # 4. Policy selects next action based on user state
+        # 4. Policy selects next action based on user utterance + verification template
         policy_output = self.policy.select_action(
             case_info=self._case_info,
             dialogue_history=self._history,
-            user_state=user_state,
+            current_user_utterance=user_utterance,
+            verification_template=verification_template,
         )
 
-        # 5-6. Medical LLM generates system utterance using selected action prompt
+        # 5. Medical LLM generates system utterance using selected action prompt
         medical_response = self.medical_llm.generate_medical_response(
             case_info=self._case_info,
             dialogue_history=self._history,
@@ -74,7 +76,7 @@ class MedicalHACEnvironment:
             case_id=self._case_info.case_id,
             turn_id=self._turn_id,
             user_utterance=user_utterance,
-            user_state=user_state,
+            verification_template=verification_template,
             selected_action=policy_output.action_id,
             action_prompt=policy_output.action_prompt,
             medical_response=medical_response,
@@ -95,7 +97,7 @@ class MedicalHACEnvironment:
         model_names = {
             "user_llm": self.user_llm.name(),
             "medical_llm": self.medical_llm.name(),
-            "extractor_llm": self.extractor_llm.name(),
+            "fact_validator_llm": self.fact_validator_llm.name(),
             "policy": self.policy.name(),
         }
         logger = RolloutLogger(case_info=case_info, model_names=model_names)

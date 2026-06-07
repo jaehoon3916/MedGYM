@@ -9,7 +9,7 @@ from core.environment import MedicalHACEnvironment
 from core.config import load_action_space
 from plugins.user_llm.mock_user import MockUserLLM
 from plugins.medical_llm.mock_medical import MockMedicalLLM
-from plugins.extractor_llm.rule_extractor import RuleExtractorLLM
+from plugins.fact_validator_llm.mock_fact_validator import MockFactValidatorLLM
 from plugins.policy.rule_policy import RulePolicy
 
 
@@ -32,7 +32,7 @@ def env():
     return MedicalHACEnvironment(
         user_llm=MockUserLLM({}),
         medical_llm=MockMedicalLLM({}),
-        extractor_llm=RuleExtractorLLM({}),
+        fact_validator_llm=MockFactValidatorLLM({}),
         policy=RulePolicy({}, action_space=action_space),
         config=config,
     )
@@ -50,17 +50,18 @@ def test_single_step(env, sample_case):
     assert result.turn_id == 0
     assert result.medical_response
     assert result.user_utterance
-    assert result.selected_action in {"ACCEPT", "CHALLENGE", "ASK_EVIDENCE", "DEFER", "SUMMARIZE"}
+    assert "." in result.selected_action  # "STAGE.locution" format
     assert result.action_prompt
+    assert result.verification_template is not None
 
 
 def test_step_updates_history(env, sample_case):
     env.reset(sample_case)
     env.step()
-    # After 1 step: 1 medical turn + 1 user turn = 2 turns
+    # After 1 step: user utterance added first, then medical response
     assert len(env._history.turns) == 2
-    assert env._history.turns[0].speaker == "medical"
-    assert env._history.turns[1].speaker == "user"
+    assert env._history.turns[0].speaker == "user"
+    assert env._history.turns[1].speaker == "medical"
 
 
 def test_run_episode_two_turns(env, sample_case, tmp_path):
@@ -80,7 +81,7 @@ def test_rollout_jsonl_format(env, sample_case, tmp_path):
     record = json.loads(lines[0])
     required_keys = {
         "case_id", "turn_id", "case_info", "dialogue_history",
-        "user_state", "selected_action", "action_prompt",
+        "verification_template", "selected_action", "action_prompt",
         "medical_response", "user_utterance", "reward",
         "model_name", "timestamp",
     }

@@ -4,16 +4,29 @@ from typing import Any
 
 from plugins.vllm_base import VLLMBasePlugin
 from plugins.policy.base import PolicyPlugin
-from core.schemas import CaseInfo, DialogueHistory, UserState, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
 from core.prompt_builder import _load
 
-_VALID_ACTIONS = {"ACCEPT", "CHALLENGE", "ASK_EVIDENCE", "DEFER", "SUMMARIZE"}
+_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM", "CLOSE"}
+
+
+def _parse_dot_action(raw: str) -> tuple[str, str, str]:
+    """Parse 'STAGE.locution' format from model output."""
+    parts = raw.strip().upper().split(".")
+    if len(parts) >= 2:
+        stage = parts[0]
+        locution = parts[1].lower()
+    else:
+        stage, locution = "INFORM", "ask_justify"
+    if stage not in _VALID_STAGES:
+        stage = "INFORM"
+    return stage, locution, "fact"
 
 
 class QwenPolicy(VLLMBasePlugin, PolicyPlugin):
     """Qwen3-8B policy: baseline / sft / full depending on checkpoint loaded."""
 
-    def __init__(self, config: dict[str, Any], action_space: dict[str, dict[str, str]]):
+    def __init__(self, config: dict[str, Any], action_space: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
         PolicyPlugin.__init__(self, config, action_space)
         self._mode: str = config.get("mode", "baseline")
@@ -25,24 +38,33 @@ class QwenPolicy(VLLMBasePlugin, PolicyPlugin):
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
-        user_state: UserState,
+        current_user_utterance: str,
+        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         tmpl = _load("baseline_policy")
-        state_lines = "\n".join(
-            f"  {k}: {v}" for k, v in user_state.model_dump().items() if v and v != []
-        )
+        vt = verification_template
         messages = [
             {"role": "system", "content": tmpl["system"]},
-            {"role": "user", "content": tmpl["user"].format(user_state=state_lines)},
+            {"role": "user", "content": tmpl["user"].format(
+                overall_relation=vt.overall_relation,
+                confidence=vt.confidence,
+                short_rationale=vt.short_rationale,
+                current_user_utterance=current_user_utterance,
+            )},
         ]
         raw = self._chat(messages, temperature=0.0, max_tokens=16)
-        action_id = raw.strip().upper().split()[0] if raw.strip() else "DEFER"
-        if action_id not in _VALID_ACTIONS:
-            action_id = "DEFER"
-
+        stage, locution, locution_type = _parse_dot_action(raw)
+        action_id = f"{stage}.{locution}"
+        action_prompt = (
+            f"Stage: {stage} | Locution: {locution}({locution_type})\n"
+            f"Apply this deliberation move in your response."
+        )
         return PolicyOutput(
+            stage=stage,
+            locution=locution,
+            locution_type=locution_type,
             action_id=action_id,
-            action_prompt=self.action_space[action_id]["prompt"],
+            action_prompt=action_prompt,
             confidence=1.0,
             metadata={"policy": self._mode},
         )

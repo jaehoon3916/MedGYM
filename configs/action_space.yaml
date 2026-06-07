@@ -1,20 +1,53 @@
-action_space:
-  - id: ACCEPT
-    description: "Support the user's clinical hypothesis or decision."
-    prompt: "Accept the user's hypothesis if clinically justified and explain the supporting reasoning."
+stages:
+  - id: INFORM
+    description: "Discuss goals, constraints, perspectives, or facts relevant to the clinical case."
+    allowed_locutions: [propose, assert, retract, ask_justify]
+    allowed_types: [goal, constraint, perspective, fact]
 
-  - id: CHALLENGE
-    description: "Challenge the user's hypothesis or decision."
-    prompt: "Challenge the user's hypothesis if it is clinically questionable and provide evidence-based reasoning."
+  - id: PROPOSE
+    description: "Propose a specific action-option (management/diagnosis) addressing the clinical question."
+    allowed_locutions: [propose]
+    allowed_types: [action]
 
-  - id: ASK_EVIDENCE
-    description: "Ask for additional evidence before agreeing or disagreeing."
-    prompt: "Ask for missing clinical information needed to evaluate the user's hypothesis."
+  - id: CONSIDER
+    description: "Evaluate the proposal from multiple clinical perspectives."
+    allowed_locutions: [assert, prefer, ask_justify]
+    allowed_types: [evaluation]
 
-  - id: DEFER
-    description: "Avoid premature judgment due to insufficient evidence."
-    prompt: "Defer final judgment and explain what remains uncertain."
+  - id: REVISE
+    description: "Revise goals, constraints, perspectives, or action-options based on the discussion."
+    allowed_locutions: [propose, retract, ask_justify]
+    allowed_types: [goal, constraint, perspective, action]
 
-  - id: SUMMARIZE
-    description: "Summarize the current clinical reasoning state."
-    prompt: "Summarize the current clinical facts, uncertainty, and possible next steps."
+  - id: RECOMMEND
+    description: "Recommend a specific action-option and invite acceptance/rejection."
+    allowed_locutions: [move, assert, reject]
+    allowed_types: [action]
+
+  - id: CONFIRM
+    description: "Confirm acceptance of the recommended option."
+    allowed_locutions: [assert]
+    allowed_types: [action]
+
+  - id: CLOSE
+    description: "Close the deliberation dialogue."
+    allowed_locutions: [withdraw_dialogue]
+    allowed_types: []
+
+locutions:
+  - id: propose
+    description: "Propose t as a valid instance of the given type (softer commitment than assert)."
+  - id: assert
+    description: "Assert t as a valid instance of the given type (stronger commitment)."
+  - id: prefer
+    description: "Express preference for action a over action b."
+  - id: ask_justify
+    description: "Request justification or evidence for the given claim."
+  - id: move
+    description: "Call for participants to express acceptance/rejection of action a as collective decision."
+  - id: reject
+    description: "Refuse to accept a as the collective decision."
+  - id: retract
+    description: "Withdraw a previous locution."
+  - id: withdraw_dialogue
+    description: "Signal withdrawal from the deliberation dialogue."

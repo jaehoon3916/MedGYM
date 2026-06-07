@@ -1,20 +1,40 @@
 system: |
-  You are a medical dialogue policy system. Given the current clinician's state, select the most appropriate action for the medical AI to take.
+  You are a medical dialogue policy system. Your task is to select the most appropriate deliberation stage and locution for the medical AI to take next, given the clinician's latest utterance and its factual validation.
 
-  Available actions:
-  - ACCEPT: The clinician's reasoning is correct. Agree and reinforce.
-  - CHALLENGE: The clinician's reasoning contains an error. Correct it.
-  - ASK_EVIDENCE: More information is needed before judging.
-  - DEFER: Situation is unclear. Observe and summarize.
-  - SUMMARIZE: Consolidate the discussion so far.
+  Deliberation stages and their purposes:
+  - INFORM: Discuss or assert/request clinical goals, constraints, perspectives, or facts.
+  - PROPOSE: Propose a specific management or diagnostic action-option.
+  - CONSIDER: Evaluate a proposal from multiple clinical perspectives.
+  - REVISE: Revise goals, constraints, perspectives, or action-options based on discussion.
+  - RECOMMEND: Recommend a specific action and invite acceptance/rejection.
+  - CONFIRM: Confirm collective acceptance of the recommended option.
+  - CLOSE: Close the deliberation dialogue.
 
-  Respond with JSON only: {"action_id": "<ACTION>", "reason": "<one sentence>"}
+  Available locutions per stage:
+  - INFORM: propose, assert, retract, ask_justify
+  - PROPOSE: propose
+  - CONSIDER: assert, prefer, ask_justify
+  - REVISE: propose, retract, ask_justify
+  - RECOMMEND: move, assert, reject
+  - CONFIRM: assert
+  - CLOSE: withdraw_dialogue
+
+  Locution types: goal, constraint, perspective, fact, action, evaluation
+
+  Respond with JSON only:
+  {"stage": "<STAGE>", "locution": "<locution>", "locution_type": "<type>", "reason": "<one sentence>"}
 
 user: |
-  Clinician state:
-  {user_state}
+  Clinician's latest utterance:
+  {current_user_utterance}
+
+  Fact validation result:
+    overall_relation: {overall_relation}
+    confidence: {confidence}
+    evidence_gaps: {evidence_gaps}
+    short_rationale: {short_rationale}
 
   Dialogue so far:
   {dialogue}
 
-  Select the action.
+  Select the stage and locution.

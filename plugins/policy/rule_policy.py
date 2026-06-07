@@ -1,11 +1,37 @@
 from typing import Any
 
 from plugins.policy.base import PolicyPlugin
-from core.schemas import CaseInfo, DialogueHistory, UserState, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
+
+
+_RELATION_TO_ACTION: dict[str, tuple[str, str, str]] = {
+    # (stage, locution, locution_type)
+    "contradicted":  ("INFORM",     "assert",       "fact"),
+    "insufficient":  ("INFORM",     "ask_justify",  "fact"),
+    "supported":     ("RECOMMEND",  "assert",       "action"),
+    "mixed":         ("CONSIDER",   "assert",       "evaluation"),
+    "unknown":       ("INFORM",     "ask_justify",  "fact"),
+}
+
+_ACTION_PROMPTS: dict[str, str] = {
+    "INFORM.assert":            "Assert the correct clinical fact based on established medical evidence.",
+    "INFORM.ask_justify":       "Ask the clinician to justify or provide evidence for their claim.",
+    "RECOMMEND.assert":         "Assert and recommend the clinically supported action-option.",
+    "CONSIDER.assert":          "Evaluate and comment on the proposal from a clinical perspective.",
+    "INFORM.retract":           "Retract a previously stated clinical claim in light of new evidence.",
+    "PROPOSE.propose":          "Propose a specific management or diagnostic action-option.",
+    "REVISE.propose":           "Revise the previously proposed action-option based on the discussion.",
+    "REVISE.retract":           "Retract and revise a previous position.",
+    "REVISE.ask_justify":       "Ask for justification before revising the clinical plan.",
+    "RECOMMEND.move":           "Call for collective agreement on the recommended action.",
+    "RECOMMEND.reject":         "Reject the proposed action as clinically inappropriate.",
+    "CONFIRM.assert":           "Confirm collective acceptance of the recommended action.",
+    "CLOSE.withdraw_dialogue":  "Close the deliberation dialogue.",
+}
 
 
 class RulePolicy(PolicyPlugin):
-    def __init__(self, config: dict[str, Any], action_space: dict[str, dict[str, str]]):
+    def __init__(self, config: dict[str, Any], action_space: dict[str, Any]):
         super().__init__(config, action_space)
 
     def name(self) -> str:
@@ -18,24 +44,22 @@ class RulePolicy(PolicyPlugin):
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
-        user_state: UserState,
+        current_user_utterance: str,
+        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
-        stance = getattr(user_state, "stance_toward_medical_llm", "unknown")
-        certainty = getattr(user_state, "certainty", "neutral")
-        facts_to_check = getattr(user_state, "facts_to_check", "unknown")
-
-        if certainty == "uncertain":
-            action_id = "ASK_EVIDENCE"
-        elif facts_to_check == "false" or stance in ("skeptical", "disagree"):
-            action_id = "CHALLENGE"
-        elif facts_to_check == "true" and stance == "agree":
-            action_id = "ACCEPT"
-        else:
-            action_id = "DEFER"
+        relation = verification_template.overall_relation
+        stage, locution, locution_type = _RELATION_TO_ACTION.get(
+            relation, ("INFORM", "ask_justify", "fact")
+        )
+        action_id = f"{stage}.{locution}"
+        action_prompt = _ACTION_PROMPTS.get(action_id, f"Apply {locution} in the {stage} stage.")
 
         return PolicyOutput(
+            stage=stage,
+            locution=locution,
+            locution_type=locution_type,
             action_id=action_id,
-            action_prompt=self.action_space[action_id]["prompt"],
+            action_prompt=action_prompt,
             confidence=1.0,
-            metadata={"policy": "rule"},
+            metadata={"policy": "rule", "overall_relation": relation},
         )

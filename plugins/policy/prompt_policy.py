@@ -5,16 +5,26 @@ from typing import Any
 
 from plugins.vllm_base import VLLMBasePlugin
 from plugins.policy.base import PolicyPlugin
-from core.schemas import CaseInfo, DialogueHistory, UserState, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
 from core.prompt_builder import _load
 
-_VALID_ACTIONS = {"ACCEPT", "CHALLENGE", "ASK_EVIDENCE", "DEFER", "SUMMARIZE"}
+_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM", "CLOSE"}
+_DEFAULT_ACTION = ("INFORM", "ask_justify", "fact")
+
+
+def _parse_action(data: dict) -> tuple[str, str, str]:
+    stage = str(data.get("stage", "INFORM")).upper()
+    locution = str(data.get("locution", "ask_justify")).lower()
+    locution_type = str(data.get("locution_type", "fact")).lower()
+    if stage not in _VALID_STAGES:
+        stage = "INFORM"
+    return stage, locution, locution_type
 
 
 class PromptPolicy(VLLMBasePlugin, PolicyPlugin):
-    """LLM-based policy: generates action from user_state via prompt."""
+    """LLM-based policy: generates hierarchical stage+locution from verification_template via prompt."""
 
-    def __init__(self, config: dict[str, Any], action_space: dict[str, dict[str, str]]):
+    def __init__(self, config: dict[str, Any], action_space: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
         PolicyPlugin.__init__(self, config, action_space)
 
@@ -25,31 +35,40 @@ class PromptPolicy(VLLMBasePlugin, PolicyPlugin):
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
-        user_state: UserState,
+        current_user_utterance: str,
+        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         tmpl = _load("prompt_policy")
-        state_lines = "\n".join(
-            f"  {k}: {v}" for k, v in user_state.model_dump().items() if v and v != []
-        )
+        vt = verification_template
         messages = [
             {"role": "system", "content": tmpl["system"]},
             {"role": "user", "content": tmpl["user"].format(
-                user_state=state_lines,
+                current_user_utterance=current_user_utterance,
+                overall_relation=vt.overall_relation,
+                confidence=vt.confidence,
+                evidence_gaps=vt.evidence_gaps,
+                short_rationale=vt.short_rationale,
                 dialogue=dialogue_history.to_prompt(),
             )},
         ]
         raw = self._chat(messages, temperature=0.0)
         try:
             data = json.loads(raw)
-            action_id = data.get("action_id", "DEFER").upper()
-            if action_id not in _VALID_ACTIONS:
-                action_id = "DEFER"
+            stage, locution, locution_type = _parse_action(data)
         except (json.JSONDecodeError, AttributeError):
-            action_id = "DEFER"
+            stage, locution, locution_type = _DEFAULT_ACTION
 
+        action_id = f"{stage}.{locution}"
+        action_prompt = (
+            f"Stage: {stage} | Locution: {locution}({locution_type})\n"
+            f"Apply this deliberation move in your response."
+        )
         return PolicyOutput(
+            stage=stage,
+            locution=locution,
+            locution_type=locution_type,
             action_id=action_id,
-            action_prompt=self.action_space[action_id]["prompt"],
+            action_prompt=action_prompt,
             confidence=1.0,
             metadata={"policy": "prompt", "raw": raw},
         )

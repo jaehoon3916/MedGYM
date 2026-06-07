@@ -2,11 +2,11 @@ from abc import abstractmethod
 from typing import Any
 
 from plugins.base import BasePlugin
-from core.schemas import CaseInfo, DialogueHistory, UserState, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
 
 
 class PolicyPlugin(BasePlugin):
-    def __init__(self, config: dict[str, Any], action_space: dict[str, dict[str, str]]):
+    def __init__(self, config: dict[str, Any], action_space: dict[str, Any]):
         super().__init__(config)
         self.action_space = action_space
 
@@ -15,6 +15,7 @@ class PolicyPlugin(BasePlugin):
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
-        user_state: UserState,
+        current_user_utterance: str,
+        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         pass

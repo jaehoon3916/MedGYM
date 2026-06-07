@@ -6,8 +6,8 @@ set -euo pipefail
 ENV_NAME=${ENV_NAME:-vllm}
 PORT=${PORT:-8001}
 LOGDIR=${LOGDIR:-$HOME/vllm-system/logs}
-MODEL_PATH=${MODEL_PATH:-ibnzterrell/Meta-Llama-3.3-70B-Instruct-AWQ-INT4}
-TENSOR_PARALLEL=${TENSOR_PARALLEL:-2}
+MODEL_PATH=${MODEL_PATH:-meta-llama/Llama-3.3-70B-Instruct}
+TENSOR_PARALLEL=${TENSOR_PARALLEL:-8}
 MAX_MODEL_LEN=${MAX_MODEL_LEN:-8192}
 
 # conda 환경 활성화

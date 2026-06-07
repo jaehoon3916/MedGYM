@@ -73,3 +73,22 @@ def build_extractor_prompt(
         {"role": "system", "content": system},
         {"role": "user", "content": user_content},
     ]
+
+
+def build_fact_validator_prompt(
+    case_info: CaseInfo,
+    dialogue_history: DialogueHistory,
+    current_user_utterance: str,
+) -> list[dict[str, str]]:
+    tmpl = _load("fact_validator_llm")
+    user_content = tmpl["user"].format(
+        scenario=case_info.scenario,
+        options=_format_options(case_info.options),
+        correct_answer=case_info.correct_answer,
+        dialogue=dialogue_history.to_prompt(),
+        current_user_utterance=current_user_utterance,
+    )
+    return [
+        {"role": "system", "content": tmpl["system"]},
+        {"role": "user", "content": user_content},
+    ]

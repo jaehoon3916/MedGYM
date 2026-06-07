@@ -20,7 +20,7 @@ class RolloutLogger:
             "turn_id": step_result.turn_id,
             "case_info": self.case_info.model_dump(),
             "dialogue_history": dialogue_snapshot,
-            "user_state": step_result.user_state.model_dump(),
+            "verification_template": step_result.verification_template.model_dump(),
             "selected_action": step_result.selected_action,
             "action_prompt": step_result.action_prompt,
             "medical_response": step_result.medical_response,

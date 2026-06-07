@@ -32,6 +32,15 @@ class UserState(BaseModel):
     summary: str = ""
 
 
+class VerificationTemplate(BaseModel):
+    """NLI-based fact validation output from the Fact Validator LLM."""
+    overall_relation: Literal["supported", "contradicted", "insufficient", "mixed", "unknown"] = "unknown"
+    confidence: Literal["high", "medium", "low"] = "low"
+    evidence_gaps: list[str] = Field(default_factory=list)
+    short_rationale: str = ""
+    optional_claim_checks: list[str] = Field(default_factory=list)
+
+
 class DialogueTurn(BaseModel):
     speaker: Literal["medical", "user"]
     text: str
@@ -78,7 +87,10 @@ class DialogueHistory(BaseModel):
 
 
 class PolicyOutput(BaseModel):
-    action_id: Literal["ACCEPT", "CHALLENGE", "ASK_EVIDENCE", "DEFER", "SUMMARIZE"]
+    stage: str       # e.g. "INFORM"
+    locution: str    # e.g. "ask_justify"
+    locution_type: str  # e.g. "fact"
+    action_id: str   # composite: "INFORM.ask_justify"
     action_prompt: str
     confidence: float = 1.0
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -89,7 +101,7 @@ class StepResult(BaseModel):
     turn_id: int
     medical_response: str
     user_utterance: str
-    user_state: UserState
+    verification_template: VerificationTemplate
     selected_action: str
     action_prompt: str
     reward: float | None = None

@@ -30,6 +30,8 @@ class QwenPolicy(VLLMBasePlugin, PolicyPlugin):
         VLLMBasePlugin.__init__(self, config)
         PolicyPlugin.__init__(self, config, action_space)
         self._mode: str = config.get("mode", "baseline")
+        # Qwen3 thinking mode disabled for structured policy output
+        self._enable_thinking: bool = config.get("enable_thinking", False)
 
     def name(self) -> str:
         return f"qwen-policy-{self._mode}"
@@ -52,7 +54,10 @@ class QwenPolicy(VLLMBasePlugin, PolicyPlugin):
                 current_user_utterance=current_user_utterance,
             )},
         ]
-        raw = self._chat(messages, temperature=0.0, max_tokens=16)
+        extra_body: dict[str, Any] = {
+            "chat_template_kwargs": {"enable_thinking": self._enable_thinking},
+        }
+        raw = self._chat(messages, temperature=0.0, max_tokens=16, extra_body=extra_body)
         stage, locution, locution_type = _parse_dot_action(raw)
         action_id = f"{stage}.{locution}"
         action_prompt = (

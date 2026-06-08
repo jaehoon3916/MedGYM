@@ -28,11 +28,11 @@ def main():
     case_data = raw[0] if isinstance(raw, list) else raw
     case_info = CaseInfo(**case_data)
 
-    user_llm, medical_llm, extractor_llm, policy = build_plugins(config)
+    user_llm, medical_llm, fact_validator_llm, policy = build_plugins(config)
     env = MedicalHACEnvironment(
         user_llm=user_llm,
         medical_llm=medical_llm,
-        extractor_llm=extractor_llm,
+        fact_validator_llm=fact_validator_llm,
         policy=policy,
         config=config,
     )
@@ -47,7 +47,13 @@ def main():
     print(f"Episode complete: {len(results)} turns")
     print(f"Rollout saved to: {output_path}")
     for r in results:
-        print(f"  Turn {r.turn_id}: action={r.selected_action}, user_state={r.user_state.summary!r}")
+        print(f"  Turn {r.turn_id}: action={r.selected_action}")
+
+    if config.get("eval", {}).get("enabled", False):
+        from eval.runner import build_eval_plugins, run_eval
+        eval_output = Path(config["eval"].get("output_dir", "eval_results")) / exp_name
+        print(f"\nRunning eval → {eval_output}")
+        run_eval(Path(output_path), build_eval_plugins(config), eval_output)
 
 
 if __name__ == "__main__":

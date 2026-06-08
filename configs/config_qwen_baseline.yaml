@@ -30,10 +30,22 @@ plugins:
 
   policy:
     type: baseline_policy
-    base_url: http://localhost:8001/v1
+    base_url: http://localhost:8002/v1
     model: Qwen/Qwen3-8B
     max_tokens: 16
     temperature: 0.0
     enable_thinking: false   # Qwen3 thinking mode off for structured action output
 
 action_space_path: configs/action_space.yaml
+
+eval:
+  enabled: false           # true → run MediCoBe eval after each episode
+  methods:
+    - medcobe
+  output_dir: eval_results/
+  judge:
+    base_url: http://localhost:8001/v1
+    model: meta-llama/Llama-3.3-70B-Instruct
+    api_key: EMPTY
+    temperature: 0.0
+    batch_size: 20

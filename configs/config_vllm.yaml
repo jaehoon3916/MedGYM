@@ -32,3 +32,15 @@ plugins:
     type: naive            # naive | prompt | rule | baseline_policy | sft_policy | full_policy
 
 action_space_path: configs/action_space.yaml
+
+eval:
+  enabled: false           # true → run MediCoBe eval after each episode
+  methods:
+    - medcobe
+  output_dir: eval_results/
+  judge:
+    base_url: http://localhost:8001/v1
+    model: meta-llama/Llama-3.3-70B-Instruct
+    api_key: EMPTY
+    temperature: 0.0
+    batch_size: 20

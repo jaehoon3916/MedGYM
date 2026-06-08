@@ -29,7 +29,7 @@ class MockUserLLM(UserLLMPlugin):
         dialogue_history: DialogueHistory,
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
-    ) -> str:
+    ) -> tuple[str, bool]:
         response = _RESPONSES[self._call_count % len(_RESPONSES)]
         self._call_count += 1
-        return response
+        return response, False

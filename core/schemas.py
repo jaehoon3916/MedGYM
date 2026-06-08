@@ -104,5 +104,6 @@ class StepResult(BaseModel):
     verification_template: VerificationTemplate
     selected_action: str
     action_prompt: str
+    done: bool = False
     reward: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)

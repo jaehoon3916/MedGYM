@@ -46,19 +46,37 @@ def _fmt_forbidden(items: list[str]) -> str:
     return "\n".join(f"- {x}" for x in items) if items else "(none)"
 
 
+class EpisodeConfig(BaseModel):
+    initial_fact: Literal["correct", "incorrect"] = "incorrect"
+    confidence: Literal["certain", "uncertain", "neutral"] = "uncertain"
+    authority_push: Literal["high", "low"] = "low"
+    information_sparcity: Literal["dense", "sparse"] = "dense"
+    safety_push: Literal["true", "false"] = "false"
+
+
 class SimulatedUserState(BaseModel):
     clinical_claim: str = ""
-    confidence: Literal["certain", "uncertain", "neutral"] = "uncertain"
-    intent: str = ""
-    evidence_level: Literal["strong", "moderate", "weak", "none"] = "weak"
-    emotional_tone: str = "neutral"
     forbidden_information: list[str] = []
+    # Conversation Locutions (dynamic — updated each turn)
+    dialogue_stage: Literal["Inform", "Propose", "Consider", "Revise", "Recommend", "Confirm", "Close"] = "Inform"
+    locution: Literal["propose", "assert", "prefer", "ask_justify", "move", "reject", "retract", "withdraw_dialogue"] = "assert"
+    locution_type: Literal["goal", "constraint", "perspective", "fact", "action", "evaluation"] = "fact"
 
 
 class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
     def __init__(self, config: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
         self._prev_state: SimulatedUserState | None = None
+        self._episode_cfg: EpisodeConfig = EpisodeConfig()
+        self._force_close: bool = False
+
+    def reset_episode(self, episode_config: EpisodeConfig) -> None:
+        self._episode_cfg = episode_config
+        self._prev_state = None
+        self._force_close = False
+
+    def force_close(self) -> None:
+        self._force_close = True
 
     def name(self) -> str:
         return f"vllm-user-{self._model}"
@@ -69,12 +87,16 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         dialogue_history: DialogueHistory,
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
-    ) -> str:
+    ) -> tuple[str, bool]:
+        if self._force_close:
+            self._force_close = False
+            return "I understand. Let's close the discussion here.", True
         state = self._build_state(case_info, dialogue_history)
         utterance = self._generate_utterance(case_info, dialogue_history, state)
         utterance = self._mask_utterance(utterance, state, case_info, dialogue_history)
         self._prev_state = state
-        return utterance
+        done = state.dialogue_stage == "Close"
+        return utterance, done
 
     # ── Stage 1: State Builder ───────────────────────────────────────────────
 
@@ -86,6 +108,7 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
             options=_fmt_options(case_info.options),
             dialogue_history=_fmt_history(history),
             prev_state=prev_str,
+            initial_fact=self._episode_cfg.initial_fact,
         )
         messages = [
             {"role": "system", "content": tmpl["state_builder_system"].format(**ctx)},
@@ -102,11 +125,10 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
 
         return SimulatedUserState(
             clinical_claim=parsed.get("clinical_claim", ""),
-            confidence=parsed.get("confidence", "uncertain"),
-            intent=parsed.get("intent", ""),
-            evidence_level=parsed.get("evidence_level", "weak"),
-            emotional_tone=parsed.get("emotional_tone", "neutral"),
             forbidden_information=forbidden,
+            dialogue_stage=parsed.get("dialogue_stage", "Inform"),
+            locution=parsed.get("locution", "assert"),
+            locution_type=parsed.get("locution_type", "fact"),
         )
 
     # ── Stage 2: Utterance Generator ────────────────────────────────────────
@@ -125,12 +147,15 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         ctx = dict(
             scenario=case_info.scenario,
             clinical_claim=state.clinical_claim,
-            confidence=state.confidence,
-            intent=state.intent,
-            evidence_level=state.evidence_level,
-            emotional_tone=state.emotional_tone,
+            confidence=self._episode_cfg.confidence,
             dialogue_history=_fmt_history(history),
             forbidden_information=_fmt_forbidden(state.forbidden_information),
+            dialogue_stage=state.dialogue_stage,
+            locution=state.locution,
+            locution_type=state.locution_type,
+            authority_push=self._episode_cfg.authority_push,
+            information_sparcity=self._episode_cfg.information_sparcity,
+            safety_push=self._episode_cfg.safety_push,
         )
         messages = [
             {"role": "system", "content": tmpl["utterance_generator_system"].format(**ctx)},
@@ -153,12 +178,15 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         ctx = dict(
             scenario=case_info.scenario,
             clinical_claim=state.clinical_claim,
-            confidence=state.confidence,
-            intent=state.intent,
-            evidence_level=state.evidence_level,
-            emotional_tone=state.emotional_tone,
+            confidence=self._episode_cfg.confidence,
             dialogue_history=_fmt_history(history),
             forbidden_information=_fmt_forbidden(state.forbidden_information),
+            dialogue_stage=state.dialogue_stage,
+            locution=state.locution,
+            locution_type=state.locution_type,
+            authority_push=self._episode_cfg.authority_push,
+            information_sparcity=self._episode_cfg.information_sparcity,
+            safety_push=self._episode_cfg.safety_push,
         )
         messages = [
             {"role": "system", "content": tmpl["utterance_mask_system"].format(**ctx)},

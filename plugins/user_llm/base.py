@@ -6,6 +6,12 @@ from core.schemas import CaseInfo, DialogueHistory
 
 
 class UserLLMPlugin(BasePlugin):
+    def reset_episode(self, episode_config: Any) -> None:
+        pass
+
+    def force_close(self) -> None:
+        pass
+
     @abstractmethod
     def generate_user_utterance(
         self,
@@ -13,5 +19,5 @@ class UserLLMPlugin(BasePlugin):
         dialogue_history: DialogueHistory,
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
-    ) -> str:
+    ) -> tuple[str, bool]:
         pass

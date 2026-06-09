@@ -11,6 +11,7 @@ from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from plugins.policy.base import PolicyPlugin
+from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
 
 
 class MedicalHACEnvironment:
@@ -21,11 +22,13 @@ class MedicalHACEnvironment:
         fact_validator_llm: FactValidatorLLMPlugin,
         policy: PolicyPlugin,
         config: dict[str, Any],
+        final_judge: "FinalJudgeLLMPlugin | None" = None,
     ):
         self.user_llm = user_llm
         self.medical_llm = medical_llm
         self.fact_validator_llm = fact_validator_llm
         self.policy = policy
+        self.final_judge = final_judge
         self.config = config
 
         self._case_info: CaseInfo | None = None
@@ -97,6 +100,7 @@ class MedicalHACEnvironment:
             case_info=self._case_info,
             dialogue_history=self._history,
             action_prompt=policy_output.action_prompt,
+            current_user_utterance=user_utterance,
         )
         self._history.add_turn("medical", medical_response, action=policy_output.action_id)
 
@@ -146,6 +150,22 @@ class MedicalHACEnvironment:
             )
             if result.done:
                 break
+
+        # Final judgement on every terminating episode (agreement OR max_turns), so accuracy
+        # can be aggregated later. The judge maps the dialogue's conclusion to an option; the
+        # environment scores it against the gold option deterministically.
+        closed_by = "agreement" if (results and results[-1].done) else "max_turns"
+        final_judgement = None
+        if self.final_judge is not None and self._history is not None:
+            fj = self.final_judge.judge(case_info, self._history)
+            fj.is_correct = (
+                fj.concluded_option.strip().upper() == str(case_info.correct_option).strip().upper()
+            )
+            final_judgement = fj.model_dump()
+        logger.finalize(final_judgement, closed_by)
+        if results:
+            results[-1].metadata["final_judgement"] = final_judgement
+            results[-1].metadata["closed_by"] = closed_by
 
         if output_path is not None:
             logger.save(output_path)

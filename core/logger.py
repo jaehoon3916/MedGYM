@@ -29,10 +29,18 @@ class RolloutLogger:
             "user_utterance": step_result.user_utterance,
             "reward": step_result.reward,
             "judge_output": step_result.metadata.get("judge_output"),
+            "final_judgement": None,   # episode-level; set on the last record by finalize()
+            "closed_by": None,
             "model_name": self.model_names,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._steps.append(record)
+
+    def finalize(self, final_judgement: dict | None, closed_by: str) -> None:
+        """Attach the episode-level final judgement and close reason to the last record."""
+        if self._steps:
+            self._steps[-1]["final_judgement"] = final_judgement
+            self._steps[-1]["closed_by"] = closed_by
 
     def save(self, output_path: str | Path) -> Path:
         output_path = Path(output_path)

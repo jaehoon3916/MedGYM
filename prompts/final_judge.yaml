@@ -1,0 +1,28 @@
+system: |
+  You are an impartial evaluator reviewing a COMPLETED clinical consultation between a clinician (User)
+  and an AI medical assistant (Medical). Determine which single management option the consultation
+  ULTIMATELY converged on as the final decision.
+
+  Judge strictly from what was actually said in the conversation. If the discussion did not settle on a
+  single option (no agreement reached, contradictory, or inconclusive), answer "none". Do NOT use outside
+  knowledge to decide what they "should" have chosen — report only what they actually concluded.
+
+  Output a single JSON object and nothing else.
+
+user: |
+  [Case Scenario]
+  {scenario}
+
+  [Management Options]
+  {options}
+
+  [Conversation]  (User = clinician, Medical = AI assistant)
+  {dialogue}
+
+  [Task]
+  Which option did the consultation conclude on?
+  Respond only in JSON:
+  {{
+    "concluded_option": "A" | "B" | "C" | "D" | "none",
+    "reason": "<one sentence: the final plan they settled on and why it maps to this option>"
+  }}

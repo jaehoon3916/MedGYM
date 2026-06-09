@@ -273,14 +273,20 @@
               <div class="sv" style="font-weight:400;font-size:0.76rem;line-height:1.4;">{{ us_raw.clinical_claim }}</div>
             </div>
             {% endif %}
-            {% if us_raw.get('forbidden_information') %}
+            {% if us_raw.get('shards') %}
             <div class="state-item">
-              <div class="sk">Forbidden Info</div>
+              <div class="sk">Shards</div>
               <ul class="gap-list" style="margin-top:2px;">
-                {% for item in us_raw.forbidden_information %}
+                {% for item in us_raw.shards %}
                 <li>{{ item }}</li>
                 {% endfor %}
               </ul>
+            </div>
+            {% endif %}
+            {% if us_raw.get('agreement_reached') %}
+            <div class="state-item">
+              <div class="sk">Agreement</div>
+              <div class="sv">✓ reached → Close</div>
             </div>
             {% endif %}
           </div>

@@ -17,6 +17,45 @@ def load_user_state_schema(path: str | Path | None = None) -> list[dict[str, Any
     return load_yaml(path)["fields"]
 
 
+def load_episode_config(name: str | None, base_dir: str | Path | None = None):
+    """Load an initial-user-state preset (EpisodeConfig) by name, like loading a persona.
+
+    `name` is the preset stem in initial_user_state/, e.g. "user_state_5". Returns None when
+    `name` is falsy, so the caller falls back to the default EpisodeConfig.
+    """
+    from plugins.user_llm.vllm_user import EpisodeConfig
+
+    if not name:
+        return None
+    base = Path(base_dir) if base_dir else Path(__file__).parent.parent / "initial_user_state"
+    fname = name if str(name).endswith(".yaml") else f"{name}.yaml"
+    return EpisodeConfig(**load_yaml(base / fname))
+
+
+def load_episode_configs(spec, base_dir: str | Path | None = None):
+    """Resolve the experiment.initial_user_state spec into a list of (name, EpisodeConfig|None).
+
+    spec may be:
+      None / falsy        → [(None, None)]   (single run with the default EpisodeConfig)
+      "all"               → every preset in the folder, in numeric order
+      a single name (str) → [(name, cfg)]
+      a list of names     → one (name, cfg) per entry
+    """
+    base = Path(base_dir) if base_dir else Path(__file__).parent.parent / "initial_user_state"
+    if not spec:
+        return [(None, None)]
+    if isinstance(spec, str) and spec.strip().lower() == "all":
+        names = sorted(
+            (p.stem for p in base.glob("user_state_*.yaml")),
+            key=lambda s: int(s.rsplit("_", 1)[-1]),
+        )
+    elif isinstance(spec, str):
+        names = [spec]
+    else:
+        names = list(spec)
+    return [(n, load_episode_config(n, base)) for n in names]
+
+
 def load_action_space(path: str | Path | None = None) -> dict[str, Any]:
     if path is None:
         path = Path(__file__).parent.parent / "configs" / "action_space.yaml"
@@ -28,10 +67,14 @@ def load_action_space(path: str | Path | None = None) -> dict[str, Any]:
 
 
 def build_plugins(config: dict[str, Any]):
-    """Instantiate plugins from YAML config. Returns (user_llm, medical_llm, fact_validator_llm, policy)."""
+    """Instantiate plugins from YAML config.
+
+    Returns (user_llm, medical_llm, fact_validator_llm, policy, final_judge).
+    """
     from plugins.user_llm.vllm_user import VLLMUserLLM
     from plugins.medical_llm.vllm_medical import VLLMMedicalLLM
     from plugins.fact_validator_llm.vllm_fact_validator import VLLMFactValidatorLLM
+    from plugins.final_judge_llm.vllm_final_judge import VLLMFinalJudgeLLM
     from plugins.policy.rule_policy import RulePolicy
     from plugins.policy.naive_policy import NaivePolicy
     from plugins.policy.prompt_policy import PromptPolicy
@@ -42,6 +85,7 @@ def build_plugins(config: dict[str, Any]):
     _user_llm_map = {"vllm": VLLMUserLLM}
     _medical_llm_map = {"vllm": VLLMMedicalLLM}
     _fact_validator_map = {"vllm": VLLMFactValidatorLLM}
+    _final_judge_map = {"vllm": VLLMFinalJudgeLLM}
     _policy_map = {
         "rule":             RulePolicy,
         "naive":            NaivePolicy,
@@ -57,6 +101,8 @@ def build_plugins(config: dict[str, Any]):
     user_type = plugin_cfg.get("user_llm", {}).get("type", "vllm")
     medical_type = plugin_cfg.get("medical_llm", {}).get("type", "vllm")
     fact_validator_type = plugin_cfg.get("fact_validator_llm", {}).get("type", "vllm")
+    final_judge_cfg = plugin_cfg.get("final_judge", {})
+    final_judge_type = final_judge_cfg.get("type", "vllm")
     ablation_mode = config.get("experiment", {}).get("ablation_mode", "rule")
     policy_type = plugin_cfg.get("policy", {}).get("type", ablation_mode)
 
@@ -69,8 +115,16 @@ def build_plugins(config: dict[str, Any]):
     )
     policy_cfg = {**plugin_cfg.get("policy", {}), "mode": policy_type}
     policy = _policy_map[policy_type](policy_cfg, action_space=action_space)
+    # final_judge is optional — disabled via plugins.final_judge.enabled: false (e.g. during experiments)
+    final_judge = (
+        _final_judge_map[final_judge_type](final_judge_cfg)
+        if final_judge_cfg.get("enabled", True) else None
+    )
 
-    for p in (user_llm, medical_llm, fact_validator_llm, policy):
+    to_load = [user_llm, medical_llm, fact_validator_llm, policy]
+    if final_judge is not None:
+        to_load.append(final_judge)
+    for p in to_load:
         p.load()
 
-    return user_llm, medical_llm, fact_validator_llm, policy
+    return user_llm, medical_llm, fact_validator_llm, policy, final_judge

@@ -14,8 +14,14 @@ system: |
   [Case]
   {scenario}
 
-  [Options]
-  {options}
-
   [Instruction]
   {action_prompt}
+
+# Wraps the clinician's most recent utterance as the final user message.
+# Kept as the last turn (not duplicated elsewhere) so the chat flow stays natural
+# while still being explicitly labeled.
+current_turn: |
+  [Clinician's current statement]
+  {current_user_utterance}
+
+  Respond directly to this statement.

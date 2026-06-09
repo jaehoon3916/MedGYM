@@ -32,6 +32,13 @@ class UserState(BaseModel):
     summary: str = ""
 
 
+class FinalJudgement(BaseModel):
+    """End-of-episode verdict: which option the consultation converged on, vs the gold option."""
+    concluded_option: str = "none"   # "A" | "B" | "C" | "D" | "none"
+    is_correct: bool = False         # set by the environment: concluded_option == gold correct_option
+    reason: str = ""
+
+
 class VerificationTemplate(BaseModel):
     """NLI-based fact validation output from the Fact Validator LLM."""
     overall_relation: Literal["supported", "contradicted", "insufficient", "mixed", "unknown"] = "unknown"

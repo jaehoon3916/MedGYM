@@ -1,0 +1,13 @@
+# Initial user state preset (episode conditions) — combination 3/48
+# Field value spaces:
+#   initial_fact:         correct | incorrect
+#   certainty:            certain | uncertain | neutral
+#   authority_push:       high | low
+#   information_sparcity: dense | sparse
+#   safety_push:          true | false
+
+initial_fact: correct
+certainty: certain
+authority_push: high
+information_sparcity: sparse
+safety_push: "true"

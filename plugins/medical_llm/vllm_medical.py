@@ -18,6 +18,9 @@ class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         action_prompt: str,
+        current_user_utterance: str,
     ) -> str:
-        messages = build_medical_prompt(case_info, dialogue_history, action_prompt)
+        messages = build_medical_prompt(
+            case_info, dialogue_history, action_prompt, current_user_utterance
+        )
         return self._chat(messages)

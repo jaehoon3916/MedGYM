@@ -11,5 +11,6 @@ class MedicalLLMPlugin(BasePlugin):
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         action_prompt: str,
+        current_user_utterance: str,
     ) -> str:
         pass

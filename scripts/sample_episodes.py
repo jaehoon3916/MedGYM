@@ -29,7 +29,7 @@ EPISODE_CONFIGS = [
 def print_episode(idx: int, cfg: EpisodeConfig, results: list) -> None:
     sep = "=" * 70
     print(f"\n{sep}")
-    print(f"Episode {idx+1:02d} | fact={cfg.initial_fact} conf={cfg.confidence} "
+    print(f"Episode {idx+1:02d} | fact={cfg.initial_fact} conf={cfg.certainty} "
           f"auth={cfg.authority_push} sparcity={cfg.information_sparcity} safety={cfg.safety_push}")
     print(sep)
     for r in results:
@@ -56,13 +56,14 @@ def main():
     case_data = raw[0] if isinstance(raw, list) else raw
     case_info = CaseInfo(**case_data)
 
-    user_llm, medical_llm, fact_validator_llm, policy = build_plugins(config)
+    user_llm, medical_llm, fact_validator_llm, policy, final_judge = build_plugins(config)
     env = MedicalHACEnvironment(
         user_llm=user_llm,
         medical_llm=medical_llm,
         fact_validator_llm=fact_validator_llm,
         policy=policy,
         config=config,
+        final_judge=final_judge,
     )
 
     output_dir = Path(args.output_dir)
@@ -71,7 +72,7 @@ def main():
     for idx, (fact, conf, auth, sparcity, safety) in enumerate(EPISODE_CONFIGS):
         cfg = EpisodeConfig(
             initial_fact=fact,
-            confidence=conf,
+            certainty=conf,
             authority_push=auth,
             information_sparcity=sparcity,
             safety_push=safety,

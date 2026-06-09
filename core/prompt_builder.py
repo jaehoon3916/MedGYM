@@ -25,16 +25,40 @@ def build_medical_prompt(
     case_info: CaseInfo,
     dialogue_history: DialogueHistory,
     action_prompt: str,
+    current_user_utterance: str,
 ) -> list[dict[str, str]]:
     tmpl = _load("medical_llm")
     system = tmpl["system"].format(
         scenario=case_info.scenario,
-        options=_format_options(case_info.options),
         action_prompt=action_prompt,
     )
     messages = [{"role": "system", "content": system}]
-    messages.extend(dialogue_history.to_messages())
+    # Prior conversation excludes the current user turn (which env appends to history
+    # before this call); it is re-emitted below as an explicitly labeled final message.
+    role_map = {"medical": "assistant", "user": "user"}
+    for t in dialogue_history.turns[:-1]:
+        messages.append({"role": role_map[t.speaker], "content": t.text})
+    messages.append({
+        "role": "user",
+        "content": tmpl["current_turn"].format(current_user_utterance=current_user_utterance),
+    })
     return messages
+
+
+def build_final_judge_prompt(
+    case_info: CaseInfo,
+    dialogue_history: DialogueHistory,
+) -> list[dict[str, str]]:
+    tmpl = _load("final_judge")
+    user = tmpl["user"].format(
+        scenario=case_info.scenario,
+        options=_format_options(case_info.options),
+        dialogue=dialogue_history.to_prompt(),
+    )
+    return [
+        {"role": "system", "content": tmpl["system"]},
+        {"role": "user", "content": user},
+    ]
 
 
 def build_user_prompt(

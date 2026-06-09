@@ -27,7 +27,10 @@ def build_eval_plugins(config: dict[str, Any]) -> list[EvalPlugin]:
 def load_rollout(path: Path) -> dict[str, list[dict]]:
     """Load JSONL file(s), group records by case_id in turn order."""
     cases: dict[str, list[dict]] = {}
-    paths = sorted(path.glob("*.jsonl")) if path.is_dir() else [path]
+    paths = (
+        sorted(p for p in path.glob("*.jsonl") if not p.stem.endswith("_calls"))
+        if path.is_dir() else [path]
+    )
     for p in paths:
         with open(p) as f:
             for line in f:

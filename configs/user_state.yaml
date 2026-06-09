@@ -3,7 +3,7 @@ fields:
   - name: dialogue_stage
     label: Dialogue Stage
     type: categorical
-    values: [Open, Inform, Propose, Consider, Revise, Recommend, Confirm, Close]
+    values: [Inform, Propose, Consider, Revise, Recommend, Confirm, Close]
     default: Inform
 
   - name: locution

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -22,10 +23,25 @@ def _load_prompts() -> dict:
 
 
 def _safe_json_load(s: str) -> dict:
-    try:
-        return json.loads(s)
-    except Exception:
+    if not s:
         return {}
+    # Strip markdown code fences (```json ... ``` or ``` ... ```)
+    t = s.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```[a-zA-Z]*\n?", "", t)
+        t = re.sub(r"\n?```$", "", t).strip()
+    try:
+        return json.loads(t)
+    except Exception:
+        pass
+    # Last resort: extract the first {...} block
+    m = re.search(r"\{.*\}", t, flags=re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except Exception:
+            return {}
+    return {}
 
 
 def _fmt_options(options: dict[str, str]) -> str:
@@ -37,7 +53,7 @@ def _fmt_history(history: DialogueHistory) -> str:
         return "(No conversation yet)"
     lines = []
     for turn in history.turns:
-        role = "Doctor" if turn.speaker == "medical" else "Patient"
+        role = "AI Assistant" if turn.speaker == "medical" else "Clinician"
         lines.append(f"[{role}]: {turn.text}")
     return "\n".join(lines)
 
@@ -48,7 +64,7 @@ def _fmt_forbidden(items: list[str]) -> str:
 
 class EpisodeConfig(BaseModel):
     initial_fact: Literal["correct", "incorrect"] = "incorrect"
-    confidence: Literal["certain", "uncertain", "neutral"] = "uncertain"
+    certainty: Literal["certain", "uncertain", "neutral"] = "uncertain"
     authority_push: Literal["high", "low"] = "low"
     information_sparcity: Literal["dense", "sparse"] = "dense"
     safety_push: Literal["true", "false"] = "false"
@@ -87,16 +103,16 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         dialogue_history: DialogueHistory,
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
-    ) -> tuple[str, bool]:
+    ) -> tuple[str, bool, dict[str, Any] | None]:
         if self._force_close:
             self._force_close = False
-            return "I understand. Let's close the discussion here.", True
+            return "I understand. Let's close the discussion here.", True, None
         state = self._build_state(case_info, dialogue_history)
         utterance = self._generate_utterance(case_info, dialogue_history, state)
         utterance = self._mask_utterance(utterance, state, case_info, dialogue_history)
         self._prev_state = state
         done = state.dialogue_stage == "Close"
-        return utterance, done
+        return utterance, done, state.model_dump()
 
     # ── Stage 1: State Builder ───────────────────────────────────────────────
 
@@ -114,7 +130,7 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
             {"role": "system", "content": tmpl["state_builder_system"].format(**ctx)},
             {"role": "user",   "content": tmpl["state_builder_user"]},
         ]
-        raw = self._chat(messages, temperature=0.0)
+        raw = self._chat(messages, temperature=0.0, response_format={"type": "json_object"})
         parsed = _safe_json_load(raw)
 
         # Guarantee gold answer and rationale are always forbidden
@@ -123,12 +139,32 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
             if item not in forbidden:
                 forbidden.append(item)
 
+        def _pick(value: Any, allowed: tuple[str, ...], default: str) -> str:
+            v = str(value).strip() if value is not None else ""
+            # case-insensitive match against allowed values
+            for a in allowed:
+                if v.lower() == a.lower():
+                    return a
+            return default
+
         return SimulatedUserState(
             clinical_claim=parsed.get("clinical_claim", ""),
             forbidden_information=forbidden,
-            dialogue_stage=parsed.get("dialogue_stage", "Inform"),
-            locution=parsed.get("locution", "assert"),
-            locution_type=parsed.get("locution_type", "fact"),
+            dialogue_stage=_pick(  # type: ignore[arg-type]
+                parsed.get("dialogue_stage"),
+                ("Inform", "Propose", "Consider", "Revise", "Recommend", "Confirm", "Close"),
+                "Inform",
+            ),
+            locution=_pick(  # type: ignore[arg-type]
+                parsed.get("locution"),
+                ("propose", "assert", "prefer", "ask_justify", "move", "reject", "retract", "withdraw_dialogue"),
+                "assert",
+            ),
+            locution_type=_pick(  # type: ignore[arg-type]
+                parsed.get("locution_type"),
+                ("goal", "constraint", "perspective", "fact", "action", "evaluation"),
+                "fact",
+            ),
         )
 
     # ── Stage 2: Utterance Generator ────────────────────────────────────────
@@ -147,7 +183,7 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         ctx = dict(
             scenario=case_info.scenario,
             clinical_claim=state.clinical_claim,
-            confidence=self._episode_cfg.confidence,
+            certainty=self._episode_cfg.certainty,
             dialogue_history=_fmt_history(history),
             forbidden_information=_fmt_forbidden(state.forbidden_information),
             dialogue_stage=state.dialogue_stage,
@@ -178,7 +214,7 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         ctx = dict(
             scenario=case_info.scenario,
             clinical_claim=state.clinical_claim,
-            confidence=self._episode_cfg.confidence,
+            certainty=self._episode_cfg.certainty,
             dialogue_history=_fmt_history(history),
             forbidden_information=_fmt_forbidden(state.forbidden_information),
             dialogue_stage=state.dialogue_stage,
@@ -194,6 +230,6 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
                 draft_utterance=draft,
             )},
         ]
-        raw = self._chat(messages, temperature=0.0)
+        raw = self._chat(messages, temperature=0.0, response_format={"type": "json_object"})
         parsed = _safe_json_load(raw)
         return (parsed.get("refined_utterance") or draft).strip() or draft

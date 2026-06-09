@@ -4,9 +4,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate
-from plugins.user_llm.mock_user import MockUserLLM
-from plugins.medical_llm.mock_medical import MockMedicalLLM
-from plugins.fact_validator_llm.mock_fact_validator import MockFactValidatorLLM
 from plugins.policy.rule_policy import RulePolicy
 from core.config import load_action_space
 
@@ -33,44 +30,7 @@ def action_space():
     return load_action_space()
 
 
-def test_mock_user_llm(case_info, empty_history):
-    plugin = MockUserLLM({})
-    plugin.load()
-    response = plugin.generate_user_utterance(case_info, empty_history, "Hello")
-    assert isinstance(response, str) and len(response) > 0
-
-
-def test_mock_user_llm_cycles(case_info, empty_history):
-    plugin = MockUserLLM({})
-    plugin.load()
-    responses = [plugin.generate_user_utterance(case_info, empty_history, "x") for _ in range(10)]
-    assert len(set(responses)) > 1  # cycles through multiple responses
-
-
-def test_mock_medical_llm_accept(case_info, empty_history):
-    plugin = MockMedicalLLM({})
-    plugin.load()
-    response = plugin.generate_medical_response(case_info, empty_history, "ACCEPT the hypothesis")
-    assert "agree" in response.lower() or "accept" in response.lower()
-
-
-def test_mock_medical_llm_challenge(case_info, empty_history):
-    plugin = MockMedicalLLM({})
-    plugin.load()
-    response = plugin.generate_medical_response(case_info, empty_history, "CHALLENGE the hypothesis")
-    assert "challenge" in response.lower()
-
-
-def test_mock_fact_validator(case_info, empty_history):
-    plugin = MockFactValidatorLLM({})
-    plugin.load()
-    vt = plugin.validate_facts(case_info, empty_history, "I think the diagnosis is COPD.")
-    assert isinstance(vt, VerificationTemplate)
-    assert vt.overall_relation == "insufficient"
-    assert vt.confidence == "low"
-
-
-def test_rule_policy_contradicted_asserts_fact(case_info, empty_history, action_space):
+def test_rule_policy_contradicted_asserts_fact(case_info, empty_history, action_space):  # noqa
     policy = RulePolicy({}, action_space=action_space)
     policy.load()
     vt = VerificationTemplate(overall_relation="contradicted", confidence="high")

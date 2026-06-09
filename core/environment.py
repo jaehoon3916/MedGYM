@@ -6,6 +6,7 @@ from typing import Any
 from core.schemas import CaseInfo, DialogueHistory, StepResult
 from plugins.user_llm.vllm_user import EpisodeConfig
 from core.logger import RolloutLogger
+from core.token_tracker import tracker as _tracker
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
@@ -40,14 +41,17 @@ class MedicalHACEnvironment:
 
     def step(self) -> StepResult:
         assert self._case_info is not None and self._history is not None, "Call reset() before step()"
+        _tracker.begin_turn()
 
         # 1. User LLM generates user utterance; done=True if user closes the dialogue
-        user_utterance, user_done = self.user_llm.generate_user_utterance(
+        user_utterance, user_done, user_state_dict = self.user_llm.generate_user_utterance(
             case_info=self._case_info,
             dialogue_history=self._history,
             turn_id=self._turn_id,
         )
-        self._history.add_turn("user", user_utterance)
+        from core.schemas import UserState
+        user_state = UserState(**user_state_dict) if user_state_dict else None
+        self._history.add_turn("user", user_utterance, user_state=user_state)
 
         if user_done:
             result = StepResult(
@@ -64,6 +68,7 @@ class MedicalHACEnvironment:
                 medical_response="",
                 done=True,
                 reward=None,
+                metadata={"turn_prompts": _tracker.flush_turn()},
             )
             self._turn_id += 1
             return result
@@ -105,6 +110,7 @@ class MedicalHACEnvironment:
             medical_response=medical_response,
             done=False,
             reward=None,
+            metadata={"policy": policy_output.metadata, "turn_prompts": _tracker.flush_turn()},
         )
         self._turn_id += 1
         return result

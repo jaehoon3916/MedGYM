@@ -19,5 +19,6 @@ class UserLLMPlugin(BasePlugin):
         dialogue_history: DialogueHistory,
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
-    ) -> tuple[str, bool]:
+    ) -> tuple[str, bool, dict[str, Any] | None]:
+        """Returns (utterance, done, user_state_dict)."""
         pass

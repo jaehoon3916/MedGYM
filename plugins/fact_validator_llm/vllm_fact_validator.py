@@ -8,21 +8,6 @@ from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate
 from core.prompt_builder import build_fact_validator_prompt
 
-_VERIFICATION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "overall_relation": {
-            "type": "string",
-            "enum": ["supported", "contradicted", "insufficient", "mixed", "unknown"],
-        },
-        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
-        "evidence_gaps": {"type": "array", "items": {"type": "string"}},
-        "short_rationale": {"type": "string"},
-        "optional_claim_checks": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["overall_relation", "confidence", "evidence_gaps", "short_rationale", "optional_claim_checks"],
-}
-
 
 class VLLMFactValidatorLLM(VLLMBasePlugin, FactValidatorLLMPlugin):
     def __init__(self, config: dict[str, Any]):
@@ -41,7 +26,7 @@ class VLLMFactValidatorLLM(VLLMBasePlugin, FactValidatorLLMPlugin):
         raw = self._chat(
             messages,
             temperature=0.0,
-            extra_body={"guided_json": _VERIFICATION_SCHEMA},
+            response_format={"type": "json_object"},
         )
         try:
             data = json.loads(raw)

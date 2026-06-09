@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Llama-3.3-70B-Instruct vLLM server
+# Qwen3-8B-Instruct vLLM server
 # Usage: HF_TOKEN=hf_xxx bash scripts/serve_llama.sh
 set -euo pipefail
 
 ENV_NAME=${ENV_NAME:-vllm}
 PORT=${PORT:-8001}
 LOGDIR=${LOGDIR:-$HOME/vllm-system/logs}
-MODEL_PATH=${MODEL_PATH:-meta-llama/Meta-Llama-3.1-70B-Instruct}
-TENSOR_PARALLEL=${TENSOR_PARALLEL:-8}
+MODEL_PATH=${MODEL_PATH:-Qwen/Qwen3-8B}
+TENSOR_PARALLEL=${TENSOR_PARALLEL:-1}
 MAX_MODEL_LEN=${MAX_MODEL_LEN:-8192}
 
 # conda 환경 활성화

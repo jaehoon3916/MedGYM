@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from openai import OpenAI
 
 from plugins.base import BasePlugin
+from core.token_tracker import tracker as _tracker
 
 
 class VLLMBasePlugin(BasePlugin):
-    """Shared base for plugins that call a vLLM OpenAI-compatible server."""
+    """Shared base for plugins that call a vLLM or OpenAI-compatible server."""
 
     def __init__(self, config: dict[str, Any]):
         super().__init__(config)
         base_url = config.get("base_url", "http://localhost:8001/v1")
-        self._client = OpenAI(base_url=base_url, api_key="EMPTY")
+        api_key = config.get("api_key") or os.environ.get("OPENROUTER_API_KEY", "EMPTY")
+        self._client = OpenAI(base_url=base_url, api_key=api_key)
         self._model: str = config.get("model", "")
         self._max_tokens: int = config.get("max_tokens", 512)
         self._temperature: float = config.get("temperature", 0.7)
@@ -27,12 +30,19 @@ class VLLMBasePlugin(BasePlugin):
         temperature: float | None = None,
         max_tokens: int | None = None,
         extra_body: dict[str, Any] | None = None,
+        response_format: dict[str, Any] | None = None,
     ) -> str:
-        response = self._client.chat.completions.create(
+        kwargs: dict[str, Any] = dict(
             model=self._model,
             messages=messages,
             temperature=temperature if temperature is not None else self._temperature,
             max_tokens=max_tokens if max_tokens is not None else self._max_tokens,
-            extra_body=extra_body or {},
         )
-        return response.choices[0].message.content or ""
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+        if response_format:
+            kwargs["response_format"] = response_format
+        response = self._client.chat.completions.create(**kwargs)
+        content = response.choices[0].message.content or ""
+        _tracker.record(self._model, messages, content, response.usage)
+        return content

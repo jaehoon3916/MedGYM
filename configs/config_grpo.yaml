@@ -2,9 +2,9 @@ experiment:
   name: grpo1
   output_dir: outputs/grpo1
   data_path: data/sample_data/sample_data.json
-  max_turns: 6
+  max_turns: 3
   token_ledger: token_usage_ledger.json
-  initial_user_state: [user_state_25, user_state_27, user_state_2]   # personas to train over (incorrect+correct mix)
+  initial_user_state: [user_state_25]   # personas to train over (incorrect+correct mix)
                                     # null → default EpisodeConfig (single persona) | all → 48 presets
 
 plugins:
@@ -44,6 +44,8 @@ plugins:
     type: local_baseline           # local_baseline | local_sft | local_full
     model: Qwen/Qwen3-8B
     trainable: true                # GRPO: LoRA, sampling, logprobs
+    load_in_4bit: true             # QLoRA: 4-bit frozen base (~5GB) so 8B fits 24GB (set false only on a bigger GPU)
+    # load_in_8bit handling not implemented yet — ask if you want the 8-bit option
     enable_thinking: false
     max_tokens: 32                 # action is short ("STAGE.locution"); keep small
     temperature: 0.8               # sampling temperature for exploration
@@ -58,7 +60,7 @@ action_space_path: configs/action_space.yaml
 
 # ── GRPO + reward (reward.txt / r_align.txt) ──
 grpo:
-  group_size: 4                    # trajectories sampled per (case, persona)
+  group_size: 2               # trajectories sampled per (case, persona)
   kl_coef: 0.01                    # KL-to-reference penalty (k3 estimator)
 
 reward:
@@ -66,9 +68,9 @@ reward:
   lambda_final: 1.0                # outcome: user reached gold (final_judge)
   lambda_len: 0.05                 # efficiency: penalize turns beyond tau_star
   lambda_fmt: 0.1                  # valid stage.locution format
-  tau_star: 6
+  tau_star: 3
 
 training:
   learning_rate: 1.0e-5
-  steps: 50                        # number of group updates
+  steps: 3                        # number of group updates
   save_every: 10

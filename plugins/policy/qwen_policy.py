@@ -108,6 +108,7 @@ class LocalQwenPolicy(PolicyPlugin):
         self._trainable: bool = config.get("trainable", False)
         self._temperature: float = config.get("temperature", 0.8)
         self._lora_cfg: dict = config.get("lora", {})
+        self._load_in_4bit: bool = config.get("load_in_4bit", False)   # QLoRA
         self._model = None
         self._tokenizer = None
 
@@ -118,13 +119,30 @@ class LocalQwenPolicy(PolicyPlugin):
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self._tokenizer = AutoTokenizer.from_pretrained(self._model_path)
-        self._model = AutoModelForCausalLM.from_pretrained(
-            self._model_path,
-            torch_dtype=torch.bfloat16,
-            device_map=self._device,
-        )
+
+        model_kwargs: dict[str, Any] = {"device_map": self._device}
+        if self._trainable and self._load_in_4bit:
+            # QLoRA: frozen base in 4-bit (~5GB vs ~16GB) so 8B fits a 24GB GPU.
+            from transformers import BitsAndBytesConfig
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_use_double_quant=True,
+            )
+        else:
+            model_kwargs["torch_dtype"] = torch.bfloat16
+        self._model = AutoModelForCausalLM.from_pretrained(self._model_path, **model_kwargs)
+
         if self._trainable:
-            from peft import LoraConfig, get_peft_model
+            from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+            if self._load_in_4bit:
+                # IMPORTANT: use_gradient_checkpointing=False — checkpointing disables the KV cache
+                # in generate(), making rollout sampling crawl (the "Caching is incompatible…" hang).
+                # 4-bit already gives plenty of headroom, so we don't need checkpointing.
+                self._model = prepare_model_for_kbit_training(
+                    self._model, use_gradient_checkpointing=False
+                )
             lc = self._lora_cfg
             peft_cfg = LoraConfig(
                 r=lc.get("r", 16),
@@ -217,10 +235,13 @@ class LocalQwenPolicy(PolicyPlugin):
         aid = torch.tensor(action_ids, device=device).unsqueeze(0)
         full = torch.cat([pid, aid], dim=1)
 
+        n_keep = aid.shape[1] + 1   # only compute lm_head for the action-predicting positions
+
         def _compute():
-            logits = self._model(full).logits.float()        # [1, L, V]
-            plen = pid.shape[1]
-            logp = torch.log_softmax(logits[0, plen - 1:-1, :], dim=-1)  # predicts the action tokens
+            # logits_to_keep → logits only for the last n_keep positions ([1, A+1, V]), avoiding a
+            # full [1, L, vocab] float tensor (the OOM cause). use_cache=False for the training forward.
+            logits = self._model(full, use_cache=False, logits_to_keep=n_keep).logits
+            logp = torch.log_softmax(logits[0, :-1, :].float(), dim=-1)  # [A, V] → predicts action tokens
             tok = aid[0]
             return logp[torch.arange(tok.shape[0], device=device), tok].sum()
 

@@ -7,7 +7,7 @@ from core.schemas import CaseInfo, DialogueHistory, StepResult, Observation, Use
 from plugins.user_llm.vllm_user import EpisodeConfig
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
-from core.reward_align import align_reward_from_objs, update_ctx, new_ctx
+from core.reward_align import align_reward_from_objs, ctx_from_history
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
@@ -47,7 +47,6 @@ class MedicalHACEnvironment:
         self._history: DialogueHistory | None = None
         self._turn_id: int = 0
         self._max_turns: int = 2
-        self._ctx: dict[str, Any] = new_ctx()
         self._obs: Observation | None = None
         # current observation fields the next action responds to
         self._cur_user_utterance: str = ""
@@ -70,7 +69,6 @@ class MedicalHACEnvironment:
             max_turns if max_turns is not None
             else int(self.config.get("experiment", {}).get("max_turns", 2))
         )
-        self._ctx = new_ctx()
         self._user_closed = False
         self.user_llm.reset_episode(episode_config or EpisodeConfig())
         _tracker.begin_turn()
@@ -87,6 +85,7 @@ class MedicalHACEnvironment:
         cur_utt = self._cur_user_utterance
         cur_verif = self._cur_verification
         cur_user_state = self._cur_user_state
+        ctx = ctx_from_history(self._history)   # pre-action trajectory context
 
         # If the policy closes, force the user sim to close on the next turn.
         if policy_output.action_id == "CLOSE.withdraw_dialogue" or policy_output.stage.upper() == "CLOSE":
@@ -102,9 +101,8 @@ class MedicalHACEnvironment:
         self._history.add_turn("medical", medical_response, action=policy_output.action_id)
 
         # Per-step reward: r_align scores this action against the observation it responded to.
-        r_align = align_reward_from_objs(cur_verif, cur_user_state, policy_output, self._ctx)
+        r_align = align_reward_from_objs(cur_verif, cur_user_state, policy_output, ctx)
         r_fmt = 1.0 if policy_output.stage.upper() in _VALID_STAGES and policy_output.locution else 0.0
-        self._ctx = update_ctx(self._ctx, policy_output, cur_user_state)
         self._turn_id = t + 1
 
         # Advance to the next clinician turn (unless the turn cap is hit).

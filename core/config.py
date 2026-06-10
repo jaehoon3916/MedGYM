@@ -79,6 +79,7 @@ def build_plugins(config: dict[str, Any]):
     from plugins.policy.naive_policy import NaivePolicy
     from plugins.policy.prompt_policy import PromptPolicy
     from plugins.policy.qwen_policy import QwenPolicy, LocalQwenPolicy
+    from plugins.policy.oracle_policy import RewardOraclePolicy
 
     plugin_cfg = config.get("plugins", {})
 
@@ -96,6 +97,7 @@ def build_plugins(config: dict[str, Any]):
         "local_baseline":   LocalQwenPolicy,
         "local_sft":        LocalQwenPolicy,
         "local_full":       LocalQwenPolicy,
+        "oracle":           RewardOraclePolicy,
     }
 
     user_type = plugin_cfg.get("user_llm", {}).get("type", "vllm")

@@ -1,0 +1,6 @@
+{"step": 0, "sample": 0, "case_id": "5000", "R": 2.45, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_r_align": 1.15, "step_rewards": [0.45, 0.7, 0.0]}
+{"step": 0, "sample": 1, "case_id": "5000", "R": 0.55, "advantage": -1.0, "is_correct": false, "num_turns": 1, "sum_r_align": 0.45, "step_rewards": [0.45]}
+{"step": 1, "sample": 0, "case_id": "5000", "R": 2.45, "advantage": -1.0, "is_correct": false, "num_turns": 3, "sum_r_align": 2.15, "step_rewards": [0.45, 0.85, 0.85]}
+{"step": 1, "sample": 1, "case_id": "5000", "R": 2.75, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_r_align": 1.45, "step_rewards": [0.0, 0.45, 1.0]}
+{"step": 2, "sample": 0, "case_id": "5000", "R": 3.45, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_r_align": 2.15, "step_rewards": [0.45, 0.7, 1.0]}
+{"step": 2, "sample": 1, "case_id": "5000", "R": 1.75, "advantage": -1.0, "is_correct": false, "num_turns": 3, "sum_r_align": 1.45, "step_rewards": [0.0, 0.45, 1.0]}

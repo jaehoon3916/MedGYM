@@ -1,0 +1,54 @@
+experiment:
+  name: sft1
+  output_dir: outputs/sft1
+  data_path: data/sample_data/sample_data.json
+  max_turns: 6
+  token_ledger: token_usage_ledger.json
+  initial_user_state: [user_state_25, user_state_27, user_state_2]   # personas to collect golden data over
+                                    # null → default | all → 48 presets
+
+plugins:
+  # ── simulators (env) — used by build_sft_data.py to roll out the oracle teacher ──
+  user_llm:
+    type: vllm
+    use_mask: false
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-chat-v3-0324
+    max_tokens: 256
+    temperature: 0.8
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-chat-v3-0324
+    max_tokens: 512
+    temperature: 0.7
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-chat-v3-0324
+    max_tokens: 384
+    temperature: 0.0
+  # final_judge not needed for SFT data; build_sft_data disables it.
+
+  # ── student policy (used by train_sft.py) — local Qwen + LoRA ──
+  policy:
+    type: local_baseline
+    model: Qwen/Qwen3-8B
+    load_in_4bit: true             # QLoRA: 4-bit frozen base so 8B fits a 24GB GPU
+    enable_thinking: false
+    max_tokens: 32
+    device: auto
+    lora:
+      r: 16
+      alpha: 32
+      dropout: 0.05
+      target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+action_space_path: configs/action_space.yaml
+
+sft:
+  data_out: outputs/sft1/sft_data.jsonl
+  epochs: 3
+  batch_size: 4
+  learning_rate: 1.0e-4
+  save_every: 1

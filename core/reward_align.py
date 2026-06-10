@@ -79,6 +79,53 @@ def new_ctx() -> dict[str, Any]:
     }
 
 
+def ctx_from_history(dialogue_history) -> dict[str, Any]:
+    """Reconstruct the trajectory context from the medical actions already in the dialogue.
+
+    Used by both the env (reward) and the reward-oracle teacher so they score under the same ctx.
+    """
+    ctx = new_ctx()
+    stages = [
+        t.action.split(".")[0].upper()
+        for t in dialogue_history.turns
+        if t.speaker == "medical" and t.action and "." in t.action
+    ]
+    ctx["has_proposal"] = "PROPOSE" in stages
+    ctx["has_recommend"] = "RECOMMEND" in stages
+    ctx["num_evaluated_options"] = stages.count("CONSIDER")
+    ctx["prev_stage"] = stages[-1] if stages else None
+    run = 0
+    for s in reversed(stages):
+        if s == ctx["prev_stage"]:
+            run += 1
+        else:
+            break
+    ctx["turns_in_current_stage"] = max(0, run - 1)
+    return ctx
+
+
+def valid_actions(action_space: dict | None) -> list[tuple[str, str]]:
+    """All legal (STAGE, locution) pairs from the action space."""
+    out: list[tuple[str, str]] = []
+    for sid, info in (action_space or {}).get("stages", {}).items():
+        for loc in info.get("allowed_locutions", []):
+            out.append((sid.upper(), loc.lower()))
+    return out
+
+
+def best_action(
+    relation: str, user_locution: str | None, action_space: dict | None, ctx: dict[str, Any]
+) -> tuple[tuple[str, str], float]:
+    """Reward-oracle teacher: the legal action that maximizes r_align (argmax)."""
+    best: tuple[str, str] = ("INFORM", "ask_justify")
+    best_score = float("-inf")
+    for st, loc in valid_actions(action_space):
+        s = align_reward(relation, user_locution, st, loc, ctx)
+        if s > best_score:
+            best_score, best = s, (st, loc)
+    return best, best_score
+
+
 def _userresp(user_locution: str | None, stage: str, locution: str) -> float:
     """How well the action responds to the clinician's locution (r_align.txt §4)."""
     ul = (user_locution or "").lower()

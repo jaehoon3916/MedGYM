@@ -1,8 +1,12 @@
 """Train the dialogue policy with GRPO (agent-external env + r_align/r_final reward, LoRA)."""
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+# reduce CUDA fragmentation (set before torch is imported anywhere)
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

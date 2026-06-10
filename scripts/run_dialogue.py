@@ -61,6 +61,8 @@ def main():
 
     output_dir = Path(config.get("experiment", {}).get("output_dir", "outputs"))
     exp_name = config.get("experiment", {}).get("name", "exp")
+    # Experiment dir, guarding against a doubled name when output_dir already ends with exp_name.
+    exp_dir = output_dir if output_dir.name == exp_name else output_dir / exp_name
     max_turns = args.max_turns or config.get("experiment", {}).get("max_turns", 2)
 
     # One episode per initial user-state preset (persona). The config value may be a single
@@ -76,7 +78,7 @@ def main():
         if args.output and len(presets) == 1:
             output_path = args.output
         else:
-            output_path = str(output_dir / exp_name / f"{case_info.case_id}{suffix}.jsonl")
+            output_path = str(exp_dir / f"{case_info.case_id}{suffix}.jsonl")
 
         if episode_config is not None:
             print(f"\n=== {name}: {episode_config.model_dump()} ===")
@@ -84,10 +86,11 @@ def main():
             case_info, max_turns=max_turns, output_path=output_path, episode_config=episode_config
         )
 
-        # Per-rollout token logs (tracker was reset above, so these are episode-scoped)
-        base = Path(output_path).with_suffix("")
-        tracker.save_calls(str(base) + "_calls.jsonl")
-        tracker.save_summary(str(base) + "_token_summary.json")
+        # Per-rollout token logs in a tokens/ subdir (tracker was reset above → episode-scoped)
+        rollout_p = Path(output_path)
+        token_dir = rollout_p.parent / "tokens"
+        tracker.save_calls(str(token_dir / f"{rollout_p.stem}_calls.jsonl"))
+        tracker.save_summary(str(token_dir / f"{rollout_p.stem}_token_summary.json"))
         # Add this episode's usage to the persistent cumulative ledger (survives overwrites)
         ledger = tracker.accumulate_to_ledger(
             ledger_path,

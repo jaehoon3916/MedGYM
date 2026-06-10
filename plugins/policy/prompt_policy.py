@@ -47,7 +47,7 @@ class PromptPolicy(VLLMBasePlugin, PolicyPlugin):
                 overall_relation=vt.overall_relation,
                 confidence=vt.confidence,
                 evidence_gaps=vt.evidence_gaps,
-                short_rationale=vt.short_rationale,
+                reasoning=vt.reasoning,
                 dialogue=dialogue_history.to_prompt(),
             )},
         ]

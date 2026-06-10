@@ -1,0 +1,9 @@
+{
+  "deepseek/deepseek-chat-v3-0324": {
+    "calls": 25,
+    "prompt_tokens": 37501,
+    "completion_tokens": 3416,
+    "reasoning_tokens": 0,
+    "total_tokens": 40917
+  }
+}

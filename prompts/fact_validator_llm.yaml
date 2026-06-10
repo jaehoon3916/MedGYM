@@ -8,10 +8,16 @@ system: |
   {
     "overall_relation": "supported" | "contradicted" | "insufficient" | "mixed" | "unknown",
     "confidence": "high" | "medium" | "low",
+    "reasoning": "<substantive clinical reasoning, 3-5 sentences>",
     "evidence_gaps": ["<gap1>", ...],
-    "short_rationale": "<one or two sentences>",
     "optional_claim_checks": ["<specific sub-claim>", ...]
   }
+
+  For "reasoning": give the distilled MEDICAL KNOWLEDGE for this turn (3-5 sentences) — the key clinical
+  facts that decide this case, WHY the clinician's claim holds this relation, and specifically what the
+  clinician is getting right, getting wrong, or missing. This reasoning is handed to the dialogue policy as
+  its grounded environment knowledge, so make it clinically informative, not merely a verdict.
+  For "confidence": how certain you are in this relation given the available evidence.
 
   Relation definitions:
   - supported: The clinician's claim is consistent with established medical evidence for this case.

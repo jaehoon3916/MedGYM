@@ -6,7 +6,7 @@ experiment:
   data_path: data/sample_data/sample_data.json
   ablation_mode: baseline_policy   # naive | prompt | rule | baseline_policy | sft_policy | full_policy
   token_ledger: token_usage_ledger.json   # persistent cumulative token total across ALL runs (read-add-write, never overwritten)
-  initial_user_state: null         # persona preset(s) in initial_user_state/. One episode per preset.
+  initial_user_state: user_state_1         # persona preset(s) in initial_user_state/. One episode per preset.
                                     #   null            → default EpisodeConfig (single run)
                                     #   user_state_5     → single preset
                                     #   [user_state_1, user_state_5, user_state_9]  → list
@@ -16,6 +16,7 @@ experiment:
 plugins:
   user_llm:
     type: vllm                                  # vllm (only option — mock removed)
+    use_mask: false                             # true → Stage-3 utterance mask (extra LLM call/turn); ablation toggle
     base_url: https://openrouter.ai/api/v1
     # base_url: http://localhost:8001/v1        # local vllm server
     model: deepseek/deepseek-chat-v3-0324
@@ -54,7 +55,7 @@ plugins:
     temperature: 0.0
 
   final_judge:                                  # end-of-episode judge → final_judgement{concluded_option, is_correct} for accuracy
-    enabled: true                               # false → skip final judgement (turn off during experiments)
+    enabled: false                           # false → skip final judgement (turn off during experiments)
     type: vllm                                  # vllm (only option)
     base_url: https://openrouter.ai/api/v1
     # base_url: http://localhost:8001/v1        # local vllm server

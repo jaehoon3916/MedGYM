@@ -3,18 +3,30 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from core.schemas import CaseInfo, DialogueHistory, StepResult
+from core.schemas import CaseInfo, DialogueHistory, StepResult, Observation, UserState
 from plugins.user_llm.vllm_user import EpisodeConfig
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
+from core.reward_align import align_reward_from_objs, update_ctx, new_ctx
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from plugins.policy.base import PolicyPlugin
 from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
 
+_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM", "CLOSE"}
+
 
 class MedicalHACEnvironment:
+    """Agent-external dialogue environment.
+
+    Gym-style: `reset()` produces the first Observation (clinician utterance + fact-validation), and
+    `step(policy_output)` applies the action (medical response), advances to the next clinician turn,
+    and returns a StepResult (with the per-step r_align reward). The policy lives OUTSIDE the env; the
+    trainer drives reset/step directly. `run_episode()` is a thin wrapper that drives it with `self.policy`
+    for eval / data-generation, preserving the old behavior.
+    """
+
     def __init__(
         self,
         user_llm: UserLLMPlugin,
@@ -34,90 +46,149 @@ class MedicalHACEnvironment:
         self._case_info: CaseInfo | None = None
         self._history: DialogueHistory | None = None
         self._turn_id: int = 0
+        self._max_turns: int = 2
+        self._ctx: dict[str, Any] = new_ctx()
+        self._obs: Observation | None = None
+        # current observation fields the next action responds to
+        self._cur_user_utterance: str = ""
+        self._cur_verification = None
+        self._cur_user_state: UserState | None = None
+        self._user_closed: bool = False
 
-    def reset(self, case_info: CaseInfo, episode_config: EpisodeConfig | None = None) -> DialogueHistory:
+    # ── gym-style API ────────────────────────────────────────────────────────
+
+    def reset(
+        self,
+        case_info: CaseInfo,
+        episode_config: EpisodeConfig | None = None,
+        max_turns: int | None = None,
+    ) -> Observation:
         self._case_info = case_info
         self._history = DialogueHistory(case_id=case_info.case_id)
         self._turn_id = 0
+        self._max_turns = (
+            max_turns if max_turns is not None
+            else int(self.config.get("experiment", {}).get("max_turns", 2))
+        )
+        self._ctx = new_ctx()
+        self._user_closed = False
         self.user_llm.reset_episode(episode_config or EpisodeConfig())
-        return self._history
+        _tracker.begin_turn()
+        self._obs = self._advance_user_turn()
+        return self._obs
 
-    def step(self) -> StepResult:
+    @property
+    def observation(self) -> Observation | None:
+        return self._obs
+
+    def step(self, policy_output) -> StepResult:
         assert self._case_info is not None and self._history is not None, "Call reset() before step()"
+        t = self._turn_id
+        cur_utt = self._cur_user_utterance
+        cur_verif = self._cur_verification
+        cur_user_state = self._cur_user_state
+
+        # If the policy closes, force the user sim to close on the next turn.
+        if policy_output.action_id == "CLOSE.withdraw_dialogue" or policy_output.stage.upper() == "CLOSE":
+            self.user_llm.force_close()
+
+        # Apply the action: medical LLM responds using the selected action prompt.
+        medical_response = self.medical_llm.generate_medical_response(
+            case_info=self._case_info,
+            dialogue_history=self._history,
+            action_prompt=policy_output.action_prompt,
+            current_user_utterance=cur_utt,
+        )
+        self._history.add_turn("medical", medical_response, action=policy_output.action_id)
+
+        # Per-step reward: r_align scores this action against the observation it responded to.
+        r_align = align_reward_from_objs(cur_verif, cur_user_state, policy_output, self._ctx)
+        r_fmt = 1.0 if policy_output.stage.upper() in _VALID_STAGES and policy_output.locution else 0.0
+        self._ctx = update_ctx(self._ctx, policy_output, cur_user_state)
+        self._turn_id = t + 1
+
+        # Advance to the next clinician turn (unless the turn cap is hit).
+        if self._turn_id >= self._max_turns:
+            done = True
+            closed_by = "max_turns"
+        else:
+            next_obs = self._advance_user_turn()
+            done = next_obs.done
+            closed_by = "agreement" if done else None
+
+        final_judgement = self._finalize() if done else None
+
+        result = StepResult(
+            case_id=self._case_info.case_id,
+            turn_id=t,
+            medical_response=medical_response,
+            user_utterance=cur_utt,
+            verification_template=cur_verif,
+            selected_action=policy_output.action_id,
+            action_prompt=policy_output.action_prompt,
+            done=done,
+            reward=r_align,
+            metadata={
+                "r_align": r_align,
+                "r_fmt": r_fmt,
+                "policy": policy_output.metadata,
+                "turn_prompts": _tracker.flush_turn(),
+                "final_judgement": final_judgement,
+                "closed_by": closed_by,
+            },
+        )
         _tracker.begin_turn()
 
-        # 1. User LLM generates user utterance; done=True if user closes the dialogue
+        if done:
+            self._obs = self._obs.model_copy(update={"done": True}) if self._obs else None
+        return result
+
+    # ── internals ────────────────────────────────────────────────────────────
+
+    def _advance_user_turn(self) -> Observation:
         user_utterance, user_done, user_state_dict = self.user_llm.generate_user_utterance(
             case_info=self._case_info,
             dialogue_history=self._history,
             turn_id=self._turn_id,
         )
-        from core.schemas import UserState
         user_state = UserState(**user_state_dict) if user_state_dict else None
         self._history.add_turn("user", user_utterance, user_state=user_state)
-
-        if user_done:
-            result = StepResult(
-                case_id=self._case_info.case_id,
-                turn_id=self._turn_id,
-                user_utterance=user_utterance,
-                verification_template=self.fact_validator_llm.validate_facts(
-                    case_info=self._case_info,
-                    dialogue_history=self._history,
-                    current_user_utterance=user_utterance,
-                ),
-                selected_action="CLOSE.withdraw_dialogue",
-                action_prompt="",
-                medical_response="",
-                done=True,
-                reward=None,
-                metadata={"turn_prompts": _tracker.flush_turn()},
-            )
-            self._turn_id += 1
-            return result
-
-        # 2. Fact Validator LLM validates facts from current user utterance
-        verification_template = self.fact_validator_llm.validate_facts(
+        verification = self.fact_validator_llm.validate_facts(
             case_info=self._case_info,
             dialogue_history=self._history,
             current_user_utterance=user_utterance,
         )
-
-        # 3. Policy selects next action based on user utterance + verification template
-        policy_output = self.policy.select_action(
+        self._cur_user_utterance = user_utterance
+        self._cur_verification = verification
+        self._cur_user_state = user_state
+        self._user_closed = user_done
+        last_action = next(
+            (t.action for t in reversed(self._history.turns) if t.speaker == "medical" and t.action),
+            None,
+        )
+        obs = Observation(
             case_info=self._case_info,
             dialogue_history=self._history,
+            verification=verification,
             current_user_utterance=user_utterance,
-            verification_template=verification_template,
-        )
-
-        # 4. If policy closes the dialogue, force user sim to close on the next turn
-        if policy_output.action_id == "CLOSE.withdraw_dialogue" or getattr(policy_output, "stage", "") == "Close":
-            self.user_llm.force_close()
-
-        # 5. Medical LLM generates system utterance using selected action prompt
-        medical_response = self.medical_llm.generate_medical_response(
-            case_info=self._case_info,
-            dialogue_history=self._history,
-            action_prompt=policy_output.action_prompt,
-            current_user_utterance=user_utterance,
-        )
-        self._history.add_turn("medical", medical_response, action=policy_output.action_id)
-
-        result = StepResult(
-            case_id=self._case_info.case_id,
+            user_state=user_state,
+            last_action=last_action,
             turn_id=self._turn_id,
-            user_utterance=user_utterance,
-            verification_template=verification_template,
-            selected_action=policy_output.action_id,
-            action_prompt=policy_output.action_prompt,
-            medical_response=medical_response,
-            done=False,
-            reward=None,
-            metadata={"policy": policy_output.metadata, "turn_prompts": _tracker.flush_turn()},
+            done=user_done,
         )
-        self._turn_id += 1
-        return result
+        self._obs = obs
+        return obs
+
+    def _finalize(self) -> dict | None:
+        if self.final_judge is None or self._history is None or self._case_info is None:
+            return None
+        fj = self.final_judge.judge(self._case_info, self._history)
+        fj.is_correct = (
+            fj.concluded_option.strip().upper() == str(self._case_info.correct_option).strip().upper()
+        )
+        return fj.model_dump()
+
+    # ── convenience wrapper (eval / data generation) ──────────────────────────
 
     def run_episode(
         self,
@@ -126,46 +197,43 @@ class MedicalHACEnvironment:
         output_path: str | Path | None = None,
         episode_config: EpisodeConfig | None = None,
     ) -> list[StepResult]:
-        if max_turns is None:
-            max_turns = int(self.config.get("experiment", {}).get("max_turns", 2))
-
         model_names = {
             "user_llm": self.user_llm.name(),
             "medical_llm": self.medical_llm.name(),
             "fact_validator_llm": self.fact_validator_llm.name(),
             "policy": self.policy.name(),
         }
-        logger = RolloutLogger(case_info=case_info, model_names=model_names)
+        eff_cfg = episode_config or EpisodeConfig()
+        logger = RolloutLogger(
+            case_info=case_info, model_names=model_names, episode_config=eff_cfg.model_dump(),
+        )
 
-        self.reset(case_info, episode_config)
+        obs = self.reset(case_info, eff_cfg, max_turns=max_turns)
         results: list[StepResult] = []
-
-        for _ in range(max_turns):
-            result = self.step()
+        while not obs.done:
+            policy_output = self.policy.select_action(
+                case_info=obs.case_info,
+                dialogue_history=obs.dialogue_history,
+                current_user_utterance=obs.current_user_utterance,
+                verification_template=obs.verification,
+            )
+            result = self.step(policy_output)
             results.append(result)
             assert self._history is not None
             logger.log_step(
                 result,
                 dialogue_snapshot=[t.model_dump() for t in self._history.turns],
             )
-            if result.done:
-                break
+            obs = self._obs
 
-        # Final judgement on every terminating episode (agreement OR max_turns), so accuracy
-        # can be aggregated later. The judge maps the dialogue's conclusion to an option; the
-        # environment scores it against the gold option deterministically.
-        closed_by = "agreement" if (results and results[-1].done) else "max_turns"
-        final_judgement = None
-        if self.final_judge is not None and self._history is not None:
-            fj = self.final_judge.judge(case_info, self._history)
-            fj.is_correct = (
-                fj.concluded_option.strip().upper() == str(case_info.correct_option).strip().upper()
-            )
-            final_judgement = fj.model_dump()
-        logger.finalize(final_judgement, closed_by)
+        # Attach the episode-level final judgement (computed in step at terminal) to the last record.
         if results:
-            results[-1].metadata["final_judgement"] = final_judgement
-            results[-1].metadata["closed_by"] = closed_by
+            fj = results[-1].metadata.get("final_judgement")
+            closed_by = results[-1].metadata.get("closed_by")
+        else:  # user closed on the very first turn → no actions taken
+            fj = self._finalize()
+            closed_by = "agreement"
+        logger.finalize(fj, closed_by)
 
         if output_path is not None:
             logger.save(output_path)

@@ -32,7 +32,7 @@ user: |
     overall_relation: {overall_relation}
     confidence: {confidence}
     evidence_gaps: {evidence_gaps}
-    short_rationale: {short_rationale}
+    reasoning: {reasoning}
 
   Dialogue so far:
   {dialogue}

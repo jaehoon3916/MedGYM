@@ -145,7 +145,10 @@
 <header>
   <div style="display:flex;align-items:center;gap:14px;">
     <a href="/">← All Rollouts</a>
-    <h1>Case {{ case_info.get('case_id','?') }}</h1>
+    {% if prev_path %}<a href="/rollout/{{ prev_path }}">← Prev</a>{% else %}<span style="color:#555;">← Prev</span>{% endif %}
+    {% if position %}<span style="color:#aaa;font-size:0.85rem;">{{ position[0] }} / {{ position[1] }}</span>{% endif %}
+    {% if next_path %}<a href="/rollout/{{ next_path }}">Next →</a>{% else %}<span style="color:#555;">Next →</span>{% endif %}
+    <h1>Case {{ case_info.get('case_id','?') }}{% if '__' in path %} <span style="font-size:0.85rem;color:#aaa;font-weight:400;">/ {{ path.split('__')[-1].replace('.jsonl','') }}</span>{% endif %}</h1>
   </div>
   <div class="hdr-right">
     <button class="btn" id="toggle-sidebar" onclick="toggleSidebar()">Hide Detail</button>
@@ -173,6 +176,14 @@
         <span>Policy: <strong>{{ turns[0].model_name.policy if turns else '—' }}</strong></span>
         <span>{{ turns[0].get('timestamp','')[:19].replace('T',' ') if turns else '' }}</span>
       </div>
+      {% if episode_config %}
+      <div class="meta-row" style="border-top:1px solid #eee;padding-top:6px;margin-top:4px;">
+        <span style="color:#888;">Persona:</span>
+        {% for f in episode_fields %}
+        <span>{{ f.label }}: <strong>{{ episode_config.get(f.name, '—') }}</strong></span>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
 
     <!-- Token Summary -->
@@ -264,13 +275,25 @@
             {% for f in user_state_fields %}
             <div class="state-item">
               <div class="sk">{{ f.label }}</div>
+              {# episode-level noise conditions come from the logged episode_config (— if not logged);
+                 dynamic per-turn fields come from us_raw with the schema default #}
+              {% if f.name in episode_field_names %}
+              <div class="sv">{{ us_raw.get(f.name) or episode_config.get(f.name, '—') }}</div>
+              {% else %}
               <div class="sv">{{ us_raw.get(f.name, f.get('default', '—')) or '—' }}</div>
+              {% endif %}
             </div>
             {% endfor %}
             {% if us_raw.get('clinical_claim') %}
             <div class="state-item">
               <div class="sk">Clinical Claim</div>
               <div class="sv" style="font-weight:400;font-size:0.76rem;line-height:1.4;">{{ us_raw.clinical_claim }}</div>
+            </div>
+            {% endif %}
+            {% if us_raw.get('reasoning') %}
+            <div class="state-item">
+              <div class="sk">Reasoning</div>
+              <div class="sv" style="font-weight:400;font-size:0.76rem;line-height:1.4;">{{ us_raw.reasoning }}</div>
             </div>
             {% endif %}
             {% if us_raw.get('shards') %}
@@ -313,7 +336,7 @@
           </div>
           <div class="vt-row" style="margin-top:4px;">
             <span class="vt-key">Rationale</span>
-            <span class="vt-val">{{ vt.get('short_rationale','—') }}</span>
+            <span class="vt-val">{{ vt.get('reasoning') or vt.get('short_rationale','—') }}</span>
           </div>
           {% if vt.get('evidence_gaps') %}
           <div class="vt-row" style="margin-top:4px;">

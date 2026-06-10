@@ -28,7 +28,7 @@ class NaivePolicy(PolicyPlugin):
             f"The clinician's latest claim has been validated as follows:\n"
             f"  Relation: {vt.overall_relation}\n"
             f"  Confidence: {vt.confidence}\n"
-            f"  Rationale: {vt.short_rationale}\n\n"
+            f"  Reasoning: {vt.reasoning}\n\n"
             f"Respond appropriately based on this assessment."
         )
         return PolicyOutput(

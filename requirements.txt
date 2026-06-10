@@ -1,3 +1,10 @@
 pydantic>=2.0
 pyyaml>=6.0
 pytest>=7.0
+openai>=1.0
+
+# training (GRPO) — already present in the medgym conda env; declared for clarity
+torch>=2.5
+transformers>=4.51
+peft>=0.11
+accelerate>=0.30

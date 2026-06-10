@@ -9,9 +9,11 @@ from core.schemas import CaseInfo, StepResult
 
 
 class RolloutLogger:
-    def __init__(self, case_info: CaseInfo, model_names: dict[str, str]):
+    def __init__(self, case_info: CaseInfo, model_names: dict[str, str],
+                 episode_config: dict[str, Any] | None = None):
         self.case_info = case_info
         self.model_names = model_names
+        self.episode_config = episode_config or {}
         self._steps: list[dict[str, Any]] = []
 
     def log_step(self, step_result: StepResult, dialogue_snapshot: list[dict]) -> None:
@@ -19,6 +21,7 @@ class RolloutLogger:
             "case_id": step_result.case_id,
             "turn_id": step_result.turn_id,
             "case_info": self.case_info.model_dump(),
+            "episode_config": self.episode_config,
             "dialogue_history": dialogue_snapshot,
             "verification_template": step_result.verification_template.model_dump(),
             "selected_action": step_result.selected_action,

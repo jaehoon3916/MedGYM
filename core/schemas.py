@@ -44,7 +44,8 @@ class VerificationTemplate(BaseModel):
     overall_relation: Literal["supported", "contradicted", "insufficient", "mixed", "unknown"] = "unknown"
     confidence: Literal["high", "medium", "low"] = "low"
     evidence_gaps: list[str] = Field(default_factory=list)
-    short_rationale: str = ""
+    # Substantive distilled clinical reasoning (the medical knowledge handed to the policy as environment).
+    reasoning: str = ""
     optional_claim_checks: list[str] = Field(default_factory=list)
 
 
@@ -114,3 +115,15 @@ class StepResult(BaseModel):
     done: bool = False
     reward: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class Observation(BaseModel):
+    """Agent-external env observation: exactly the context the policy consumes each turn."""
+    case_info: CaseInfo
+    dialogue_history: DialogueHistory
+    verification: VerificationTemplate
+    current_user_utterance: str
+    user_state: UserState | None = None
+    last_action: str | None = None
+    turn_id: int = 0
+    done: bool = False

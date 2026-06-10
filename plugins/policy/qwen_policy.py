@@ -82,7 +82,10 @@ class QwenPolicy(VLLMBasePlugin, PolicyPlugin):
         current_user_utterance: str,
         verification_template: VerificationTemplate,
     ) -> PolicyOutput:
-        messages = _build_messages(verification_template, current_user_utterance)
+        messages = _build_messages(
+            verification_template, current_user_utterance, dialogue_history,
+            self.action_space, _last_medical_action(dialogue_history),
+        )
         extra_body: dict[str, Any] = {
             "chat_template_kwargs": {"enable_thinking": self._enable_thinking},
         }
@@ -101,6 +104,10 @@ class LocalQwenPolicy(PolicyPlugin):
         self._enable_thinking: bool = config.get("enable_thinking", False)
         self._max_new_tokens: int = config.get("max_tokens", 512)
         self._device: str = config.get("device", "auto")
+        # training (GRPO) knobs — off by default so the inference path is unchanged
+        self._trainable: bool = config.get("trainable", False)
+        self._temperature: float = config.get("temperature", 0.8)
+        self._lora_cfg: dict = config.get("lora", {})
         self._model = None
         self._tokenizer = None
 
@@ -116,7 +123,20 @@ class LocalQwenPolicy(PolicyPlugin):
             torch_dtype=torch.bfloat16,
             device_map=self._device,
         )
-        self._model.eval()
+        if self._trainable:
+            from peft import LoraConfig, get_peft_model
+            lc = self._lora_cfg
+            peft_cfg = LoraConfig(
+                r=lc.get("r", 16),
+                lora_alpha=lc.get("alpha", 32),
+                lora_dropout=lc.get("dropout", 0.05),
+                target_modules=lc.get("target_modules", ["q_proj", "k_proj", "v_proj", "o_proj"]),
+                task_type="CAUSAL_LM",
+            )
+            self._model = get_peft_model(self._model, peft_cfg)
+            self._model.train()
+        else:
+            self._model.eval()
 
     def select_action(
         self,
@@ -126,7 +146,10 @@ class LocalQwenPolicy(PolicyPlugin):
         verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         import torch
-        messages = _build_messages(verification_template, current_user_utterance)
+        messages = _build_messages(
+            verification_template, current_user_utterance, dialogue_history,
+            self.action_space, _last_medical_action(dialogue_history),
+        )
         text = self._tokenizer.apply_chat_template(
             messages,
             tokenize=False,
@@ -147,15 +170,110 @@ class LocalQwenPolicy(PolicyPlugin):
         stage, locution, locution_type = _parse_dot_action(raw)
         return _build_policy_output(stage, locution, locution_type, self._mode, raw, self.action_space)
 
+    # ── GRPO training hooks ──────────────────────────────────────────────────
 
-def _build_messages(vt: VerificationTemplate, current_user_utterance: str) -> list[dict[str, str]]:
+    def _encode(self, dialogue_history, current_user_utterance, verification_template):
+        messages = _build_messages(
+            verification_template, current_user_utterance, dialogue_history,
+            self.action_space, _last_medical_action(dialogue_history),
+        )
+        text = self._tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True, enable_thinking=self._enable_thinking,
+        )
+        return self._tokenizer(text, return_tensors="pt").to(self._model.device)
+
+    def sample_action(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+        current_user_utterance: str,
+        verification_template: VerificationTemplate,
+    ) -> PolicyOutput:
+        """Rollout-time sampling (do_sample). Records prompt_ids + action_ids for the GRPO update."""
+        import torch
+        inputs = self._encode(dialogue_history, current_user_utterance, verification_template)
+        with torch.no_grad():
+            out = self._model.generate(
+                **inputs,
+                max_new_tokens=self._max_new_tokens,
+                do_sample=True,
+                temperature=self._temperature,
+                pad_token_id=self._tokenizer.eos_token_id,
+            )
+        prompt_len = inputs["input_ids"].shape[1]
+        action_ids = out[0][prompt_len:]
+        raw = self._tokenizer.decode(action_ids, skip_special_tokens=True)
+        stage, locution, locution_type = _parse_dot_action(raw)
+        po = _build_policy_output(stage, locution, locution_type, self._mode, raw, self.action_space)
+        po.metadata["prompt_ids"] = inputs["input_ids"][0].tolist()
+        po.metadata["action_ids"] = action_ids.tolist()
+        return po
+
+    def action_logprob(self, prompt_ids: list[int], action_ids: list[int], use_ref: bool = False):
+        """Summed per-token logπ(action | prompt). use_ref → adapter-disabled reference policy (no grad)."""
+        import torch
+        device = self._model.device
+        pid = torch.tensor(prompt_ids, device=device).unsqueeze(0)
+        aid = torch.tensor(action_ids, device=device).unsqueeze(0)
+        full = torch.cat([pid, aid], dim=1)
+
+        def _compute():
+            logits = self._model(full).logits.float()        # [1, L, V]
+            plen = pid.shape[1]
+            logp = torch.log_softmax(logits[0, plen - 1:-1, :], dim=-1)  # predicts the action tokens
+            tok = aid[0]
+            return logp[torch.arange(tok.shape[0], device=device), tok].sum()
+
+        if use_ref:
+            with torch.no_grad(), self._model.disable_adapter():
+                return _compute()
+        return _compute()
+
+    def save(self, path: str) -> None:
+        self._tokenizer.save_pretrained(path)
+        self._model.save_pretrained(path)   # PEFT saves the LoRA adapter
+
+
+def _format_action_space(action_space: dict | None) -> str:
+    """Render the stages (with descriptions + allowed locutions) and the locution glossary."""
+    if not action_space:
+        return ""
+    lines = ["Stages:"]
+    for sid, info in action_space.get("stages", {}).items():
+        locs = ", ".join(info.get("allowed_locutions", []))
+        lines.append(f"  {sid} — {info.get('description', '')} [locutions: {locs}]")
+    lines.append("Locutions:")
+    for lid, info in action_space.get("locutions", {}).items():
+        lines.append(f"  {lid} — {info.get('description', '')}")
+    return "\n".join(lines)
+
+
+def _last_medical_action(dialogue_history: DialogueHistory) -> str | None:
+    """The action_id of the most recent medical (AI) turn, if any."""
+    return next(
+        (t.action for t in reversed(dialogue_history.turns) if t.speaker == "medical" and t.action),
+        None,
+    )
+
+
+def _build_messages(
+    vt: VerificationTemplate,
+    current_user_utterance: str,
+    dialogue_history: DialogueHistory,
+    action_space: dict | None,
+    last_action: str | None,
+) -> list[dict[str, str]]:
     tmpl = _load("baseline_policy")
     return [
-        {"role": "system", "content": tmpl["system"]},
+        {"role": "system", "content": tmpl["system"].format(
+            action_guide=_format_action_space(action_space),
+        )},
         {"role": "user", "content": tmpl["user"].format(
+            dialogue=dialogue_history.to_prompt(),
+            last_action=last_action or "(none yet)",
             overall_relation=vt.overall_relation,
             confidence=vt.confidence,
-            short_rationale=vt.short_rationale,
+            reasoning=vt.reasoning,
             current_user_utterance=current_user_utterance,
         )},
     ]

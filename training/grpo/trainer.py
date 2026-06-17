@@ -13,6 +13,7 @@ from typing import Any
 
 from core.reward import Trajectory, trajectory_return, group_advantages
 from core.logger import RolloutLogger
+from core.token_tracker import tracker as _tracker
 from plugins.user_llm.vllm_user import EpisodeConfig
 
 
@@ -33,10 +34,16 @@ class GRPOTrainer:
         self.steps = int(tr.get("steps", 50))
         self.save_every = int(tr.get("save_every", 10))
 
-        self.max_turns = int(config.get("experiment", {}).get("max_turns", 6))
+        exp = config.get("experiment", {})
+        self.max_turns = int(exp.get("max_turns", 6))
         self.weights = config.get("reward", {})
-        self.save_dir = Path(config.get("experiment", {}).get("output_dir", "outputs")) / "grpo"
+        self.save_dir = Path(exp.get("output_dir", "outputs")) / "grpo"
         self.rollout_dir = self.save_dir / "rollouts"   # saved dialogue transcripts (viewable in app.py)
+        # Token accounting: every rollout's API + policy-generate tokens land here (same format as eval).
+        self.exp_name = exp.get("name", "grpo")
+        self.token_ledger = exp.get("token_ledger", "token_usage_ledger.json")
+        self.token_dir = self.save_dir / "tokens"
+        self._last_ledger = None
         self.model_names = {
             "user_llm": env.user_llm.name(),
             "medical_llm": env.medical_llm.name(),
@@ -55,6 +62,7 @@ class GRPOTrainer:
         logger = RolloutLogger(
             case_info=case_info, model_names=self.model_names, episode_config=eff.model_dump(),
         )
+        _tracker.reset()   # episode-scoped token accounting (counts even degenerate rollouts)
         obs = self.env.reset(case_info, episode_config, max_turns=self.max_turns)
         traj = Trajectory()
         while not obs.done:
@@ -74,6 +82,14 @@ class GRPOTrainer:
         traj.num_turns = len(traj.step_align)
         if traj.steps:
             logger.save(self.rollout_dir / f"{tag}.jsonl")   # transcript: dialogue + actions + rewards
+        # Persist this rollout's token usage (raw per-call I/O + per-model summary) and fold its
+        # totals into the cumulative ledger. Done for every rollout, including degenerate ones.
+        _tracker.save_calls(self.token_dir / f"{tag}_calls.jsonl")
+        _tracker.save_summary(self.token_dir / f"{tag}_token_summary.json")
+        self._last_ledger = _tracker.accumulate_to_ledger(
+            self.token_ledger,
+            {"phase": "grpo", "exp": self.exp_name, "tag": tag, "case_id": case_info.case_id},
+        )
         return traj
 
     # ── training loop ────────────────────────────────────────────────────────
@@ -150,3 +166,9 @@ class GRPOTrainer:
 
         self.policy.save(str(self.save_dir / "final"))
         print(f"GRPO done. Final adapter → {self.save_dir / 'final'}")
+        if self._last_ledger is not None:
+            gt = self._last_ledger["grand_total"]
+            print(f"[cumulative tokens] episodes={self._last_ledger['total_episodes']} "
+                  f"total={gt['total_tokens']:,} (prompt={gt['prompt_tokens']:,} "
+                  f"completion={gt['completion_tokens']:,} reasoning={gt['reasoning_tokens']:,}) "
+                  f"-> {self.token_ledger}")

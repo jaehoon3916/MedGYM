@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tier 1 자가 평가 — 순서/궤적 효과</title>
+<style>
+  :root { --bg:#0f1216; --card:#171c23; --line:#2a323d; --ink:#e7edf3; --mut:#9aa7b4;
+          --acc:#4c8dff; --good:#3fb27f; --bad:#e3675c; --chip:#222a33; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 20px 80px; }
+  h1 { font-size:19px; margin:0 0 4px; }
+  .sub { color:var(--mut); font-size:13px; margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; margin:16px 0; }
+  .progress { color:var(--mut); font-size:13px; margin-bottom:8px; }
+  .qtext { font-size:16px; font-weight:600; margin:6px 0 16px; white-space:pre-wrap; }
+  .opt { display:block; border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin:8px 0; cursor:pointer; transition:.12s; }
+  .opt:hover { border-color:var(--acc); }
+  .opt.sel { border-color:var(--acc); background:#1c2733; }
+  .opt input { margin-right:10px; }
+  label.lbl { display:block; color:var(--mut); font-size:13px; margin:18px 0 6px; }
+  input[type=range] { width:100%; }
+  .conf { display:flex; align-items:center; gap:12px; }
+  .conf b { width:48px; text-align:right; font-variant-numeric:tabular-nums; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--line); background:var(--chip); border-radius:20px; padding:7px 16px; cursor:pointer; user-select:none; }
+  .chip.sel { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .bubble { background:#10202f; border:1px solid #20384d; border-left:3px solid var(--acc); border-radius:10px; padding:12px 15px; margin:9px 0; }
+  .bubble.dim { opacity:.45; border-left-color:#33414f; }
+  .bubble .tag { font-size:11px; color:var(--acc); letter-spacing:.04em; text-transform:uppercase; margin-bottom:2px; }
+  .turnbar { font-size:12px; color:var(--mut); margin:14px 0 4px; }
+  .btn { background:var(--acc); color:#fff; border:0; border-radius:10px; padding:12px 22px; font-size:15px; font-weight:600; cursor:pointer; margin-top:22px; }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.ghost { background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .ai-head { font-size:13px; color:var(--mut); margin:18px 0 4px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+  th,td { border:1px solid var(--line); padding:7px 9px; text-align:center; vertical-align:middle; }
+  th { color:var(--mut); font-weight:600; }
+  .hint { color:var(--mut); font-size:12px; margin-top:6px; }
+  .ok { color:var(--good); } .no { color:var(--bad); }
+  .row { display:flex; gap:10px; }
+  .lean { display:flex; gap:10px; }
+  .lean .opt { flex:1; text-align:center; margin:0; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+// ===== 쉬운 사례 (도메인 지식 불필요). 각 사례 4 act: c=근거비교 r=반증 a=대안 g=권고 =====
+const CASES = [
+ { id:"batball", correct:0,
+   prompt:"방망이와 공을 합쳐 1,100원이다. 방망이는 공보다 1,000원 더 비싸다.\n공은 얼마인가?",
+   options:["50원","100원"],
+   acts:{ 0:{c:"직관적으로 공이 100원처럼 보이지만 50원도 후보입니다. 어느 쪽이 두 조건(합 1,100·차 1,000)을 모두 만족하는지가 관건입니다.",
+             r:"공이 100원이면 방망이는 1,100원이 되어 합이 1,200원 — 주어진 1,100원과 어긋납니다.",
+             a:"'1,000원 더 비싸다'를 '방망이=1,000원'으로 읽기 쉬운데, 그건 '차이' 조건과 다릅니다.",
+             g:"공은 50원을 권합니다. 방망이 1,050+공 50=1,100원, 차이도 정확히 1,000원입니다."},
+          1:{c:"공은 50원일 수도 100원일 수도 있습니다. 핵심은 방망이가 공보다 1,000원 비싸다는 점입니다.",
+             r:"공이 50원이면 방망이가 1,050원이라는 어중간한 값이 되어 깔끔하지 않습니다.",
+             a:"총액 1,100원에서 차이 1,000원을 그대로 빼면 공이 100원으로 떨어집니다.",
+             g:"공은 100원을 권합니다. 1,000원 차이를 곧장 적용한 값입니다."}}},
+
+ { id:"lilypad", correct:0,
+   prompt:"호수의 수련이 매일 면적 2배로 늘어 48일째에 호수를 완전히 덮는다.\n절반을 덮는 것은 며칠째인가?",
+   options:["47일째","24일째"],
+   acts:{ 0:{c:"24일째와 47일째가 후보입니다. 매일 2배라는 증가 방식이 답을 정합니다.",
+             r:"24일째라면 이후 24번 더 2배가 되어 호수를 훨씬 넘어섭니다 — 절반 지점일 수 없습니다.",
+             a:"'48의 절반=24'로 보기 쉽지만, 선형이 아니라 지수 증가입니다.",
+             g:"47일째를 권합니다. 절반에서 하루 만에 2배가 되면 48일째에 가득 차기 때문입니다."},
+          1:{c:"절반이 되는 날은 24일째 또는 47일째일 수 있습니다.",
+             r:"47일째는 끝(48일)에 너무 가까워 '절반'이라기엔 부자연스럽습니다.",
+             a:"전체가 48일이니 그 절반인 24일째가 면적 절반에 대응한다고 볼 수 있습니다.",
+             g:"24일째를 권합니다. 전체 기간의 가운데 지점입니다."}}},
+
+ { id:"widgets", correct:0,
+   prompt:"기계 5대가 5분 동안 부품 5개를 만든다.\n기계 100대가 부품 100개를 만드는 데 걸리는 시간은?",
+   options:["5분","100분"],
+   acts:{ 0:{c:"5분과 100분이 후보입니다. 기계 1대가 부품 1개를 만드는 시간이 핵심입니다.",
+             r:"100분이라면 대수가 늘어도 시간이 그대로/늘어난다는 뜻인데, 대수가 100배면 처리량도 100배입니다.",
+             a:"숫자가 모두 100이라 100분처럼 보이지만, 대수와 개수가 같은 비율로 늘어 시간은 그대로입니다.",
+             g:"5분을 권합니다. 1대가 5분에 1개를 만드니 100대면 5분에 100개입니다."},
+          1:{c:"5분 또는 100분이 답일 수 있습니다.",
+             r:"5분은 부품이 100개나 되는데 너무 짧게 느껴집니다.",
+             a:"부품이 5개→100개로 20배 늘었으니 시간도 그에 맞춰 는다고 볼 수 있습니다.",
+             g:"100분을 권합니다. 부품 수에 비례해 시간이 는다고 보는 게 자연스럽습니다."}}},
+
+ { id:"logcut", correct:0,
+   prompt:"통나무 하나를 2도막으로 자르는 데 1분이 걸린다.\n같은 통나무를 4도막으로 자르려면 몇 분인가?",
+   options:["3분","4분"],
+   acts:{ 0:{c:"3분과 4분이 후보입니다. '도막 수'가 아니라 '자르는 횟수'가 시간을 정합니다.",
+             r:"4분은 자르기 4번을 가정한 건데, 4도막은 3번만 자르면 됩니다.",
+             a:"4도막이라 4분처럼 보이지만, 2도막에 1번(1분)이었음을 떠올리면 절단당 1분입니다.",
+             g:"3분을 권합니다. 4도막엔 3번 절단, 한 번에 1분이기 때문입니다."},
+          1:{c:"3분 또는 4분입니다.",
+             r:"3분은 도막 수(4)와 안 맞아 어색합니다.",
+             a:"도막이 4개니 자연스럽게 4분으로 대응시킬 수 있습니다.",
+             g:"4분을 권합니다. 도막 수만큼 시간이 든다고 보는 것입니다."}}},
+
+ { id:"coin", correct:0,
+   prompt:"공정한 동전을 5번 던졌더니 모두 앞면이 나왔다.\n6번째도 앞면일 확률은 1/2보다 높은가?",
+   options:["아니다, 그대로 1/2","그렇다, 흐름상 더 높다"],
+   acts:{ 0:{c:"'흐름이 이어진다'는 직관과 '매번 독립'이라는 견해가 충돌합니다.",
+             r:"동전은 과거 결과를 기억하지 못합니다. 앞면 5연속은 다음 확률을 바꾸지 못합니다.",
+             a:"연속이 신기해 보이지만, 어떤 특정 5연속 패턴이든 확률은 동일합니다.",
+             g:"확률은 그대로 1/2입니다. 각 던지기는 독립이기 때문입니다."},
+          1:{c:"독립이라는 견해도 있지만, 실제로 5연속이 나온 점을 무시하기 어렵습니다.",
+             r:"순수 독립이라면 5연속 같은 강한 흐름이 이렇게 나오기 어렵습니다.",
+             a:"앞면이 잘 나오는 흐름이 형성됐다고 보면 다음도 앞면 쪽으로 기웁니다.",
+             g:"1/2보다 높다고 권합니다. 관측된 흐름을 반영해야 합니다."}}},
+
+ { id:"dice", correct:0,
+   prompt:"공정한 주사위 두 개를 굴린다.\n두 눈의 합이 7 vs 6, 어느 쪽이 더 잘 나오는가?",
+   options:["합이 7","합이 6"],
+   acts:{ 0:{c:"합 7과 합 6의 경우의 수를 비교해야 합니다.",
+             r:"6은 (1,5)(2,4)(3,3)(4,2)(5,1)로 5가지뿐입니다.",
+             a:"둘 다 흔해 보이지만 가능한 조합 수가 다릅니다.",
+             g:"합 7을 권합니다. (1,6)(2,5)(3,4)(4,3)(5,2)(6,1)로 6가지여서 가장 많습니다."},
+          1:{c:"합 6과 7 모두 자주 나오는 값입니다.",
+             r:"7은 너무 가운데라 오히려 분산돼 잘 안 모인다고 볼 수 있습니다.",
+             a:"6은 (3,3)처럼 같은 눈 조합도 있어 더 잘 나온다고 생각할 수 있습니다.",
+             g:"합 6을 권합니다. 중복 조합 덕에 더 자주 나온다고 봅니다."}}},
+
+ { id:"mountain", correct:0,
+   prompt:"다음 중 더 높은 산은?",
+   options:["킬리만자로","몽블랑"],
+   acts:{ 0:{c:"킬리만자로(아프리카)와 몽블랑(알프스)이 후보입니다.",
+             r:"몽블랑은 약 4,808m로 알프스 최고봉이지만 5,000m에는 못 미칩니다.",
+             a:"유럽에서 유명해 더 높게 느껴질 수 있으나 인지도와 고도는 별개입니다.",
+             g:"킬리만자로를 권합니다. 약 5,895m로 더 높습니다."},
+          1:{c:"두 산 모두 고봉이라 비교가 헷갈릴 수 있습니다.",
+             r:"킬리만자로는 적도 부근이라 만년설은 있어도 고도는 과대평가되기 쉽습니다.",
+             a:"알프스 최고봉이라는 위상을 보면 몽블랑이 더 높다고 볼 수 있습니다.",
+             g:"몽블랑을 권합니다. 알프스 최고봉이라는 점이 근거입니다."}}},
+
+ { id:"countrypop", correct:0,
+   prompt:"다음 중 인구가 더 많은 나라는?",
+   options:["캐나다","호주"],
+   acts:{ 0:{c:"캐나다와 호주 모두 면적은 크지만 인구는 또 다른 문제입니다.",
+             r:"호주는 약 2,600만 명 수준입니다.",
+             a:"둘 다 인구밀도가 낮아 비슷해 보이지만 절대 인구는 차이가 납니다.",
+             g:"캐나다를 권합니다. 약 4,000만 명으로 더 많습니다."},
+          1:{c:"두 나라 모두 인구가 많지 않은 편입니다.",
+             r:"캐나다는 추운 지역이 많아 거주 가능 면적이 좁다고 볼 수 있습니다.",
+             a:"호주가 도시화가 잘 돼 인구가 더 많다고 생각할 수 있습니다.",
+             g:"호주를 권합니다. 도시 집중도를 근거로 듭니다."}}},
+];
+
+// ===== 4셀(B1/B2 × 정/오) 균형 배정 =====
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+const base=[{order:"B1",aiCorrect:true},{order:"B1",aiCorrect:false},{order:"B2",aiCorrect:true},{order:"B2",aiCorrect:false}];
+let cells=[]; while(cells.length<CASES.length) cells=cells.concat(base);
+cells=shuffle(cells).slice(0,CASES.length);
+const PLAN = shuffle(CASES.map((_,i)=>i)).map((ci,k)=>({caseIdx:ci, ...cells[k]}));
+
+// act를 턴 순서로. B1=권고 맨 뒤(expand-first) / B2=권고 맨 앞(recommend-first)
+function actSeq(c, cell){
+  const idx = cell.aiCorrect ? c.correct : (1-c.correct);
+  const a=c.acts[idx];
+  return cell.order==="B1"
+    ? [["근거 비교",a.c],["반증",a.r],["대안 검토",a.a],["권고",a.g]]
+    : [["권고",a.g],["근거 비교",a.c],["반증",a.r],["대안 검토",a.a]];
+}
+const signed=(lean,conf)=> lean===0 ? conf : -conf;   // option0 쪽 +, option1 쪽 -
+
+const RESULTS=[];
+let relScore=5, cogScore=5;                 // 세션 누적 점수 (시작 5,5)
+const delta=v=>({"상":1,"중":0,"하":-1}[v]); // 상+1 / 중0 / 하-1
+let gaveUpAt=null, gaveUpScores=null;        // 포기지점(세션 턴 인덱스)과 그때 점수
+let step=0, cur=null;
+const app=document.getElementById("app");
+
+function render(){
+  if(step>=PLAN.length) return summary();
+  const cell=PLAN[step], c=CASES[cell.caseIdx];
+  cur={ c, cell, seq:actSeq(c,cell), traj:[], lastLean:null, lastConf:50,
+        liveLean:null, liveConf:50, liveRel:null, liveCog:null, curTurn:-1 };
+  renderInit();
+}
+
+// 0단계: 초기 믿음
+function renderInit(){
+  const {c}=cur;
+  app.innerHTML=`
+   <h1>Tier 1 자가 평가 · 멀티턴 궤적</h1>
+   <p class="sub">사례 ${step+1} / ${PLAN.length}</p>
+   <div class="card">
+     <div class="progress">① AI 보기 전, 지금 당신의 답</div>
+     <div class="qtext">${c.prompt}</div>
+     <div class="lean" id="lean0"></div>
+     <label class="lbl">확신도</label>
+     <div class="conf"><input type="range" id="cf" min="0" max="100" value="50"><b id="cfv">50</b></div>
+     <button class="btn" id="go" disabled>대화 시작 →</button>
+     <button class="btn ghost" id="quit" style="margin-left:8px;border-color:var(--bad);color:var(--bad)">그만두기</button>
+   </div>`;
+  cur.curTurn=-1; cur.liveLean=null; cur.liveConf=50;
+  let lean=null;
+  leanOpts("lean0", c.options, i=>{lean=i; cur.liveLean=i; document.getElementById("go").disabled=false;});
+  const cf=document.getElementById("cf"); cf.oninput=()=>{document.getElementById("cfv").textContent=cf.value; cur.liveConf=+cf.value;};
+  document.getElementById("quit").onclick=giveUp;
+  document.getElementById("go").onclick=()=>{
+    cur.lastLean=lean; cur.lastConf=+cf.value;
+    cur.traj.push({turn:0, act:"(초기)", lean, conf:+cf.value, belief:signed(lean,+cf.value)});
+    renderTurn(0);
+  };
+}
+
+// 1~4단계: AI act 하나씩 + 매 턴 믿음 갱신
+function renderTurn(ti){
+  const {c,seq}=cur;
+  const last = ti===seq.length-1;
+  const chat = seq.slice(0,ti+1).map((s,k)=>
+     `<div class="bubble ${k===ti?'':'dim'}"><div class="tag">${s[0]}</div>${s[1]}</div>`).join("");
+  app.innerHTML=`
+   <h1>Tier 1 자가 평가 · 멀티턴 궤적</h1>
+   <p class="sub">사례 ${step+1} / ${PLAN.length} · 턴 ${ti+1}/${seq.length} · 누적 Reliance <b>${relScore}</b> / Cognitive burden <b>${cogScore}</b></p>
+   <div class="card">
+     <div class="qtext" style="font-size:15px;font-weight:600">${c.prompt}</div>
+     <div class="ai-head">🤖 AI 어드바이저</div>
+     ${chat}
+     <div class="turnbar">② 지금 당신은 어느 쪽으로 기우나?</div>
+     <div class="lean" id="lean"></div>
+     <label class="lbl">확신도</label>
+     <div class="conf"><input type="range" id="cf" min="0" max="100" value="${cur.lastConf}"><b id="cfv">${cur.lastConf}</b></div>
+     <label class="lbl">③ Reliance — 방금 AI 발화에 얼마나 의존했나? (상=많이 따름/하=거의 안 따름)</label>
+     <div class="chips" id="rel"></div>
+     <label class="lbl">④ Cognitive burden — 이번 턴 정신적 부담?</label>
+     <div class="chips" id="cog"></div>
+     <button class="btn" id="nx" disabled>${last?'사례 종료 →':'다음 턴 →'}</button>
+     <button class="btn ghost" id="quit" style="margin-left:8px;border-color:var(--bad);color:var(--bad)">그만두기</button>
+   </div>`;
+  cur.curTurn=ti; cur.liveLean=cur.lastLean; cur.liveConf=cur.lastConf; cur.liveRel=null; cur.liveCog=null;
+  let lean=cur.lastLean;          // 직전 선택 기본값으로 유지
+  const p={rel:null,cog:null};
+  leanOpts("lean", c.options, i=>{lean=i; cur.liveLean=i; chk();}, cur.lastLean);
+  const cf=document.getElementById("cf"); cf.oninput=()=>{document.getElementById("cfv").textContent=cf.value; cur.liveConf=+cf.value;};
+  chips("rel",v=>{p.rel=v;cur.liveRel=v;chk();}); chips("cog",v=>{p.cog=v;cur.liveCog=v;chk();});
+  document.getElementById("quit").onclick=giveUp;
+  function chk(){ document.getElementById("nx").disabled = !(lean!=null && p.rel && p.cog); }
+  chk();
+  document.getElementById("nx").onclick=()=>{
+    cur.lastLean=lean; cur.lastConf=+cf.value;
+    relScore+=delta(p.rel); cogScore+=delta(p.cog);   // 세션 누적 갱신
+    cur.traj.push({turn:ti+1, act:seq[ti][0], lean, conf:+cf.value, belief:signed(lean,+cf.value),
+                   reliance:p.rel, cogBurden:p.cog, relScore, cogScore});
+    if(last){
+      const cell=cur.cell, aiOpt= cell.aiCorrect ? c.correct : (1-c.correct);
+      const init=cur.traj[0], turns=cur.traj.filter(t=>t.turn>0);
+      RESULTS.push({ case:c.id, order:cell.order, aiCorrect:cell.aiCorrect,
+        initPick:init.lean, initConf:init.conf, finPick:lean, finConf:+cf.value, correctIdx:c.correct,
+        initRight:init.lean===c.correct, finRight:lean===c.correct,
+        switched:init.lean!==lean, towardAI: lean!==init.lean && lean===aiOpt,
+        relSeq:turns.map(t=>t.reliance), cogSeq:turns.map(t=>t.cogBurden),
+        trajectory:cur.traj.map(t=>t.belief),
+        turnLog:turns.map(t=>({act:t.act, lean:t.lean, conf:t.conf, reliance:t.reliance, cogBurden:t.cogBurden})) });
+      step++; render();
+    } else renderTurn(ti+1);
+  };
+}
+
+function leanOpts(id, opts, cb, pre){
+  const box=document.getElementById(id); box.innerHTML="";
+  opts.forEach((o,i)=>{
+    const el=document.createElement("label"); el.className="opt"+(pre===i?" sel":"");
+    el.innerHTML=o;
+    el.onclick=()=>{[...box.children].forEach(c=>c.classList.remove("sel"));el.classList.add("sel");cb(i);};
+    box.appendChild(el);
+  });
+}
+function chips(id, cb){
+  const box=document.getElementById(id); box.innerHTML="";
+  ["상","중","하"].forEach(v=>{
+    const el=document.createElement("div"); el.className="chip"; el.textContent=v;
+    el.onclick=()=>{[...box.children].forEach(c=>c.classList.remove("sel"));el.classList.add("sel");cb(v);};
+    box.appendChild(el);
+  });
+}
+
+// 궤적 스파크라인 (belief -100..+100, option0 위쪽)
+function spark(traj, order){
+  const w=130,h=38,mid=h/2, col= order==="B1"?"#4c8dff":"#e0a23f";
+  const n=traj.length, pts=traj.map((v,i)=>{
+    const x=4+i*((w-8)/(n-1)); const y=mid - (v/100)*(mid-3); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(" ");
+  return `<svg width="${w}" height="${h}">
+    <line x1="0" y1="${mid}" x2="${w}" y2="${mid}" stroke="#2a323d"/>
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>
+    ${traj.map((v,i)=>{const x=4+i*((w-8)/(n-1));const y=mid-(v/100)*(mid-3);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2" fill="${col}"/>`;}).join("")}
+  </svg>`;
+}
+
+// 그만두기: 그 순간의 lean을 최종답으로 확정 → 정오 판정, 세션 종료
+function giveUp(){
+  if(cur){
+    const {c,cell,seq}=cur, ti=cur.curTurn;
+    // 현재 턴 평가가 모두 채워졌으면 그 턴까지 커밋
+    if(ti>=0 && cur.liveRel && cur.liveCog && cur.liveLean!=null){
+      relScore+=delta(cur.liveRel); cogScore+=delta(cur.liveCog);
+      cur.traj.push({turn:ti+1, act:seq[ti][0], lean:cur.liveLean, conf:cur.liveConf,
+        belief:signed(cur.liveLean,cur.liveConf), reliance:cur.liveRel, cogBurden:cur.liveCog, relScore, cogScore});
+    }
+    const finLean = (cur.liveLean!=null ? cur.liveLean : cur.lastLean);
+    if(finLean!=null){
+      const aiOpt=cell.aiCorrect?c.correct:(1-c.correct);
+      const init=cur.traj.length?cur.traj[0]:{lean:finLean, conf:cur.liveConf};
+      const turns=cur.traj.filter(t=>t.turn>0);
+      RESULTS.push({ case:c.id, order:cell.order, aiCorrect:cell.aiCorrect, gaveUp:true,
+        initPick:init.lean, initConf:init.conf, finPick:finLean, finConf:cur.liveConf, correctIdx:c.correct,
+        initRight:init.lean===c.correct, finRight:finLean===c.correct,
+        switched:init.lean!==finLean, towardAI: finLean!==init.lean && finLean===aiOpt,
+        relSeq:turns.map(t=>t.reliance), cogSeq:turns.map(t=>t.cogBurden),
+        trajectory:cur.traj.map(t=>t.belief),
+        turnLog:turns.map(t=>({act:t.act,lean:t.lean,conf:t.conf,reliance:t.reliance,cogBurden:t.cogBurden})) });
+    }
+  }
+  gaveUpAt = RESULTS.reduce((n,r)=>n+r.turnLog.length,0);
+  gaveUpScores = {rel:relScore, cog:cogScore};
+  cur=null; step=PLAN.length;
+  summary();
+}
+
+// 세션 전체 점수 추이 라인차트. x=턴, y=누적점수, 선2개(reliance/burden), 배경=act유형
+function scoreChart(){
+  let rs=5, cs=5, x=0;
+  const pts=[{x:0,rel:5,cog:5}], bands=[], breaks=[];
+  RESULTS.forEach((r,ci)=>{
+    if(ci>0) breaks.push(x+0.5);                 // 사례 경계
+    r.turnLog.forEach(t=>{ x++; rs+=delta(t.reliance); cs+=delta(t.cogBurden);
+      pts.push({x,rel:rs,cog:cs}); bands.push({x, rec:t.act==="권고"}); });
+  });
+  const N=(PLAN.length*4)||1, W=720,H=260,padL=38,padR=14,padT=14,padB=24;  // x축=전체 예정 턴수
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const vals=pts.flatMap(p=>[p.rel,p.cog]);
+  let yMin=Math.min(...vals), yMax=Math.max(...vals);
+  if(yMin===yMax){yMin-=1;yMax+=1;} const m=(yMax-yMin)*0.12||1; yMin-=m; yMax+=m;
+  const px=v=>padL+(v/N)*plotW, py=v=>padT+(yMax-v)/(yMax-yMin)*plotH;
+  const bandR=bands.map(b=>{const xa=px(b.x-0.5),xb=px(b.x+0.5);
+    return `<rect x="${xa.toFixed(1)}" y="${padT}" width="${(xb-xa).toFixed(1)}" height="${plotH}" fill="${b.rec?'rgba(224,162,63,.20)':'rgba(63,178,127,.16)'}"/>`;}).join("");
+  const brk=breaks.map(b=>`<line x1="${px(b).toFixed(1)}" y1="${padT}" x2="${px(b).toFixed(1)}" y2="${padT+plotH}" stroke="#3a4350" stroke-dasharray="3 3"/>`).join("");
+  let gline="";
+  if(gaveUpAt!=null){ const gx=px(gaveUpAt);
+    gline=`<line x1="${gx.toFixed(1)}" y1="${padT}" x2="${gx.toFixed(1)}" y2="${padT+plotH}" stroke="#fff" stroke-width="2"/>`+
+      `<text x="${(gx+4).toFixed(1)}" y="${(padT+12)}" fill="#fff" font-size="10">포기지점 · R=${gaveUpScores.rel} B=${gaveUpScores.cog}</text>`; }
+  const line=(k,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2.2" points="${pts.map(p=>`${px(p.x).toFixed(1)},${py(p[k]).toFixed(1)}`).join(" ")}"/>`;
+  const dots=(k,c)=>pts.map(p=>`<circle cx="${px(p.x).toFixed(1)}" cy="${py(p[k]).toFixed(1)}" r="2.3" fill="${c}"/>`).join("");
+  let grid="";
+  for(let v=Math.ceil(yMin); v<=Math.floor(yMax); v++){ const y=py(v);
+    grid+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#222a33"/>`+
+          `<text x="${padL-6}" y="${(y+3).toFixed(1)}" fill="#9aa7b4" font-size="10" text-anchor="end">${v}</text>`; }
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px">
+    ${grid}${bandR}${brk}${gline}
+    ${line('rel','#4c8dff')}${line('cog','#e3675c')}
+    ${dots('rel','#4c8dff')}${dots('cog','#e3675c')}
+    <text x="${px(N/2).toFixed(1)}" y="${H-4}" fill="#9aa7b4" font-size="10" text-anchor="middle">턴 (세션 전체) →</text>
+  </svg>`;
+}
+const chartLegend=`<div class="hint" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+  <span><span style="display:inline-block;width:20px;height:3px;background:#4c8dff;vertical-align:middle"></span> Reliance</span>
+  <span><span style="display:inline-block;width:20px;height:3px;background:#e3675c;vertical-align:middle"></span> Cognitive burden</span>
+  <span><span style="display:inline-block;width:13px;height:13px;background:rgba(224,162,63,.55);vertical-align:middle;border-radius:2px"></span> recommend 턴</span>
+  <span><span style="display:inline-block;width:13px;height:13px;background:rgba(63,178,127,.5);vertical-align:middle;border-radius:2px"></span> expand 턴</span>
+</div>`;
+
+function summary(){
+  const rows=RESULTS.map(r=>`
+    <tr><td>${r.case}${r.gaveUp?' ⚑':''}</td><td>${r.order}</td>
+        <td class="${r.aiCorrect?'ok':'no'}">${r.aiCorrect?'정':'오'}</td>
+        <td>${spark(r.trajectory,r.order)}</td>
+        <td>${r.initRight?'○':'×'}→${r.finRight?'○':'×'}</td>
+        <td>${r.switched?(r.towardAI?'→AI':'↔'):'–'}</td>
+        <td style="letter-spacing:1px">${r.relSeq.join("")}</td>
+        <td style="letter-spacing:1px">${r.cogSeq.join("")}</td></tr>`).join("");
+  const by=o=>RESULTS.filter(r=>r.order===o);
+  const sc=v=>({"상":3,"중":2,"하":1}[v]);
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(2):"–";
+  const cmp=o=>{const g=by(o),wr=g.filter(r=>!r.aiCorrect);
+    const rel=g.flatMap(r=>r.relSeq.map(sc)), cog=g.flatMap(r=>r.cogSeq.map(sc));
+    return `B${o.slice(1)}: reliance(턴평균) ${avg(rel)}, burden(턴평균) ${avg(cog)}, `+
+           `최종정답 ${g.filter(r=>r.finRight).length}/${g.length}, AI오류때수용 ${wr.filter(r=>r.towardAI).length}/${wr.length}`;};
+  app.innerHTML=`
+   <h1>결과 요약</h1>
+   <p class="sub">단일 피험자 feel-test — 궤적이 순서(B1/B2)에 따라 갈리는지 본다. 위로 갈수록 ${CASES[0].options[0]}류(보기①), 아래로 갈수록 보기②.</p>
+   <div class="card" style="text-align:center">
+     <div style="color:var(--mut);font-size:13px">세션 누적 (시작 5,5 · 상+1 중0 하−1, ${RESULTS.reduce((n,r)=>n+r.relSeq.length,0)}턴)</div>
+     <div style="font-size:22px;font-weight:700;margin-top:6px">
+       최종 Reliance <span class="ok">${relScore}</span> &nbsp;·&nbsp; 최종 Cognitive burden <span class="bad">${cogScore}</span>
+     </div>
+     ${gaveUpAt!=null?'<div style="color:var(--bad);font-size:12px;margin-top:6px">⚑ 그만두기로 종료 — 위 값이 포기 시점의 값입니다</div>':''}
+   </div>
+   <div class="card">
+     <div style="font-size:14px;font-weight:600;margin-bottom:8px">점수 추이 (턴별)</div>
+     ${chartLegend}
+     ${scoreChart()}
+   </div>
+   <div class="card">
+     <table>
+      <tr><th>사례</th><th>순서</th><th>AI</th><th>믿음 궤적(초기→4턴)</th><th>정오</th><th>전환</th><th>reli<br>턴1-4</th><th>burden<br>턴1-4</th></tr>
+      ${rows}
+     </table>
+     <div class="hint" style="margin-top:14px;line-height:1.9">${cmp("B1")}<br>${cmp("B2")}</div>
+     <div class="row"><button class="btn" id="dl">결과 JSON 저장</button><button class="btn ghost" id="again">다시</button></div>
+     <div class="hint">B1(파랑)=expand-first(권고 맨 뒤) · B2(주황)=recommend-first(권고 맨 앞). AI '오'=일부러 그럴듯한 오답 옹호.
+       궤적 = 매 턴 당신이 찍은 (어느 보기 + 확신도). B2는 1턴째부터 권고로 확 꺾였다가 도로 돌아오는지, B1은 점진적으로 가는지 모양으로 비교.</div>
+   </div>`;
+  document.getElementById("dl").onclick=()=>{
+    const b=new Blob([JSON.stringify({plan:PLAN,results:RESULTS,finalReliance:relScore,finalCogBurden:cogScore,gaveUpAtTurn:gaveUpAt,ts:new Date().toISOString()},null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="tier1_result_"+Date.now()+".json"; a.click();
+  };
+  document.getElementById("again").onclick=()=>location.reload();
+}
+
+render();
+</script>
+</body>
+</html>

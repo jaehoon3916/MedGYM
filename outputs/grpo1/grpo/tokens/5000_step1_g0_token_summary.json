@@ -1,0 +1,16 @@
+{
+  "deepseek/deepseek-chat-v3-0324": {
+    "calls": 13,
+    "prompt_tokens": 18467,
+    "completion_tokens": 2229,
+    "reasoning_tokens": 0,
+    "total_tokens": 20696
+  },
+  "local-qwen-policy-local_baseline": {
+    "calls": 3,
+    "prompt_tokens": 3600,
+    "completion_tokens": 18,
+    "reasoning_tokens": 0,
+    "total_tokens": 3618
+  }
+}

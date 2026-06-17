@@ -3,10 +3,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from types import SimpleNamespace
+
 from plugins.vllm_base import VLLMBasePlugin
 from plugins.policy.base import PolicyPlugin
 from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
 from core.prompt_builder import _load
+from core.token_tracker import tracker as _tracker
 
 _VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM", "CLOSE"}
 
@@ -225,6 +228,22 @@ class LocalQwenPolicy(PolicyPlugin):
         po = _build_policy_output(stage, locution, locution_type, self._mode, raw, self.action_space)
         po.metadata["prompt_ids"] = inputs["input_ids"][0].tolist()
         po.metadata["action_ids"] = action_ids.tolist()
+
+        # Record this local generate() in the same unified format as every API call.
+        # No usage object from a local HF generate, so we synthesize one from token lengths.
+        n_action = int(action_ids.shape[0])
+        reasoning_tokens = 0
+        if self._enable_thinking and "</think>" in raw:
+            think_text = raw.split("</think>", 1)[0]
+            reasoning_tokens = len(self._tokenizer(think_text, add_special_tokens=False).input_ids)
+        usage = SimpleNamespace(
+            prompt_tokens=prompt_len,
+            completion_tokens=n_action,
+            total_tokens=prompt_len + n_action,
+            completion_tokens_details=SimpleNamespace(reasoning_tokens=reasoning_tokens),
+        )
+        prompt_text = self._tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=False)
+        _tracker.record(self.name(), [{"role": "policy_prompt", "content": prompt_text}], raw, usage)
         return po
 
     def action_logprob(self, prompt_ids: list[int], action_ids: list[int], use_ref: bool = False):

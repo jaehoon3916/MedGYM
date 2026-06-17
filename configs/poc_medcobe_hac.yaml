@@ -1,0 +1,34 @@
+# POC: HAC Deliberation Actions → MedCOBE Score
+# 비교: baseline (generic action_prompt) vs HAC-Rule (deliberation action 주입)
+
+# JAMA 케이스 데이터 (medical_hac_policy 기준 상대경로)
+data_dir: "data/sample_data"
+
+# 사용할 케이스 수 (error × correct 각 n_cases개 = 총 2×n_cases 평가 턴)
+n_cases: 20
+
+# 대화 모드: error(의사가 틀린 옵션 주장) / correct(의사가 맞는 옵션 주장)
+modes:
+  - error
+  - correct
+
+# 모든 LLM 호출에 사용할 모델 (simulator, fact_validator, medical_llm)
+openai_model: "gpt-4o"
+
+# 판정(judge) 모델
+judge_model: "gpt-4o"
+
+# API 키 환경변수 이름
+api_key_env: "OPENAI_API_KEY"
+
+# API base_url (OpenAI 기본값 사용 시 null)
+base_url: null
+
+# 동시 케이스 처리 수 (시뮬레이션)
+concurrency: 5
+
+# 판정 동시 처리 수
+judge_concurrency: 10
+
+# 출력 디렉터리
+output_dir: "outputs/poc_medcobe_hac"

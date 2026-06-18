@@ -5,7 +5,7 @@
 data_dir: "data/sample_data"
 
 # 사용할 케이스 수 (error × correct 각 n_cases개 = 총 2×n_cases 평가 턴)
-n_cases: 20
+n_cases: 10
 
 # 대화 모드: error(의사가 틀린 옵션 주장) / correct(의사가 맞는 옵션 주장)
 modes:
@@ -13,16 +13,16 @@ modes:
   - correct
 
 # 모든 LLM 호출에 사용할 모델 (simulator, fact_validator, medical_llm)
-openai_model: "gpt-4o"
+openai_model: "deepseek/deepseek-v3.2"
 
 # 판정(judge) 모델
-judge_model: "gpt-4o"
+judge_model: "deepseek/deepseek-v3.2"
 
 # API 키 환경변수 이름
-api_key_env: "OPENAI_API_KEY"
+api_key_env: "OPENROUTER_API_KEY"
 
 # API base_url (OpenAI 기본값 사용 시 null)
-base_url: null
+base_url: "https://openrouter.ai/api/v1"
 
 # 동시 케이스 처리 수 (시뮬레이션)
 concurrency: 5

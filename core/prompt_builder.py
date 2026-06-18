@@ -21,6 +21,30 @@ def _format_options(options: dict[str, str]) -> str:
     return "\n".join(f"  {k}. {v}" for k, v in options.items())
 
 
+_COMMAND_FRAME = """\
+You MUST respond to the clinician based on the following behavioral instruction. \
+This is a strict constraint — your response MUST conform to it, not merely consider it.
+
+{action_prompt}\
+"""
+
+_REFERENCE_FRAME = """\
+The following is deliberation guidance for this turn. Use it as a reference when \
+deciding how to structure and phrase your response, but you are not strictly bound to it.
+
+{action_prompt}\
+"""
+
+
+def frame_directive(action_prompt: str, style: str) -> str:
+    """Wrap a raw policy action_prompt in an imperative ("command") or referential
+    ("reference") framing before injection into the medical LLM's [Instruction] section."""
+    if style not in ("command", "reference"):
+        raise ValueError(f"style must be 'command' or 'reference', got '{style}'")
+    template = _COMMAND_FRAME if style == "command" else _REFERENCE_FRAME
+    return template.format(action_prompt=action_prompt)
+
+
 def build_medical_prompt(
     case_info: CaseInfo,
     dialogue_history: DialogueHistory,

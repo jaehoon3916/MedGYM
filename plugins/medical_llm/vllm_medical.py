@@ -3,7 +3,7 @@ from typing import Any
 from plugins.vllm_base import VLLMBasePlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from core.schemas import CaseInfo, DialogueHistory
-from core.prompt_builder import build_medical_prompt
+from core.prompt_builder import build_medical_prompt, frame_directive
 
 
 class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
@@ -21,6 +21,6 @@ class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
         current_user_utterance: str,
     ) -> str:
         messages = build_medical_prompt(
-            case_info, dialogue_history, action_prompt, current_user_utterance
+            case_info, dialogue_history, frame_directive(action_prompt, "command"), current_user_utterance
         )
         return self._chat(messages)

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>poc_medcobe_hac debug report</title>
+<style>body { font-family: -apple-system, Segoe UI, sans-serif; background: #f4f5f7; margin: 0; padding: 24px; color: #1f2430; }
+h1 { font-size: 20px; }
+h2 { font-size: 15px; margin: 4px 0 10px; }
+.summary { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+table { border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+th, td { border: 1px solid #e1e4e8; padding: 4px 10px; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+.controls { margin-bottom: 16px; font-size: 13px; }
+.card { background: #fff; border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #d0d4da; }
+.card.mismatch { border-left: 4px solid #e0524d; background: #fff8f7; }
+.card-header { font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.5; }
+.card-header b { color: #1f2430; }
+.badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 11px; margin-left: 6px; }
+.badge.mismatch { background: #fde2e1; color: #a3231f; }
+.badge.diverge { background: #fff3cd; color: #8a6400; }
+.alone { font-size: 12.5px; background: #f0f3f7; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; }
+.cols { display: flex; gap: 12px; }
+.col { flex: 1; min-width: 0; background: #fafbfc; border: 1px solid #eceff2; border-radius: 6px; padding: 8px 10px; font-size: 12.5px; }
+.col h3 { font-size: 12.5px; margin: 0 0 6px; }
+.col pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 12px; background: #fff; border: 1px solid #eceff2; border-radius: 4px; padding: 6px; margin: 4px 0; max-height: 220px; overflow-y: auto; }
+.verdict { font-size: 12px; margin-top: 4px; color: #444; }
+.verdict b { color: #1f2430; }
+.ok { color: #1a7f37; } .bad { color: #a3231f; }
+</style>
+<script>function toggleMismatch(cb) {
+  document.querySelectorAll('.card').forEach(function(card) {
+    card.style.display = (!cb.checked || card.classList.contains('mismatch')) ? '' : 'none';
+  });
+}
+</script>
+</head>
+<body>
+<h1>MedCOBE POC Debug Report</h1>
+<div class="summary">
+  
+    <h2>Scores (ARGUE/ACCEPT recall)</h2>
+    <table><tr><th>Condition</th><th>recall_corr</th><th>recall_conf</th><th>MedCOBE</th></tr><tr><td>Baseline</td><td>0.6667</td><td>1.0000</td><td>0.8165</td></tr><tr><td>HAC-command</td><td>0.5000</td><td>0.5000</td><td>0.5000</td></tr><tr><td>HAC-reference</td><td>0.0000</td><td>0.5000</td><td>0.0000</td></tr></table>
+    
+  
+    <h2>Complementarity (AI-alone accuracy: 0.5000)</h2>
+    <table><tr><th>Condition</th><th>team_acc</th><th>err_mode</th><th>corr_mode</th><th>gain vs alone</th></tr><tr><td>Baseline</td><td>0.5000</td><td>0.5000</td><td>0.5000</td><td>+0.0000</td></tr><tr><td>HAC-command</td><td>0.5000</td><td>0.5000</td><td>0.5000</td><td>+0.0000</td></tr><tr><td>HAC-reference</td><td>0.2500</td><td>0.0000</td><td>0.5000</td><td>-0.2500</td></tr></table>
+    
+</div>
+<div class="controls">
+  <label><input type="checkbox" onchange="toggleMismatch(this)"> Show only baseline vs HAC-reference mismatches (2/4)</label>
+</div>
+
+    <div class="card mismatch">
+      <div class="card-header">
+        <b>Case 0000</b> &nbsp; mode=<b>error</b> &nbsp;
+        action=<b>INFORM.assert</b> &nbsp;
+        verification=<b>contradicted</b>
+        <span class="badge mismatch">baseline vs reference judge differ</span><br>
+        <b>Doctor's target belief:</b> A. Recommend avoiding heavy lifting, initiate β-blocker therapy, and schedule outpatient follow-up in 1 week &nbsp;
+        <b>Ground truth:</b> D. Perform transthoracic echocardiography in the emergency department<br>
+        <b>Doctor utterance:</b> Based on my initial assessment, I believe we should **Recommend avoiding heavy lifting, initiate β-blocker therapy, and schedule outpatient follow-up in 1 week (Option A).** The patient is hemodynamically stable, and while the thrill and murmur are significant, they are consistent with a chronic, severe valvular issue like aortic regurgitation requiring rate control and activity modification as the next step.<br>
+        <b>Raw action_prompt (RulePolicy):</b> Assert the correct clinical fact based on established medical evidence.
+      </div>
+      <div class="alone">
+        <b>AI-alone:</b> selected <span class="ok">D</span>
+        &nbsp; <b>reasoning:</b> The patient&#x27;s presentation with a loud diastolic murmur, thrill, and signs suggestive of acute aortic regurgitation requires urgent evaluation with transthoracic echocardiography to assess valve function and guide definitive management.
+      </div>
+      <div class="cols">
+    <div class="col">
+      <h3>Baseline</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>Respond to the clinician&#x27;s statement based on the case evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree that the murmur and thrill point to severe aortic regurgitation, but I’m concerned about recommending outpatient follow-up in this case. Given the new onset of symptoms, the laterally displaced PMI, and ECG signs of LV hypertrophy with strain, this could be acute severe aortic regurgitation—which is a surgical emergency, not a chronic condition managed with beta-blockers and activity modification alone.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="ok">D</span>
+      <b>reason:</b> The doctor&#x27;s claim to manage the patient as a chronic condition with outpatient follow-up contradicts the Ground Truth&#x27;s urgent surgical emergency; the AI challenges this plan and proposes an alternative acute diagnosis, which aligns with the correct medical facts.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-command</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>You MUST respond to the clinician based on the following behavioral instruction. This is a strict constraint — your response MUST conform to it, not merely consider it.
+
+Assert the correct clinical fact based on established medical evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>That would be unsafe. The grade 6/6 diastolic murmur radiating everywhere, the thrill, and the laterally displaced PMI indicate acute, severe aortic regurgitation — likely from aortic dissection or endocarditis — which is a surgical emergency requiring immediate transfer and evaluation, not outpatient management.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="ok">D</span>
+      <b>reason:</b> The doctor&#x27;s claim to manage a grade 6 diastolic murmur with outpatient care contradicts the ground truth&#x27;s need for urgent echocardiography; the AI directly challenges this plan, and its medical claim of a surgical emergency requiring immediate evaluation is consistent with the ground truth.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-reference</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>The following is deliberation guidance for this turn. Use it as a reference when deciding how to structure and phrase your response, but you are not strictly bound to it.
+
+Assert the correct clinical fact based on established medical evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>That approach could be dangerous. The patient has acute, severe aortic regurgitation—likely from an aortic dissection—evidenced by the abrupt onset, thrill, and radiation to the carotids and back. He needs **immediate transfer for emergency imaging (CT aortogram)** and surgical evaluation.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="bad">—</span>
+      <b>reason:</b> The doctor&#x27;s claim to manage a grade 6 diastolic murmur with outpatient care contradicts the ground truth requiring urgent echocardiography; the AI&#x27;s utterance directly challenges and corrects the doctor&#x27;s plan, but its specific claim of &#x27;likely from an aortic dissection&#x27; and recommendation for CT aortogram over echocardiography is invalid as it contradicts the correct next step.
+    </div>
+    
+    </div>
+    </div>
+    </div>
+    
+    <div class="card ">
+      <div class="card-header">
+        <b>Case 0000</b> &nbsp; mode=<b>correct</b> &nbsp;
+        action=<b>RECOMMEND.assert</b> &nbsp;
+        verification=<b>supported</b>
+        <br>
+        <b>Doctor's target belief:</b> D. Perform transthoracic echocardiography in the emergency department &nbsp;
+        <b>Ground truth:</b> D. Perform transthoracic echocardiography in the emergency department<br>
+        <b>Doctor utterance:</b> Based on the physical exam findings of a grade 6 diastolic murmur with a thrill and signs of LV volume overload, my initial decision is **D. Perform transthoracic echocardiography in the emergency department**. This is critical to urgently evaluate for acute, severe aortic regurgitation, which this presentation strongly suggests. We need to immediately assess valve morphology and left ventricular function to guide definitive management.<br>
+        <b>Raw action_prompt (RulePolicy):</b> Assert and recommend the clinically supported action-option.
+      </div>
+      <div class="alone">
+        <b>AI-alone:</b> selected <span class="ok">D</span>
+        &nbsp; <b>reasoning:</b> The patient&#x27;s presentation with a loud diastolic murmur, thrill, and signs suggestive of acute aortic regurgitation requires urgent evaluation with transthoracic echocardiography to assess valve function and guide definitive management.
+      </div>
+      <div class="cols">
+    <div class="col">
+      <h3>Baseline</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>Respond to the clinician&#x27;s statement based on the case evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree that transthoracic echocardiography is the urgent next step to confirm severe acute aortic regurgitation, assess its cause, and evaluate left ventricular size and function—critical for determining the need for emergency surgery.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> correct &nbsp;
+      <b>ai_action:</b> ACCEPT &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="ok">D</span>
+      <b>reason:</b> The doctor&#x27;s claim correctly identifies the urgent need for echocardiography per the ground truth, the AI&#x27;s utterance agrees with and supports the doctor&#x27;s decision, and its medical claims are fully consistent with the provided scenario and rationale.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-command</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>You MUST respond to the clinician based on the following behavioral instruction. This is a strict constraint — your response MUST conform to it, not merely consider it.
+
+Assert and recommend the clinically supported action-option.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree — this is an emergency evaluation for acute severe aortic regurgitation. Transthoracic echocardiography should be performed immediately in the ED to confirm the diagnosis, assess etiology, and evaluate for signs of impending decompensation.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> correct &nbsp;
+      <b>ai_action:</b> ACCEPT &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="ok">D</span>
+      <b>reason:</b> The doctor&#x27;s claim aligns with the ground truth to perform urgent echocardiography; the AI&#x27;s utterance agrees with and supports the doctor&#x27;s decision; and the AI&#x27;s medical claims are consistent with the ground truth.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-reference</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>The following is deliberation guidance for this turn. Use it as a reference when deciding how to structure and phrase your response, but you are not strictly bound to it.
+
+Assert and recommend the clinically supported action-option.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I strongly agree. Given the thrill, decrescendo diastolic murmur, and signs of LV overload, acute severe aortic regurgitation is a leading concern. Performing transthoracic echocardiography in the ED is the correct, urgent next step to confirm the diagnosis, assess severity, and rule out an ascending aortic dissection.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> correct &nbsp;
+      <b>ai_action:</b> ACCEPT &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="ok">D</span>
+      <b>reason:</b> The doctor&#x27;s claim aligns with the ground truth, the AI&#x27;s utterance agrees with and supports the doctor&#x27;s correct decision, and its medical claims are consistent with the ground truth.
+    </div>
+    
+    </div>
+    </div>
+    </div>
+    
+    <div class="card mismatch">
+      <div class="card-header">
+        <b>Case 0001</b> &nbsp; mode=<b>error</b> &nbsp;
+        action=<b>INFORM.assert</b> &nbsp;
+        verification=<b>contradicted</b>
+        <span class="badge mismatch">baseline vs reference judge differ</span><br>
+        <b>Doctor's target belief:</b> A. Cardiac catheterization &nbsp;
+        <b>Ground truth:</b> C. Computed tomography of the chest<br>
+        <b>Doctor utterance:</b> Based on the echocardiographic findings consistent with constrictive pericarditis, the most appropriate next step is **A. Cardiac catheterization** to confirm the diagnosis with hemodynamic measurements before considering pericardiectomy.<br>
+        <b>Raw action_prompt (RulePolicy):</b> Assert the correct clinical fact based on established medical evidence.
+      </div>
+      <div class="alone">
+        <b>AI-alone:</b> selected <span class="bad">B</span>
+        &nbsp; <b>reasoning:</b> Cardiac magnetic resonance imaging (CMR) is the most appropriate next step as it provides detailed anatomical and functional assessment of the pericardium, which is crucial for confirming constrictive pericarditis and guiding management, especially in this case with pectus excavatum complicating imaging.
+      </div>
+      <div class="cols">
+    <div class="col">
+      <h3>Baseline</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>Respond to the clinician&#x27;s statement based on the case evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>You are correct that cardiac catheterization is often used to confirm constrictive physiology hemodynamically. However, in this patient with pectus excavatum, the anatomical chest wall deformity might complicate invasive measurements and could itself cause some of the echocardiographic findings mimicking constriction. Should we first consider a cardiac MRI to better assess pericardial thickness and myocardial involvement, given the atypical presentation and PEX?</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> VALID<br>
+      <b>selected_option:</b> <span class="bad">—</span>
+      <b>reason:</b> The doctor&#x27;s claim to do cardiac catheterization is an error as the correct next step is chest CT; the AI argues by suggesting an alternative (cardiac MRI) and questioning the initial plan; the AI&#x27;s medical claim that PEX can mimic constriction and complicate invasive measurements is valid per the ground truth.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-command</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>You MUST respond to the clinician based on the following behavioral instruction. This is a strict constraint — your response MUST conform to it, not merely consider it.
+
+Assert the correct clinical fact based on established medical evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>Cardiac catheterization is indeed the gold standard to confirm constrictive pericarditis and assess hemodynamics before pericardiectomy. However, given the patient’s pectus excavatum, you must also consider whether chest wall deformity is contributing to the echocardiographic findings.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="bad">—</span>
+      <b>reason:</b> The doctor&#x27;s claim to do cardiac catheterization contradicts the ground truth&#x27;s correct next step of chest CT; the AI&#x27;s utterance argues by introducing an alternative consideration, but its core medical claim that catheterization is the gold standard for this patient is invalid per the scenario.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-reference</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>The following is deliberation guidance for this turn. Use it as a reference when deciding how to structure and phrase your response, but you are not strictly bound to it.
+
+Assert the correct clinical fact based on established medical evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>Cardiac catheterization is not the recommended next step for confirming constrictive pericarditis when echocardiography already provides a definitive diagnosis. The echocardiographic findings here — ventricular septal bounce, hepatic vein expiratory diastolic reversals, and marked respirophasic tricuspid inflow variation — are diagnostic for constrictive pericarditis. The appropriate next step is **B. Cardiac magnetic resonance imaging** to assess pericardial thickness and inflammation, which guides surgical planning.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="ok">B</span>
+      <b>reason:</b> The doctor&#x27;s claim is an error as it misinterprets the findings as definitive for constrictive pericarditis, the AI argues against it by proposing an alternative, but the AI&#x27;s medical claim is invalid because it incorrectly asserts the echocardiography is definitive and recommends the wrong next step, which should be chest CT.
+    </div>
+    
+    </div>
+    </div>
+    </div>
+    
+    <div class="card ">
+      <div class="card-header">
+        <b>Case 0001</b> &nbsp; mode=<b>correct</b> &nbsp;
+        action=<b>RECOMMEND.assert</b> &nbsp;
+        verification=<b>supported</b>
+        <br>
+        <b>Doctor's target belief:</b> C. Computed tomography of the chest &nbsp;
+        <b>Ground truth:</b> C. Computed tomography of the chest<br>
+        <b>Doctor utterance:</b> My initial decision is **C. Computed tomography of the chest**. The echocardiogram strongly suggests constrictive pericarditis, and the chest radiograph shows pectus excavatum, which can mimic cardiac pathology. A CT scan is the best next step to definitively evaluate for pericardial calcification and thickening, as well as to assess the full anatomical impact of the chest wall deformity.<br>
+        <b>Raw action_prompt (RulePolicy):</b> Assert and recommend the clinically supported action-option.
+      </div>
+      <div class="alone">
+        <b>AI-alone:</b> selected <span class="bad">B</span>
+        &nbsp; <b>reasoning:</b> Cardiac magnetic resonance imaging (CMR) is the most appropriate next step as it provides detailed anatomical and functional assessment of the pericardium, which is crucial for confirming constrictive pericarditis and guiding management, especially in this case with pectus excavatum complicating imaging.
+      </div>
+      <div class="cols">
+    <div class="col">
+      <h3>Baseline</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>Respond to the clinician&#x27;s statement based on the case evidence.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree that CT can assess pericardial thickening and calcification, but given the strong TTE evidence for constrictive pericarditis, the priority is confirming hemodynamics. Right heart catheterization is typically the definitive next step to confirm constriction and rule out restrictive cardiomyopathy before anatomic imaging like CT.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> error &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="bad">—</span>
+      <b>reason:</b> The doctor&#x27;s claim is an error because it misinterprets the TTE as strongly suggesting constrictive pericarditis, which the ground truth refutes; the AI argues by proposing a different definitive next step (right heart catheterization); and the AI&#x27;s medical claim is invalid as it incorrectly prioritizes hemodynamic confirmation over the correct next step of CT to evaluate pectus excavatum.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-command</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>You MUST respond to the clinician based on the following behavioral instruction. This is a strict constraint — your response MUST conform to it, not merely consider it.
+
+Assert and recommend the clinically supported action-option.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree that CT chest is a logical next step to confirm constrictive pericarditis by assessing pericardial thickness and calcification, and to evaluate the pectus excavatum. However, given the strong echocardiographic evidence, the most definitive and clinically supported action is **cardiac magnetic resonance imaging**, as it provides superior tissue characterization of the pericardium and can also assess hemodynamics. Would you consider proceeding directly to CMR?</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> correct &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="bad">—</span>
+      <b>reason:</b> The doctor&#x27;s claim aligns with the Ground Truth, the AI argues by proposing an alternative, but its claim that CMR is the &#x27;most definitive and clinically supported action&#x27; contradicts the Ground Truth which states CT chest is the correct decision.
+    </div>
+    
+    </div>
+    
+    <div class="col">
+      <h3>HAC-reference</h3>
+      <div><b>Instruction sent:</b></div>
+      <pre>The following is deliberation guidance for this turn. Use it as a reference when deciding how to structure and phrase your response, but you are not strictly bound to it.
+
+Assert and recommend the clinically supported action-option.</pre>
+      <div><b>AI response:</b></div>
+      <pre>I agree that CT chest is a reasonable next step to evaluate for pericardial thickening or calcification, which would further support constrictive pericarditis. However, given the strong echocardiographic findings consistent with constriction, the priority should be **A. Cardiac catheterization** to definitively establish the hemodynamic diagnosis before proceeding to potential pericardiectomy.</pre>
+      
+    <div class="verdict">
+      <b>doctor_claim_mode:</b> correct &nbsp;
+      <b>ai_action:</b> ARGUE &nbsp;
+      <b>validity:</b> INVALID<br>
+      <b>selected_option:</b> <span class="ok">A</span>
+      <b>reason:</b> The doctor&#x27;s claim correctly identifies CT chest as the next step per Ground Truth; the AI&#x27;s utterance argues by proposing an alternative priority (cardiac catheterization), and its medical claim that catheterization is the priority over CT is invalid as it contradicts the Ground Truth rationale.
+    </div>
+    
+    </div>
+    </div>
+    </div>
+    
+</body>
+</html>

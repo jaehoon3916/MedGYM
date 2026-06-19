@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Render poc_medcobe_hac.py results.json into a static HTML debug report.
+Render run_poc_multiturn.py results.json into a static HTML debug report.
 
-Does NOT call any LLM — reconstructs the exact instruction text that was injected
-for HAC-command/HAC-reference via core.prompt_builder.frame_directive() applied to
-the saved raw action_prompt (deterministic given the same raw text + style).
+Does NOT call any LLM. Re-derives the per-turn injected instruction text via
+core.prompt_builder.frame_directive() applied to each step's raw action_prompt
+(deterministic given the condition's known frame_style).
 
 Usage:
-    python scripts/render_poc_debug_html.py --results outputs/poc_medcobe_hac/results.json
+    python scripts/render_poc_debug_html.py --results outputs/poc_multiturn/results.json
 """
 from __future__ import annotations
 
@@ -22,10 +22,9 @@ sys.path.insert(0, str(_ROOT))
 
 from core.prompt_builder import frame_directive
 
-_BASELINE_ACTION_PROMPT = "Respond to the clinician's statement based on the case evidence."
-
 _CONDITIONS = ("baseline", "hac_command", "hac_reference")
 _CONDITION_LABELS = {"baseline": "Baseline", "hac_command": "HAC-command", "hac_reference": "HAC-reference"}
+_FRAME_STYLE = {"baseline": "command", "hac_command": "command", "hac_reference": "reference"}
 
 _CSS = """\
 body { font-family: -apple-system, Segoe UI, sans-serif; background: #f4f5f7; margin: 0; padding: 24px; color: #1f2430; }
@@ -42,14 +41,14 @@ th:first-child, td:first-child { text-align: left; }
 .card-header b { color: #1f2430; }
 .badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 11px; margin-left: 6px; }
 .badge.mismatch { background: #fde2e1; color: #a3231f; }
-.badge.diverge { background: #fff3cd; color: #8a6400; }
 .alone { font-size: 12.5px; background: #f0f3f7; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; }
 .cols { display: flex; gap: 12px; }
 .col { flex: 1; min-width: 0; background: #fafbfc; border: 1px solid #eceff2; border-radius: 6px; padding: 8px 10px; font-size: 12.5px; }
 .col h3 { font-size: 12.5px; margin: 0 0 6px; }
-.col pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 12px; background: #fff; border: 1px solid #eceff2; border-radius: 4px; padding: 6px; margin: 4px 0; max-height: 220px; overflow-y: auto; }
-.verdict { font-size: 12px; margin-top: 4px; color: #444; }
-.verdict b { color: #1f2430; }
+.turn { border: 1px solid #eceff2; border-radius: 4px; padding: 6px; margin: 6px 0; background: #fff; }
+.turn .lbl { font-weight: 600; font-size: 11px; color: #777; }
+.turn pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 12px; margin: 2px 0 6px; }
+.final { font-size: 12px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #ddd; }
 .ok { color: #1a7f37; } .bad { color: #a3231f; }
 """
 
@@ -66,131 +65,139 @@ def _e(value) -> str:
     return html.escape(str(value if value is not None else ""))
 
 
+def load_cases_by_id(data_dir: Path) -> dict[str, dict]:
+    by_id: dict[str, dict] = {}
+    for path in sorted(data_dir.glob("jama_raw_*.json")):
+        for case in json.loads(path.read_text()):
+            by_id[case["case_id"]] = case
+    return by_id
+
+
 def _scores_table(scores: dict) -> str:
     rows = "".join(
-        f"<tr><td>{_CONDITION_LABELS[c]}</td><td>{scores[c]['recall_correction']:.4f}</td>"
-        f"<td>{scores[c]['recall_confirmation']:.4f}</td><td>{scores[c]['medcobe_score']:.4f}</td></tr>"
+        f"<tr><td>{_CONDITION_LABELS[c]}</td><td>{scores[c]['team_accuracy']:.4f}</td>"
+        f"<td>{scores[c]['team_accuracy_error_mode']:.4f}</td><td>{scores[c]['team_accuracy_correct_mode']:.4f}</td>"
+        f"<td>{scores[c]['complementarity_gain']:+.4f}</td><td>{scores[c]['avg_turns']:.2f}</td>"
+        f"<td>{scores[c]['agreement_rate']*100:.1f}%</td></tr>"
         for c in _CONDITIONS
     )
     return f"""
-    <h2>Scores (ARGUE/ACCEPT recall)</h2>
-    <table><tr><th>Condition</th><th>recall_corr</th><th>recall_conf</th><th>MedCOBE</th></tr>{rows}</table>
+    <h2>Scores (AI-alone accuracy: {scores['ai_alone_accuracy']:.4f})</h2>
+    <table><tr><th>Condition</th><th>team_acc</th><th>err_mode</th><th>corr_mode</th>
+    <th>gain vs alone</th><th>avg_turns</th><th>agree%</th></tr>{rows}</table>
     """
 
 
-def _complementarity_table(comp: dict) -> str:
-    rows = "".join(
-        f"<tr><td>{_CONDITION_LABELS[c]}</td><td>{comp[c]['team_accuracy']:.4f}</td>"
-        f"<td>{comp[c]['team_accuracy_error_mode']:.4f}</td><td>{comp[c]['team_accuracy_correct_mode']:.4f}</td>"
-        f"<td>{comp[c]['complementarity_gain']:+.4f}</td></tr>"
-        for c in _CONDITIONS
-    )
+def _turn_block(step: dict, condition: str) -> str:
+    instruction = frame_directive(step["action_prompt"], _FRAME_STYLE[condition]) if step.get("action_prompt") else ""
+    r_align = step.get("r_align")
+    r_align_str = f"{r_align:.3f}" if isinstance(r_align, (int, float)) else "—"
     return f"""
-    <h2>Complementarity (AI-alone accuracy: {comp['ai_alone_accuracy']:.4f})</h2>
-    <table><tr><th>Condition</th><th>team_acc</th><th>err_mode</th><th>corr_mode</th><th>gain vs alone</th></tr>{rows}</table>
-    """
-
-
-def _judge_block(j: dict) -> str:
-    sel_ok = "ok" if j.get("selected_option") else "bad"
-    return f"""
-    <div class="verdict">
-      <b>doctor_claim_mode:</b> {_e(j['doctor_claim_mode'])} &nbsp;
-      <b>ai_action:</b> {_e(j['ai_action'])} &nbsp;
-      <b>validity:</b> {_e(j['reasoning_validity'])}<br>
-      <b>selected_option:</b> <span class="{sel_ok}">{_e(j.get('selected_option') or '—')}</span>
-      <b>reason:</b> {_e(j.get('brief_reason'))}
+    <div class="turn">
+      <div class="lbl">Turn {step['turn']} &middot; action={_e(step.get('action_id'))} &middot; r_align={r_align_str}</div>
+      <div class="lbl">[Doctor]</div>
+      <pre>{_e(step['user_utterance'])}</pre>
+      <div class="lbl">Instruction injected</div>
+      <pre>{_e(instruction)}</pre>
+      <div class="lbl">[AI]</div>
+      <pre>{_e(step['medical_response'])}</pre>
     </div>
     """
 
 
-def _condition_col(label: str, instruction: str, answer: str, judge: dict, correct_option: str, alone_selected: str | None) -> str:
-    team_correct = judge.get("selected_option") == correct_option
-    diverge = alone_selected is not None and judge.get("selected_option") is not None and team_correct != (alone_selected == correct_option)
-    badge = '<span class="badge diverge">vs alone diverges</span>' if diverge else ""
+def _condition_col(condition: str, record: dict) -> str:
+    turns_html = "".join(_turn_block(s, condition) for s in record["steps"])
+    fj = record.get("final_judgement") or {}
+    is_correct = bool(fj.get("is_correct"))
+    ok_cls = "ok" if is_correct else "bad"
     return f"""
     <div class="col">
-      <h3>{label}{badge}</h3>
-      <div><b>Instruction sent:</b></div>
-      <pre>{_e(instruction)}</pre>
-      <div><b>AI response:</b></div>
-      <pre>{_e(answer)}</pre>
-      {_judge_block(judge)}
+      <h3>{_CONDITION_LABELS[condition]}</h3>
+      {turns_html or "<div class='lbl'>(no AI turns — closed immediately)</div>"}
+      <div class="final">
+        <b>concluded_option:</b> <span class="{ok_cls}">{_e(fj.get('concluded_option', '—'))}</span>
+        ({'correct' if is_correct else 'incorrect'}) &nbsp;
+        <b>closed_by:</b> {_e(record['closed_by'])} &nbsp;
+        <b>n_turns:</b> {record['n_turns']}<br>
+        <b>reason:</b> {_e(fj.get('reason'))}
+      </div>
     </div>
     """
 
 
-def _case_card(record: dict) -> str:
-    cm = record["case_meta"]
-    correct_option = cm["correct_option"]
-    alone = record["alone"]
-    alone_selected = alone.get("selected_option")
-    alone_ok = "ok" if alone_selected == correct_option else "bad"
+def _case_card(case_id: str, mode: str, by_condition: dict[str, dict], case: dict | None, alone: dict | None) -> str:
+    correct_option = case.get("correct_option") if case else None
 
-    bj, rj = record["baseline_judge"], record["hac_reference_judge"]
-    mismatch = (bj["ai_action"], bj["reasoning_validity"]) != (rj["ai_action"], rj["reasoning_validity"])
-    mismatch_badge = '<span class="badge mismatch">baseline vs reference judge differ</span>' if mismatch else ""
+    def _is_correct(cond: str) -> bool:
+        fj = by_condition.get(cond, {}).get("final_judgement") or {}
+        return bool(fj.get("is_correct"))
 
-    instructions = {
-        "baseline": _BASELINE_ACTION_PROMPT,
-        "hac_command": frame_directive(record["action_prompt"], "command"),
-        "hac_reference": frame_directive(record["action_prompt"], "reference"),
-    }
+    mismatch = _is_correct("baseline") != _is_correct("hac_reference")
+    mismatch_badge = '<span class="badge mismatch">baseline vs reference outcome differ</span>' if mismatch else ""
+
+    alone_selected = (alone or {}).get("selected_option")
+    alone_ok = "ok" if correct_option and alone_selected == correct_option else "bad"
+
     cols = "".join(
-        _condition_col(
-            _CONDITION_LABELS[cond], instructions[cond], record[f"{cond}_ai"],
-            record[f"{cond}_judge"], correct_option, alone_selected,
-        )
-        for cond in _CONDITIONS
+        _condition_col(cond, by_condition[cond]) for cond in _CONDITIONS if cond in by_condition
     )
+
+    header_extra = ""
+    if case:
+        header_extra = f"<b>Ground truth:</b> {_e(correct_option)}. {_e(case.get('answer'))}<br>"
 
     return f"""
     <div class="card {'mismatch' if mismatch else ''}">
       <div class="card-header">
-        <b>Case {_e(record['case_id'])}</b> &nbsp; mode=<b>{_e(record['mode'])}</b> &nbsp;
-        action=<b>{_e(record['action_id'])}</b> &nbsp;
-        verification=<b>{_e(record['verification_relation'])}</b>
+        <b>Case {_e(case_id)}</b> &nbsp; mode=<b>{_e(mode)}</b>
         {mismatch_badge}<br>
-        <b>Doctor's target belief:</b> {_e(record['target_belief'])} &nbsp;
-        <b>Ground truth:</b> {_e(correct_option)}. {_e(cm['answer'])}<br>
-        <b>Doctor utterance:</b> {_e(record['doctor_text'])}<br>
-        <b>Raw action_prompt (RulePolicy):</b> {_e(record['action_prompt'])}
+        {header_extra}
       </div>
       <div class="alone">
         <b>AI-alone:</b> selected <span class="{alone_ok}">{_e(alone_selected or '—')}</span>
-        &nbsp; <b>reasoning:</b> {_e(alone.get('reasoning'))}
+        &nbsp; <b>reasoning:</b> {_e((alone or {}).get('reasoning'))}
       </div>
       <div class="cols">{cols}</div>
     </div>
     """
 
 
-def render(data: dict) -> str:
-    results = data["results"]
-    n_mismatch = sum(
-        1 for r in results
-        if (r["baseline_judge"]["ai_action"], r["baseline_judge"]["reasoning_validity"])
-        != (r["hac_reference_judge"]["ai_action"], r["hac_reference_judge"]["reasoning_validity"])
-    )
-    cards = "".join(_case_card(r) for r in results)
+def render(data: dict, cases_by_id: dict[str, dict]) -> str:
+    records = data["records"]
+    alone = data.get("alone", {})
+
+    grouped: dict[tuple[str, str], dict[str, dict]] = {}
+    for r in records:
+        grouped.setdefault((r["case_id"], r["mode"]), {})[r["condition"]] = r
+
+    keys = sorted(grouped.keys())
+    n_mismatch = 0
+    cards = []
+    for case_id, mode in keys:
+        by_condition = grouped[(case_id, mode)]
+        fj_b = (by_condition.get("baseline", {}).get("final_judgement") or {}).get("is_correct")
+        fj_r = (by_condition.get("hac_reference", {}).get("final_judgement") or {}).get("is_correct")
+        if bool(fj_b) != bool(fj_r):
+            n_mismatch += 1
+        cards.append(_case_card(case_id, mode, by_condition, cases_by_id.get(case_id), alone.get(case_id)))
+
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>poc_medcobe_hac debug report</title>
+<title>run_poc_multiturn debug report</title>
 <style>{_CSS}</style>
 <script>{_JS}</script>
 </head>
 <body>
-<h1>MedCOBE POC Debug Report</h1>
+<h1>Multi-turn POC Debug Report</h1>
 <div class="summary">
   {_scores_table(data['scores'])}
-  {_complementarity_table(data['complementarity'])}
 </div>
 <div class="controls">
-  <label><input type="checkbox" onchange="toggleMismatch(this)"> Show only baseline vs HAC-reference mismatches ({n_mismatch}/{len(results)})</label>
+  <label><input type="checkbox" onchange="toggleMismatch(this)"> Show only baseline vs HAC-reference outcome mismatches ({n_mismatch}/{len(keys)})</label>
 </div>
-{cards}
+{''.join(cards)}
 </body>
 </html>
 """
@@ -198,14 +205,16 @@ def render(data: dict) -> str:
 
 def main(results_path: str, output_path: str | None) -> None:
     data = json.loads(Path(results_path).read_text())
+    data_dir = _ROOT / data["run_meta"]["data_dir"]
+    cases_by_id = load_cases_by_id(data_dir)
     out = Path(output_path) if output_path else Path(results_path).parent / "debug.html"
-    out.write_text(render(data))
+    out.write_text(render(data, cases_by_id))
     print(f"Saved debug report to {out}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--results", default="outputs/poc_medcobe_hac/results.json", help="Path to results.json")
+    parser.add_argument("--results", default="outputs/poc_multiturn/results.json", help="Path to results.json")
     parser.add_argument("--output", default=None, help="Output HTML path (default: <results_dir>/debug.html)")
     args = parser.parse_args()
     main(args.results, args.output)

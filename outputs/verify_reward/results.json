@@ -1,0 +1,977 @@
+{
+  "sections": [
+    {
+      "name": "BASE table conformance",
+      "rows": [
+        {
+          "relation": "contradicted",
+          "stage": "INFORM",
+          "locution": "propose",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "INFORM",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "INFORM",
+          "locution": "retract",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "golden": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "CONSIDER",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "REVISE",
+          "locution": "propose",
+          "golden": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "REVISE",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "REVISE",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "RECOMMEND",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "RECOMMEND",
+          "locution": "reject",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "contradicted",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "INFORM",
+          "locution": "propose",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "INFORM",
+          "locution": "assert",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "INFORM",
+          "locution": "retract",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "CONSIDER",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "REVISE",
+          "locution": "propose",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "REVISE",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "REVISE",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "golden": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "RECOMMEND",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "RECOMMEND",
+          "locution": "reject",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "golden": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "relation": "supported",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "golden": -0.3,
+          "actual": -0.3,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "INFORM",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "INFORM",
+          "locution": "assert",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "INFORM",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "CONSIDER",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "REVISE",
+          "locution": "propose",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "REVISE",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "REVISE",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "RECOMMEND",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "RECOMMEND",
+          "locution": "reject",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "insufficient",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "INFORM",
+          "locution": "propose",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "INFORM",
+          "locution": "assert",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "INFORM",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "CONSIDER",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "REVISE",
+          "locution": "propose",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "REVISE",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "REVISE",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "golden": -0.5,
+          "actual": -0.5,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "RECOMMEND",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "RECOMMEND",
+          "locution": "reject",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "golden": -0.5,
+          "actual": -0.5,
+          "pass": true
+        },
+        {
+          "relation": "mixed",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "golden": -0.5,
+          "actual": -0.5,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "INFORM",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "INFORM",
+          "locution": "assert",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "INFORM",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "golden": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "golden": -0.7,
+          "actual": -0.7,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "CONSIDER",
+          "locution": "ask_justify",
+          "golden": 0.7,
+          "actual": 0.7,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "REVISE",
+          "locution": "propose",
+          "golden": 0.5,
+          "actual": 0.5,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "REVISE",
+          "locution": "retract",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "REVISE",
+          "locution": "ask_justify",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "RECOMMEND",
+          "locution": "assert",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "RECOMMEND",
+          "locution": "reject",
+          "golden": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "relation": "unknown",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "golden": -1.0,
+          "actual": -1.0,
+          "pass": true
+        }
+      ],
+      "n_fail": 0,
+      "pass": true
+    },
+    {
+      "name": "Precondition overrides",
+      "rows": [
+        {
+          "name": "CONFIRM.assert without prior RECOMMEND.move",
+          "expected": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "name": "CONSIDER.prefer with num_evaluated_options<2",
+          "expected": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "name": "RECOMMEND.move without has_proposal",
+          "expected": -1.0,
+          "actual": -1.0,
+          "pass": true
+        },
+        {
+          "name": "CONFIRM.assert without has_proposal",
+          "expected": -1.0,
+          "actual": -1.0,
+          "pass": true
+        }
+      ],
+      "n_fail": 0,
+      "pass": true
+    },
+    {
+      "name": "USERRESP + soft cap + clip",
+      "rows": [
+        {
+          "user_locution": "ask_justify",
+          "stage": "INFORM",
+          "locution": "assert",
+          "base": 0.3,
+          "expected_userresp": 1.0,
+          "expected_score": 0.6,
+          "actual": 0.6,
+          "pass": true
+        },
+        {
+          "user_locution": "ask_justify",
+          "stage": "INFORM",
+          "locution": "propose",
+          "base": 0.0,
+          "expected_userresp": 1.0,
+          "expected_score": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "user_locution": "ask_justify",
+          "stage": "CONSIDER",
+          "locution": "prefer",
+          "base": 0.0,
+          "expected_userresp": -1.0,
+          "expected_score": -0.3,
+          "actual": -0.3,
+          "pass": true
+        },
+        {
+          "user_locution": "reject",
+          "stage": "REVISE",
+          "locution": "propose",
+          "base": 0.7,
+          "expected_userresp": 1.0,
+          "expected_score": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "user_locution": "reject",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "base": 0.7,
+          "expected_userresp": 1.0,
+          "expected_score": 1.0,
+          "actual": 1.0,
+          "pass": true
+        },
+        {
+          "user_locution": "reject",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "base": -0.5,
+          "expected_userresp": -1.0,
+          "expected_score": -0.8,
+          "actual": -0.8,
+          "pass": true
+        },
+        {
+          "user_locution": "reject",
+          "stage": "CONFIRM",
+          "locution": "assert",
+          "base": -0.5,
+          "expected_userresp": -1.0,
+          "expected_score": -0.8,
+          "actual": -0.8,
+          "pass": true
+        },
+        {
+          "user_locution": "prefer",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "base": 0.7,
+          "expected_userresp": 0.5,
+          "expected_score": 0.85,
+          "actual": 0.85,
+          "pass": true
+        },
+        {
+          "user_locution": "prefer",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "base": -0.5,
+          "expected_userresp": 0.5,
+          "expected_score": -0.35,
+          "actual": -0.35,
+          "pass": true
+        },
+        {
+          "user_locution": "prefer",
+          "stage": "INFORM",
+          "locution": "assert",
+          "base": 0.3,
+          "expected_userresp": 0.0,
+          "expected_score": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "user_locution": "propose",
+          "stage": "CONSIDER",
+          "locution": "assert",
+          "base": 0.7,
+          "expected_userresp": 0.5,
+          "expected_score": 0.85,
+          "actual": 0.85,
+          "pass": true
+        },
+        {
+          "user_locution": "assert",
+          "stage": "PROPOSE",
+          "locution": "propose",
+          "base": 0.3,
+          "expected_userresp": 0.5,
+          "expected_score": 0.44999999999999996,
+          "actual": 0.44999999999999996,
+          "pass": true
+        },
+        {
+          "user_locution": "propose",
+          "stage": "CLOSE",
+          "locution": "withdraw_dialogue",
+          "base": -0.5,
+          "expected_userresp": -0.5,
+          "expected_score": -0.65,
+          "actual": -0.65,
+          "pass": true
+        },
+        {
+          "user_locution": null,
+          "stage": "INFORM",
+          "locution": "assert",
+          "base": 0.3,
+          "expected_userresp": 0.0,
+          "expected_score": 0.3,
+          "actual": 0.3,
+          "pass": true
+        },
+        {
+          "user_locution": null,
+          "stage": "INFORM",
+          "locution": "ask_justify",
+          "base": "soft-cap (supported, turns_in_current_stage>=1)",
+          "expected_userresp": "<=-0.5",
+          "expected_score": "<=-0.5",
+          "actual": -0.5,
+          "pass": true
+        },
+        {
+          "user_locution": "ask_justify",
+          "stage": "RECOMMEND",
+          "locution": "move",
+          "base": "clip range check",
+          "expected_userresp": "n/a",
+          "expected_score": "in [-1,1]",
+          "actual": 0.7,
+          "pass": true
+        }
+      ],
+      "n_fail": 0,
+      "pass": true
+    },
+    {
+      "name": "ctx_from_history reconstruction",
+      "rows": [
+        {
+          "name": "empty history",
+          "actions": [],
+          "diffs": {},
+          "pass": true
+        },
+        {
+          "name": "single PROPOSE",
+          "actions": [
+            "PROPOSE.propose"
+          ],
+          "diffs": {},
+          "pass": true
+        },
+        {
+          "name": "PROPOSE then two CONSIDER (consecutive)",
+          "actions": [
+            "PROPOSE.propose",
+            "CONSIDER.assert",
+            "CONSIDER.prefer"
+          ],
+          "diffs": {},
+          "pass": true
+        },
+        {
+          "name": "full happy path incl. RECOMMEND",
+          "actions": [
+            "PROPOSE.propose",
+            "CONSIDER.assert",
+            "RECOMMEND.move"
+          ],
+          "diffs": {},
+          "pass": true
+        },
+        {
+          "name": "three consecutive same-stage runs",
+          "actions": [
+            "INFORM.assert",
+            "INFORM.assert",
+            "INFORM.assert"
+          ],
+          "diffs": {},
+          "pass": true
+        }
+      ],
+      "n_fail": 0,
+      "pass": true
+    },
+    {
+      "name": "R(tau) trajectory_return + group_advantages",
+      "rows": [
+        {
+          "name": "short correct trajectory (no length penalty)",
+          "expected": 3.5,
+          "actual": 3.5,
+          "length_penalty": 0,
+          "pass": true
+        },
+        {
+          "name": "long correct trajectory (length penalty kicks in)",
+          "expected": 3.55,
+          "actual": 3.55,
+          "length_penalty": 3,
+          "pass": true
+        },
+        {
+          "name": "incorrect trajectory, all negative align",
+          "expected": -1.6,
+          "actual": -1.6,
+          "length_penalty": 0,
+          "pass": true
+        },
+        {
+          "name": "weights override (lambda_align=2.0, others 0)",
+          "expected": 4.0,
+          "actual": 4.0,
+          "length_penalty": 0,
+          "pass": true
+        },
+        {
+          "name": "group_advantages mean(A)~=0",
+          "expected": 0.0,
+          "actual": 0.0,
+          "pass": true
+        },
+        {
+          "name": "group_advantages single-element degenerate",
+          "expected": [
+            0.0
+          ],
+          "actual": [
+            0.0
+          ],
+          "pass": true
+        },
+        {
+          "name": "group_advantages all-equal degenerate",
+          "expected": "~[0,0,0]",
+          "actual": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "pass": true
+        }
+      ],
+      "n_fail": 0,
+      "pass": true,
+      "chart_returns": [
+        3.5,
+        3.55,
+        -1.6
+      ],
+      "chart_advantages": [
+        0.6967,
+        0.7174,
+        -1.4142
+      ],
+      "chart_labels": [
+        "short correct trajectory (no length penalty)",
+        "long correct trajectory (length penalty kicks in)",
+        "incorrect trajectory, all negative align"
+      ]
+    }
+  ],
+  "live": null
+}

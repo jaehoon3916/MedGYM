@@ -9,6 +9,7 @@ from core.prompt_builder import build_medical_prompt, frame_directive
 class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
     def __init__(self, config: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
+        self._frame_style = config.get("frame_style", "command")
 
     def name(self) -> str:
         return f"vllm-medical-{self._model}"
@@ -21,6 +22,6 @@ class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
         current_user_utterance: str,
     ) -> str:
         messages = build_medical_prompt(
-            case_info, dialogue_history, frame_directive(action_prompt, "command"), current_user_utterance
+            case_info, dialogue_history, frame_directive(action_prompt, self._frame_style), current_user_utterance
         )
         return self._chat(messages)

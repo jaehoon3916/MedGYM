@@ -1,0 +1,59 @@
+# POC: baseline / HAC-command / HAC-reference 3-condition 비교, production Env(멀티턴) 기반.
+# policy.type과 medical_llm.frame_style은 scripts/run_poc_multiturn.py가 조건별로 덮어씀 —
+# 여기 값은 just placeholder(단독 실행 시 기본 동작 확인용).
+
+experiment:
+  max_turns: 10
+  token_ledger: token_usage_ledger.json
+
+# JAMA 케이스 데이터 (medical_hac_policy 기준 상대경로)
+data_dir: "data/sample_data"
+
+# 사용할 케이스 수 (error × correct 각 n_cases개 = 총 2×n_cases 에피소드, 조건당)
+n_cases: 2
+
+# 동시 에피소드 실행 수 (조건별, ThreadPoolExecutor)
+concurrency: 5
+
+# AI-alone 베이스라인 동시 실행 수
+alone_concurrency: 5
+
+# 출력 디렉터리
+output_dir: "outputs/poc_multiturn"
+
+plugins:
+  user_llm:
+    type: vllm
+    use_mask: false
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command   # overridden per-condition by the driver
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: rule   # overridden per-condition by the driver (naive | rule)
+
+action_space_path: configs/action_space.yaml

@@ -3,8 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from core.schemas import CaseInfo, DialogueHistory, StepResult, Observation, UserState
-from plugins.user_llm.vllm_user import EpisodeConfig
+from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig, StepResult, Observation, UserState
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
 from core.reward_align import align_reward_from_objs, ctx_from_history
@@ -79,6 +78,10 @@ class MedicalHACEnvironment:
     def observation(self) -> Observation | None:
         return self._obs
 
+    @property
+    def history(self) -> DialogueHistory | None:
+        return self._history
+
     def step(self, policy_output) -> StepResult:
         assert self._case_info is not None and self._history is not None, "Call reset() before step()"
         t = self._turn_id
@@ -92,13 +95,16 @@ class MedicalHACEnvironment:
             self.user_llm.force_close()
 
         # Apply the action: medical LLM responds using the selected action prompt.
-        medical_response = self.medical_llm.generate_medical_response(
+        medical_response, medical_belief, medical_reasoning = self.medical_llm.generate_medical_response(
             case_info=self._case_info,
             dialogue_history=self._history,
             action_prompt=policy_output.action_prompt,
             current_user_utterance=cur_utt,
         )
-        self._history.add_turn("medical", medical_response, action=policy_output.action_id)
+        self._history.add_turn(
+            "medical", medical_response, action=policy_output.action_id,
+            belief=medical_belief, reasoning=medical_reasoning,
+        )
 
         # Per-step reward: r_align scores this action against the observation it responded to.
         r_align = align_reward_from_objs(cur_verif, cur_user_state, policy_output, ctx)

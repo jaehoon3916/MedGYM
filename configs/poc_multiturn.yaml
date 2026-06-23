@@ -23,7 +23,7 @@ output_dir: "outputs/poc_multiturn"
 
 plugins:
   user_llm:
-    type: vllm
+    type: v2
     use_mask: false
     base_url: https://openrouter.ai/api/v1
     model: deepseek/deepseek-v3.2

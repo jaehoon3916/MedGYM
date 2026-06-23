@@ -263,15 +263,42 @@
 
         <!-- Tab: User State -->
         <div class="tab-content active" id="tc-state-{{ t.turn_id }}">
-          {% set ns = namespace(us_raw=None) %}
+          {% set ns = namespace(us_raw=None, ai_belief=None, ai_reasoning=None) %}
           {% for dlg in t.dialogue_history %}
             {% if dlg.speaker == 'user' and dlg.user_state %}
               {% set ns.us_raw = dlg.user_state %}
             {% endif %}
+            {% if dlg.speaker == 'medical' %}
+              {% set ns.ai_belief = dlg.get('metadata', {}).get('belief') %}
+              {% set ns.ai_reasoning = dlg.get('metadata', {}).get('reasoning') %}
+            {% endif %}
           {% endfor %}
           {% set us_raw = ns.us_raw %}
+
+          {% if ns.ai_belief or ns.ai_reasoning %}
+          <div class="sb-section">
+            <div class="sb-title">AI (Medical LLM)</div>
+            <div class="state-grid">
+              {% if ns.ai_belief %}
+              <div class="state-item">
+                <div class="sk">Belief</div>
+                <div class="sv">{{ ns.ai_belief }}</div>
+              </div>
+              {% endif %}
+              {% if ns.ai_reasoning %}
+              <div class="state-item">
+                <div class="sk">Reasoning</div>
+                <div class="sv" style="font-weight:400;font-size:0.76rem;line-height:1.4;">{{ ns.ai_reasoning }}</div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
           {% if us_raw %}
-          <div class="state-grid">
+          <div class="sb-section">
+            <div class="sb-title">Doctor (User Sim)</div>
+            <div class="state-grid">
             {% for f in user_state_fields %}
             <div class="state-item">
               <div class="sk">{{ f.label }}</div>
@@ -284,6 +311,24 @@
               {% endif %}
             </div>
             {% endfor %}
+            {% if us_raw.get('belief') %}
+            <div class="state-item">
+              <div class="sk">Belief</div>
+              <div class="sv">{{ us_raw.belief }}</div>
+            </div>
+            {% endif %}
+            {% if us_raw.get('decision') %}
+            <div class="state-item">
+              <div class="sk">Decision</div>
+              <div class="sv">{{ us_raw.decision }}</div>
+            </div>
+            {% endif %}
+            {% if us_raw.get('cognitive_burden') is not none %}
+            <div class="state-item">
+              <div class="sk">Cognitive Burden</div>
+              <div class="sv">{{ us_raw.cognitive_burden }}{% if us_raw.get('cognitive_burden_n_ok') is not none %} <span style="color:#aaa;font-weight:400;font-size:0.7rem;">({{ us_raw.cognitive_burden_n_ok }}/{{ us_raw.cognitive_burden_n_attempted }} judge calls ok)</span>{% endif %}</div>
+            </div>
+            {% endif %}
             {% if us_raw.get('clinical_claim') %}
             <div class="state-item">
               <div class="sk">Clinical Claim</div>
@@ -312,6 +357,7 @@
               <div class="sv">✓ reached → Close</div>
             </div>
             {% endif %}
+            </div>
           </div>
           {% else %}
           <span class="null-badge">No user state recorded for this turn.</span>

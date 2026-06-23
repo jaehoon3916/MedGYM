@@ -8,7 +8,7 @@ experiment:
 
 plugins:
   user_llm:
-    type: vllm             # mock | vllm
+    type: v2               # v1 | v2 (see plugins/user_llm/user_simulator/)
     base_url: http://localhost:8001/v1
     model: meta-llama/Meta-Llama-3.1-70B-Instruct
     max_tokens: 256

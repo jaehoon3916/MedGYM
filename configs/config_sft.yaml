@@ -10,7 +10,7 @@ experiment:
 plugins:
   # ── simulators (env) — used by build_sft_data.py to roll out the oracle teacher ──
   user_llm:
-    type: vllm
+    type: v2
     use_mask: false
     base_url: https://openrouter.ai/api/v1
     model: deepseek/deepseek-chat-v3-0324

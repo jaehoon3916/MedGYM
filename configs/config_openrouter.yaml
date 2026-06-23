@@ -15,7 +15,7 @@ experiment:
 
 plugins:
   user_llm:
-    type: vllm                                  # vllm (only option — mock removed)
+    type: v2                                    # v1 | v2 (see plugins/user_llm/user_simulator/)
     use_mask: false                             # true → Stage-3 utterance mask (extra LLM call/turn); ablation toggle
     base_url: https://openrouter.ai/api/v1
     # base_url: http://localhost:8001/v1        # local vllm server

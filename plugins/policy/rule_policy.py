@@ -6,9 +6,15 @@ from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, Policy
 
 _RELATION_TO_ACTION: dict[str, tuple[str, str, str]] = {
     # (stage, locution, locution_type)
-    "contradicted":  ("INFORM",     "assert",       "fact"),
+    # contradicted/supported corrected to match the best action under r_align.txt's BASE
+    # table that is SAFE without ctx (i.e. not gated behind a hard precondition this
+    # context-blind policy can't check) -- INFORM.assert/RECOMMEND.assert previously
+    # scored 0.0 despite a precondition-free 0.7-1.0 action existing for both. Note
+    # RECOMMEND.move/CONFIRM.assert score -1.0 without a prior has_proposal, so they are
+    # NOT safe fixed choices here even though they top the BASE table when that holds.
+    "contradicted":  ("CONSIDER",   "assert",       "evaluation"),
     "insufficient":  ("INFORM",     "ask_justify",  "fact"),
-    "supported":     ("RECOMMEND",  "assert",       "action"),
+    "supported":     ("INFORM",     "assert",       "fact"),
     "mixed":         ("CONSIDER",   "assert",       "evaluation"),
     "unknown":       ("INFORM",     "ask_justify",  "fact"),
 }

@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from plugins.user_llm.vllm_user import EpisodeConfig
+from core.schemas import EpisodeConfig
 
 # Value space for each episode-condition field (order defines enumeration order).
 FIELD_VALUES = {

@@ -26,6 +26,20 @@ class CaseInfo(BaseModel):
         return self.answer
 
 
+class EpisodeConfig(BaseModel):
+    """Per-episode persona/condition spec, fed to a user_llm plugin's reset_episode().
+
+    v1 (plugins/user_llm/user_simulator/v1.py) ignores every field, including
+    `initial_fact` — its belief is self-determined (judged independently on turn 0)
+    rather than injected. v2 (plugins/user_llm/user_simulator/v2.py) reads every field.
+    """
+    initial_fact: Literal["correct", "incorrect"] = "incorrect"
+    certainty: Literal["certain", "uncertain", "neutral"] = "uncertain"
+    authority_push: Literal["high", "low"] = "low"
+    information_sparcity: Literal["dense", "sparse"] = "dense"
+    safety_push: Literal["true", "false"] = "false"
+
+
 class UserState(BaseModel):
     """Fields and allowed values are defined in configs/user_state.yaml."""
     model_config = ConfigDict(extra="allow")

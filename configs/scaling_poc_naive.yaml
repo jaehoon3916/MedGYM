@@ -1,0 +1,100 @@
+# Scaling POC: does longer dialogue (more turns) self-correct an initial doctor error, or
+# does the team lock into the wrong answer? user_llm.type=v1 (primitive POC simulator, see
+# plugins/user_llm/user_simulator/v1.py); plugins.policy.type below sets the A/B condition
+# (oracle = ctx-aware argmax ceiling, naive = no action-space/r_align influence at all). One
+# episode per case runs to experiment.max_turns, and the resulting dialogue is scored at each
+# experiment.checkpoints turn count via final_judge truncation, so the checkpoints below
+# cost ~1x an episode, not 4x.
+#
+# v1's initial belief is NOT injected (unlike v2/EpisodeConfig.initial_fact) -- the doctor
+# independently judges the case on turn 0 (no hint), so initial_user_state is irrelevant
+# here and left null (single run per case, default EpisodeConfig -- ignored by v1 anyway).
+# Whether the doctor started right or wrong emerges per-case from that self-judgment, and
+# is read back from each episode's turn-0 `belief` (scripts/run_scaling_poc.py labels
+# trajectories from this instead of a forced mode/persona split).
+#
+# plugins.user_llm.force_full_turns is on: v1's own CONTINUE/END judgment only models
+# converged-vs-repetitive reasoning, not burden-driven dropout/satisficing/deference, and an
+# early END collapses checkpoints 4/8 down to whatever turn the doctor stopped at (seen in
+# practice -- both n_cases=2 episodes ended by turn 2). The <decision> tag is still parsed
+# and recorded per turn (informative), just not used to end the episode -- only max_turns
+# does, so every checkpoint actually gets real dialogue.
+
+experiment:
+  name: scaling_poc_naive_options_off   # output_dir is always outputs/<name> — derived, not separately configured
+  seed: 42
+  max_turns: 8
+  data_path: data/sample_data/jama_raw_cardiology.json
+  n_cases: 20                       # slice of the cases list to use (cost control for the POC; not a generic field — train_grpo.py/run_dialogue.py use the full file)
+  token_ledger: token_usage_ledger.json   # persistent cumulative token total across ALL runs (read-add-write, never overwritten)
+  initial_user_state: null         # v1 ignores EpisodeConfig entirely — null = single run per case, no persona cross-product
+
+  # Turn counts at which to snapshot "if the conversation stopped here, what's the verdict".
+  checkpoints: [1, 2, 4, 8]
+
+plugins:
+  user_llm:
+    type: v1                                    # v1 | v2 (see plugins/user_llm/user_simulator/)
+    base_url: https://openrouter.ai/api/v1
+    # base_url: http://localhost:8001/v1        # local vllm server
+    model: deepseek/deepseek-v3.2
+    # model: deepseek/deepseek-r1               # DeepSeek R1 (reasoning)
+    # model: google/gemini-2.5-pro              # Gemini 2.5 Pro
+    # model: anthropic/claude-sonnet-4-5        # Claude Sonnet
+    # model: meta-llama/llama-3.3-70b-instruct  # Llama 3.3 70B
+    # model: qwen/qwen3-235b-a22b               # Qwen3 235B MoE (OpenRouter)
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3                  # cognitive_burden judge calls per AI turn, averaged for stability (v1 scores this itself, using this same model/client)
+    force_full_turns: true                      # ignore the doctor's own <decision>END</decision> — always run to max_turns (see top-of-file comment)
+    show_options: false                          # false = DOCTOR never sees the A/B/C/D options/question (no belief tag either; final_judge infers checkpoint-0 correctness from free text instead) -- A/B test vs show_options:true. medical_llm (the AI) never sees options regardless — that's not a toggle.
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    # base_url: http://localhost:8001/v1
+    model: deepseek/deepseek-v3.2
+    # model: deepseek/deepseek-r1
+    # model: google/gemini-2.5-pro
+    # model: anthropic/claude-sonnet-4-5
+    # model: meta-llama/llama-3.3-70b-instruct
+    # model: qwen/qwen3-235b-a22b
+    frame_style: command                        # command | reference (not a focus of this POC — see configs/poc_multiturn.yaml for that comparison)
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    # base_url: http://localhost:8001/v1
+    model: deepseek/deepseek-v3.2
+    # model: deepseek/deepseek-r1
+    # model: google/gemini-2.5-pro
+    # model: anthropic/claude-sonnet-4-5
+    # model: meta-llama/llama-3.3-70b-instruct
+    # model: qwen/qwen3-235b-a22b
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:                                  # end-of-episode (and, here, per-checkpoint) judge → final_judgement{concluded_option, is_correct}
+    enabled: true                                # must stay true for this experiment — checkpoint scoring depends on it
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    # base_url: http://localhost:8001/v1
+    model: deepseek/deepseek-v3.2
+    # model: deepseek/deepseek-r1
+    # model: google/gemini-2.5-pro
+    # model: anthropic/claude-sonnet-4-5
+    # model: meta-llama/llama-3.3-70b-instruct
+    # model: qwen/qwen3-235b-a22b
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: naive                                  # naive | prompt | rule | baseline_policy | sft_policy | full_policy | local_baseline | local_sft | local_full | oracle
+                                                  # naive = no action-space/r_align influence at all — A/B baseline against the oracle run
+
+action_space_path: configs/action_space.yaml
+
+# 동시 에피소드 실행 수 (ThreadPoolExecutor) — concurrency knob is scaling_poc-specific (no precedent in config_test5)
+concurrency: 20

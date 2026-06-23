@@ -23,7 +23,7 @@ def load_episode_config(name: str | None, base_dir: str | Path | None = None):
     `name` is the preset stem in initial_user_state/, e.g. "user_state_5". Returns None when
     `name` is falsy, so the caller falls back to the default EpisodeConfig.
     """
-    from plugins.user_llm.vllm_user import EpisodeConfig
+    from core.schemas import EpisodeConfig
 
     if not name:
         return None
@@ -71,7 +71,8 @@ def build_plugins(config: dict[str, Any]):
 
     Returns (user_llm, medical_llm, fact_validator_llm, policy, final_judge).
     """
-    from plugins.user_llm.vllm_user import VLLMUserLLM
+    from plugins.user_llm.user_simulator.v1 import UserSimulatorV1
+    from plugins.user_llm.user_simulator.v2 import UserSimulatorV2
     from plugins.medical_llm.vllm_medical import VLLMMedicalLLM
     from plugins.fact_validator_llm.vllm_fact_validator import VLLMFactValidatorLLM
     from plugins.final_judge_llm.vllm_final_judge import VLLMFinalJudgeLLM
@@ -83,7 +84,7 @@ def build_plugins(config: dict[str, Any]):
 
     plugin_cfg = config.get("plugins", {})
 
-    _user_llm_map = {"vllm": VLLMUserLLM}
+    _user_llm_map = {"v1": UserSimulatorV1, "v2": UserSimulatorV2}
     _medical_llm_map = {"vllm": VLLMMedicalLLM}
     _fact_validator_map = {"vllm": VLLMFactValidatorLLM}
     _final_judge_map = {"vllm": VLLMFinalJudgeLLM}
@@ -100,7 +101,7 @@ def build_plugins(config: dict[str, Any]):
         "oracle":           RewardOraclePolicy,
     }
 
-    user_type = plugin_cfg.get("user_llm", {}).get("type", "vllm")
+    user_type = plugin_cfg.get("user_llm", {}).get("type", "v2")
     medical_type = plugin_cfg.get("medical_llm", {}).get("type", "vllm")
     fact_validator_type = plugin_cfg.get("fact_validator_llm", {}).get("type", "vllm")
     final_judge_cfg = plugin_cfg.get("final_judge", {})

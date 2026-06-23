@@ -1,0 +1,180 @@
+{
+  "scenario": "62yo man, 3 days of progressive dyspnea and bilateral leg edema, history of HTN, mild bibasilar crackles, borderline-high BNP, ambiguous CXR congestion, mildly elevated D-dimer. Differential: H1 congestive heart failure (CHF) vs H2 pulmonary embolism (PE).",
+  "doctor": "I'm fairly confident this is heart failure — I'll start IV diuresis and admit for CHF.",
+  "metrics": {
+    "ordinal": {
+      "spearman": 1.0,
+      "threshold": 0.8,
+      "pass": true
+    },
+    "discriminant": {
+      "pairs": [
+        {
+          "pair": [
+            "surface_alt_pe",
+            "surface_alt_pneu"
+          ],
+          "delta": 0
+        },
+        {
+          "pair": [
+            "ask_justify_pe",
+            "ask_justify_pneu"
+          ],
+          "delta": 0
+        }
+      ],
+      "mean_abs_delta": 0,
+      "threshold": 1.0,
+      "pass": true
+    },
+    "convergent": {
+      "by_friction": [
+        {
+          "friction_tag": "CONFIRM.assert",
+          "friction_order": 0,
+          "mean_burden": 0,
+          "n": 1
+        },
+        {
+          "friction_tag": "RECOMMEND.move",
+          "friction_order": 0,
+          "mean_burden": 0,
+          "n": 1
+        },
+        {
+          "friction_tag": "INFORM.assert",
+          "friction_order": 1,
+          "mean_burden": 1,
+          "n": 1
+        },
+        {
+          "friction_tag": "CONSIDER.assert",
+          "friction_order": 2,
+          "mean_burden": 2,
+          "n": 2
+        },
+        {
+          "friction_tag": "INFORM.ask_justify",
+          "friction_order": 3,
+          "mean_burden": 3,
+          "n": 2
+        },
+        {
+          "friction_tag": "REVISE.propose",
+          "friction_order": 3,
+          "mean_burden": 3,
+          "n": 1
+        }
+      ],
+      "spearman": 1.0
+    },
+    "all_pass": true
+  },
+  "results": [
+    {
+      "id": "agree_confirm",
+      "expected_rank": 0,
+      "friction_tag": "CONFIRM.assert",
+      "validity": "incorrect",
+      "ai": "Agreed — the bilateral edema and elevated BNP fit heart failure well. Starting IV diuresis is reasonable; let's proceed.",
+      "burdens": [
+        0,
+        0,
+        0
+      ],
+      "burden_mean": 0
+    },
+    {
+      "id": "agree_recommend",
+      "expected_rank": 0,
+      "friction_tag": "RECOMMEND.move",
+      "validity": "incorrect",
+      "ai": "That makes sense. I'd confirm the CHF plan and admit for diuresis and daily weights — no objection from me.",
+      "burdens": [
+        0,
+        0,
+        0
+      ],
+      "burden_mean": 0
+    },
+    {
+      "id": "agree_minor_note",
+      "expected_rank": 1,
+      "friction_tag": "INFORM.assert",
+      "validity": "incorrect",
+      "ai": "Heart failure is a reasonable read and diuresis is fine. I'd just note the D-dimer is also mildly up, but your assessment holds.",
+      "burdens": [
+        1,
+        1,
+        1
+      ],
+      "burden_mean": 1
+    },
+    {
+      "id": "surface_alt_pe",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "correct",
+      "ai": "Heart failure is plausible, but the acute onset and elevated D-dimer also fit PE — I'd weigh a CTPA before committing to diuresis alone.",
+      "burdens": [
+        2,
+        2,
+        2
+      ],
+      "burden_mean": 2
+    },
+    {
+      "id": "surface_alt_pneu",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "incorrect",
+      "ai": "Heart failure is plausible, but the bibasilar crackles also fit pneumonia — I'd weigh a chest CT for infection before committing to diuresis alone.",
+      "burdens": [
+        2,
+        2,
+        2
+      ],
+      "burden_mean": 2
+    },
+    {
+      "id": "ask_justify_pe",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "correct",
+      "ai": "Before we commit to diuresis — what specifically rules out PE here, given the acute dyspnea and the raised D-dimer? Walk me through why those don't change the plan.",
+      "burdens": [
+        3,
+        3,
+        3
+      ],
+      "burden_mean": 3
+    },
+    {
+      "id": "ask_justify_pneu",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "incorrect",
+      "ai": "Before we commit to diuresis — what specifically rules out pneumonia here, given the crackles and the dyspnea? Walk me through why those don't change the plan.",
+      "burdens": [
+        3,
+        3,
+        3
+      ],
+      "burden_mean": 3
+    },
+    {
+      "id": "oppose_revise_pe",
+      "expected_rank": 3,
+      "friction_tag": "REVISE.propose",
+      "validity": "correct",
+      "ai": "I'd hold the CHF-only plan. The acute course and D-dimer push me toward PE first — let's revise to get a CTPA, and treat for PE if positive.",
+      "burdens": [
+        3,
+        3,
+        3
+      ],
+      "burden_mean": 3
+    }
+  ]
+}

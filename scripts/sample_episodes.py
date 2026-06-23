@@ -8,8 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.config import load_yaml, build_plugins
 from core.environment import MedicalHACEnvironment
-from core.schemas import CaseInfo
-from plugins.user_llm.vllm_user import EpisodeConfig
+from core.schemas import CaseInfo, EpisodeConfig
 
 EPISODE_CONFIGS = [
     # (initial_fact,  confidence,   authority_push, information_sparcity, safety_push)

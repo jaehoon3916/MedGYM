@@ -1,0 +1,10 @@
+experiment:
+  name: x
+  data_path: data/sample_data/jama_raw_cardiology.json
+  data_dir: data/sample_data
+  max_turns: 8
+  checkpoints:
+  - 1
+plugins:
+  user_llm: {}
+  medical_llm: {}

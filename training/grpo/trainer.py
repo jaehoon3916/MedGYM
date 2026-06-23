@@ -14,7 +14,7 @@ from typing import Any
 from core.reward import Trajectory, trajectory_return, group_advantages
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
-from plugins.user_llm.vllm_user import EpisodeConfig
+from core.schemas import EpisodeConfig
 
 
 class GRPOTrainer:

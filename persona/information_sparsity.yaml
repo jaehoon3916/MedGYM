@@ -1,0 +1,34 @@
+# Doctor persona axis 2/2: information_sparsity (plugins.user_llm.information_sparsity:
+# dense|sparse). Governs how forthcoming the doctor is with case details/findings/reasoning
+# when responding -- independent of persona/personas.yaml's confidence+burden_sensitivity
+# role (4-way combinable: 4 personas x 2 sparsity settings).
+# Mirrors v2's EpisodeConfig.information_sparcity concept (core/schemas.py,
+# plugins/user_llm/user_simulator/v2.py, prompts/user_simulator.yaml) but reimplemented here
+# as a plain behavioral instruction -- v1 has no shard/state-machine mechanism to gate on.
+# Loaded by plugins/user_llm/user_simulator/v1.py, injected as {sparsity_instruction}.
+#
+# IMPORTANT -- this dial only has real teeth when paired with plugins.medical_llm.
+# show_case_info: false (see core/prompt_builder.py:build_medical_prompt). With the
+# historical default show_case_info: true, the AI receives case_info.scenario directly every
+# turn regardless of what the doctor discloses, so dense vs sparse only changes the doctor's
+# conversational style, not the AI's actual information access. The 3 experiment conditions
+# this is meant to support are:
+#   1. "full"   -- medical_llm.show_case_info: true  (AI has the case directly; this file's
+#                  dense/sparse text doesn't matter to the AI's knowledge, just doctor style)
+#   2. "dense"  -- medical_llm.show_case_info: false + user_llm.information_sparsity: dense
+#                  (real info asymmetry, but the doctor relays everything anyway)
+#   3. "sparse" -- medical_llm.show_case_info: false + user_llm.information_sparsity: sparse
+#                  (real info asymmetry, AND the doctor withholds -- the AI must work with
+#                  genuinely incomplete information)
+# There is no third key below for "full" -- it's a medical_llm-side flag, not a doctor
+# persona text, so it's set directly in configs/*.yaml instead.
+
+dense: |
+  You share case details, findings, and your reasoning FREELY and PROACTIVELY: when
+  responding, volunteer relevant information beyond just what was directly asked, to help
+  move the discussion along.
+
+sparse: |
+  You HOLD BACK information: you answer narrowly and minimally, and do NOT volunteer
+  additional case details, findings, or reasoning beyond exactly what was asked. The AI
+  partner must explicitly ask before you reveal anything more.

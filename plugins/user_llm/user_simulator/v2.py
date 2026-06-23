@@ -9,11 +9,11 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel
 
-from core.schemas import CaseInfo, DialogueHistory
+from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.vllm_base import VLLMBasePlugin
 
-_PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts"
+_PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 
 
 @lru_cache(maxsize=1)
@@ -93,14 +93,6 @@ def _expression_style(certainty: str) -> str:
     return {"uncertain": _STYLE_UNCERTAIN, "certain": _STYLE_CERTAIN}.get(certainty, _STYLE_NEUTRAL)
 
 
-class EpisodeConfig(BaseModel):
-    initial_fact: Literal["correct", "incorrect"] = "incorrect"
-    certainty: Literal["certain", "uncertain", "neutral"] = "uncertain"
-    authority_push: Literal["high", "low"] = "low"
-    information_sparcity: Literal["dense", "sparse"] = "dense"
-    safety_push: Literal["true", "false"] = "false"
-
-
 class SimulatedUserState(BaseModel):
     clinical_claim: str = ""
     # The clinician's reasoning decomposed into minimal, self-contained "shards"
@@ -118,7 +110,11 @@ class SimulatedUserState(BaseModel):
     reasoning: str = ""
 
 
-class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
+class UserSimulatorV2(VLLMBasePlugin, UserLLMPlugin):
+    """Heavy multi-stage doctor simulator: state-builder JSON (dialogue_stage/locution/
+    shards/persona dials) + separate utterance generator. See user_simulator/v1.py for the
+    much simpler MedCOBE-ported alternative used by the scaling POC."""
+
     def __init__(self, config: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
         self._prev_state: SimulatedUserState | None = None
@@ -143,7 +139,7 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
         self._force_close = True
 
     def name(self) -> str:
-        return f"vllm-user-{self._model}"
+        return f"user-simulator-v2-{self._model}"
 
     def generate_user_utterance(
         self,
@@ -244,7 +240,15 @@ class VLLMUserLLM(VLLMBasePlugin, UserLLMPlugin):
             {"role": "system", "content": tmpl["state_builder_system"].format(**ctx)},
             {"role": "user",   "content": tmpl["state_builder_user"]},
         ]
-        raw = self._chat(messages, temperature=0.0, response_format={"type": "json_object"})
+        # Larger max_tokens than the configured default: this JSON includes the full
+        # clinical_claim + 3-6 shard sentences + reasoning, which routinely exceeds the
+        # ~256-token budget used for short utterance generation and silently truncates the
+        # JSON mid-string (then _safe_json_load fails and every field falls back to its
+        # hardcoded default -- dialogue_stage/locution/agreement_reached looked frozen
+        # across turns because of this, not because the model wasn't reasoning).
+        raw = self._chat(
+            messages, temperature=0.0, max_tokens=1024, response_format={"type": "json_object"},
+        )
         parsed = _safe_json_load(raw)
 
         shards = [s.strip() for s in parsed.get("shards", []) if isinstance(s, str) and s.strip()]

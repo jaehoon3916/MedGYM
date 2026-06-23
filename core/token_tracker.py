@@ -13,7 +13,17 @@ class TokenTracker:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._calls: list[dict[str, Any]] = []
-        self._turn_buffer: list[dict[str, Any]] = []
+        # Per-turn buffer must be thread-local: scripts/run_scaling_poc.py runs many episodes
+        # concurrently (ThreadPoolExecutor), each calling begin_turn()/flush_turn() around its
+        # own step() -- a single shared list here would let one episode's begin_turn() wipe
+        # another's in-flight calls, or have its flush_turn() pick up a DIFFERENT episode's
+        # calls (confirmed: a rollout's "turn_prompts" log contained another case's prompt).
+        self._local = threading.local()
+
+    def _turn_buffer(self) -> list[dict[str, Any]]:
+        if not hasattr(self._local, "buffer"):
+            self._local.buffer = []
+        return self._local.buffer
 
     def record(
         self,
@@ -40,24 +50,22 @@ class TokenTracker:
         }
         with self._lock:
             self._calls.append(entry)
-            self._turn_buffer.append(entry)
+        self._turn_buffer().append(entry)  # thread-local, no lock needed
 
     def begin_turn(self) -> None:
-        """Reset the per-turn call buffer. Call at the start of each step()."""
-        with self._lock:
-            self._turn_buffer = []
+        """Reset the CALLING THREAD's per-turn call buffer. Call at the start of each step()."""
+        self._local.buffer = []
 
     def flush_turn(self) -> list[dict[str, Any]]:
-        """Return and clear the per-turn buffer."""
-        with self._lock:
-            buf = list(self._turn_buffer)
-            self._turn_buffer = []
+        """Return and clear the calling thread's per-turn buffer."""
+        buf = self._turn_buffer()
+        self._local.buffer = []
         return buf
 
     def reset(self) -> None:
         with self._lock:
             self._calls.clear()
-            self._turn_buffer = []
+        self._local.buffer = []
 
     def accumulate_to_ledger(self, path: str | Path, run_meta: dict | None = None) -> dict:
         """Add this tracker's current totals into a persistent cumulative ledger.

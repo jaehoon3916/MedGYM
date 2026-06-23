@@ -11,7 +11,9 @@ from typing import Any
 
 
 DEFAULT_WEIGHTS = {
-    "lambda_align": 1.0,
+    # Lowered from 1.0 to match configs/config_grpo.yaml: r_align's BASE table is hand-crafted
+    # shaping, not validated ground truth -- it should nudge r_final, not rival it.
+    "lambda_align": 0.3,
     "lambda_final": 1.0,
     "lambda_len": 0.05,
     "lambda_fmt": 0.1,

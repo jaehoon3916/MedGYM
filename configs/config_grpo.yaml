@@ -10,7 +10,7 @@ experiment:
 plugins:
   # ── simulators (environment) — OpenRouter; provide the medical knowledge / dynamics ──
   user_llm:
-    type: vllm
+    type: v2
     use_mask: false                # ablation toggle (Stage-3 mask)
     base_url: https://openrouter.ai/api/v1
     model: deepseek/deepseek-chat-v3-0324
@@ -64,7 +64,10 @@ grpo:
   kl_coef: 0.01                    # KL-to-reference penalty (k3 estimator)
 
 reward:
-  lambda_align: 1.0                # process shaping (r_align.txt)
+  # lambda_align lowered from 1.0: r_align's BASE table is a hand-crafted shaping heuristic,
+  # not a validated ground truth (see r_align.txt SS10) -- it should nudge, not compete with
+  # r_final for the optimum. Revisit empirically once an interaction-scaling curve exists.
+  lambda_align: 0.3                # process shaping (r_align.txt)
   lambda_final: 1.0                # outcome: user reached gold (final_judge)
   lambda_len: 0.05                 # efficiency: penalize turns beyond tau_star
   lambda_fmt: 0.1                  # valid stage.locution format

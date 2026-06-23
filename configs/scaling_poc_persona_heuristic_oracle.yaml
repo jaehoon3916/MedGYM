@@ -1,0 +1,100 @@
+# Persona sweep (4 conditions by default): isolate persona/personas.yaml's effect on the
+# scaling curve while holding the information axis fixed at "full" (plugins.user_llm.
+# info_condition: [full] below -- see its comment for the full|dense|sparse 3-condition
+# design). Add dense/sparse to that list to sweep the information axis too (cross product
+# with persona).
+#
+# Driven by scripts/run_persona_sweep.py -- it deep-copies this base config once per
+# (persona, info_condition) combination, overriding those two fields plus experiment.name,
+# then calls run_scaling_poc.run() for each. Everything else below (model, policy, max_turns,
+# checkpoints, n_cases) is identical across all conditions.
+#
+# experiment.name below is this WHOLE EXPERIMENT's root folder -- every condition lands in a
+# subfolder under outputs/<name>/<persona>_<info_condition>/, and the combined summary at
+# outputs/<name>/summary.json. This file uses policy: oracle (vs configs/
+# scaling_poc_persona_sweep.yaml's naive) -- that's exactly why its experiment.name must
+# differ from that file's, or the two would collide on the same output path.
+# plugins.user_llm.persona is a LIST here, so this file is NOT meant to be run standalone via
+# run_scaling_poc.py directly (it errors on a list) -- always go through run_persona_sweep.py.
+
+experiment:
+  name: scaling_poc_persona_heuristic_delib   # change alongside persona below if running this file standalone for a different persona
+  seed: 42
+  max_turns: 8
+  # data_path: single specialty file (old behavior, e.g. data/sample_data/jama_raw_cardiology.json).
+  # data_dir: balances n_cases evenly across EVERY data_dir/jama_raw_*.json specialty file
+  # instead of pulling all of them from one (scripts/run_scaling_poc.py:_load_balanced_cases) --
+  # mutually exclusive with data_path. All prior scaling_poc/persona-sweep results used
+  # data_path=cardiology only; this is a new, not-directly-comparable baseline across specialties.
+  data_dir: data/sample_data
+  n_cases: 25                       # 7 specialties x 3 each (21 % 7 == 0, no remainder) -- 4 conditions x 21 = 84 episodes total
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null         # v1 ignores EpisodeConfig entirely
+
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+
+plugins:
+  user_llm:
+    type: v1
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: false
+    # persona: veteran_attending | exhausted_attending | eager_resident | burned_out_resident (see persona/personas.yaml).
+    # Single string -> scripts/run_scaling_poc.py runs that one persona directly.
+    # List -> scripts/run_persona_sweep.py runs one condition per entry and combines the reports.
+    # Each name is the 2x2 grid of (confidence: how readily belief updates in response to the
+    # AI) x (burden_sensitivity: whether cumulative cognitive_burden wears the doctor down):
+    #   - veteran_attending    = high confidence (holds ground) + robust to burden (never wears down)
+    #   - exhausted_attending  = high confidence (holds ground) + sensitive to burden (wears down as the talk drags on)
+    #   - eager_resident       = low confidence (defers readily) + robust to burden (never wears down)
+    #   - burned_out_resident  = low confidence (defers readily) + sensitive to burden (wears down as the talk drags on)
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    # info_condition: full | dense | sparse (see persona/information_sparsity.yaml's
+    # 3-condition note). Single string-or-list convention as persona above. Resolved by
+    # scripts/run_scaling_poc.py:_resolve_info_condition() into the two low-level flags the
+    # plugins actually read (medical_llm.show_case_info + this same information_sparsity
+    # field) -- don't set those two directly when using info_condition, they get overwritten.
+    #   - full   -> show_case_info: true  (AI gets the case directly; no real info asymmetry,
+    #               doctor's dense/sparse style doesn't matter to the AI's knowledge)
+    #   - dense  -> show_case_info: false + doctor discloses everything (real asymmetry, but
+    #               the doctor relays all of it anyway)
+    #   - sparse -> show_case_info: false + doctor withholds (real asymmetry, AND the AI must
+    #               work with genuinely incomplete information)
+    # Currently a 1-element list (just full) -- add dense/sparse here to sweep them too.
+    info_condition: [full]
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+    # show_case_info is derived from plugins.user_llm.info_condition above -- don't set it
+    # directly here, it gets overwritten by _resolve_info_condition().
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: oracle
+
+action_space_path: configs/action_space.yaml
+
+concurrency: 20

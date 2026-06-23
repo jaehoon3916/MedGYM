@@ -45,15 +45,29 @@ def frame_directive(action_prompt: str, style: str) -> str:
     return template.format(action_prompt=action_prompt)
 
 
+_NO_CASE_INFO_NOTICE = (
+    "(You have NOT been given the case file directly. You only know what the clinician has "
+    "told you so far in this conversation -- do not assume or invent findings beyond what "
+    "they've actually stated.)"
+)
+
+
 def build_medical_prompt(
     case_info: CaseInfo,
     dialogue_history: DialogueHistory,
     action_prompt: str,
     current_user_utterance: str,
+    show_case_info: bool = True,
 ) -> list[dict[str, str]]:
+    """show_case_info=False creates genuine information asymmetry: the AI does not see
+    case_info.scenario at all and must rely entirely on what the clinician relays in
+    dialogue -- this is what gives plugins.user_llm's information_sparsity persona (see
+    persona/information_sparsity.yaml) actual teeth instead of being purely cosmetic, since
+    with show_case_info=True (the historical default) the AI already has full case access
+    regardless of what the doctor chooses to share."""
     tmpl = _load("medical_llm")
     system = tmpl["system"].format(
-        scenario=case_info.scenario,
+        scenario=case_info.scenario if show_case_info else _NO_CASE_INFO_NOTICE,
         action_prompt=action_prompt,
     )
     messages = [{"role": "system", "content": system}]
@@ -78,6 +92,25 @@ def build_final_judge_prompt(
         scenario=case_info.scenario,
         options=_format_options(case_info.options),
         dialogue=dialogue_history.to_prompt(),
+    )
+    return [
+        {"role": "system", "content": tmpl["system"]},
+        {"role": "user", "content": user},
+    ]
+
+
+def build_load_judge_prompt(
+    ai_utterance: str,
+    doctor_utterance: str,
+    scenario: str = "",
+) -> list[dict[str, str]]:
+    """Prompt for the cognitive-load judge: rate the mental effort the AI's turn (a reply to
+    the clinician's statement) demands of the clinician, independent of medical correctness."""
+    tmpl = _load("load_judge")
+    user = tmpl["user"].format(
+        scenario=scenario or "(not provided)",
+        doctor_utterance=doctor_utterance,
+        ai_utterance=ai_utterance,
     )
     return [
         {"role": "system", "content": tmpl["system"]},

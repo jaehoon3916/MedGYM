@@ -30,14 +30,14 @@ def action_space():
     return load_action_space()
 
 
-def test_rule_policy_contradicted_asserts_fact(case_info, empty_history, action_space):  # noqa
+def test_rule_policy_contradicted_considers(case_info, empty_history, action_space):  # noqa
     policy = RulePolicy({}, action_space=action_space)
     policy.load()
     vt = VerificationTemplate(overall_relation="contradicted", confidence="high")
     output = policy.select_action(case_info, empty_history, "wrong claim", vt)
-    assert output.stage == "INFORM"
+    assert output.stage == "CONSIDER"
     assert output.locution == "assert"
-    assert output.action_id == "INFORM.assert"
+    assert output.action_id == "CONSIDER.assert"
 
 
 def test_rule_policy_insufficient_asks_justify(case_info, empty_history, action_space):
@@ -50,14 +50,14 @@ def test_rule_policy_insufficient_asks_justify(case_info, empty_history, action_
     assert output.action_id == "INFORM.ask_justify"
 
 
-def test_rule_policy_supported_recommends(case_info, empty_history, action_space):
+def test_rule_policy_supported_asserts_fact(case_info, empty_history, action_space):
     policy = RulePolicy({}, action_space=action_space)
     policy.load()
     vt = VerificationTemplate(overall_relation="supported", confidence="high")
     output = policy.select_action(case_info, empty_history, "correct claim", vt)
-    assert output.stage == "RECOMMEND"
+    assert output.stage == "INFORM"
     assert output.locution == "assert"
-    assert output.action_id == "RECOMMEND.assert"
+    assert output.action_id == "INFORM.assert"
 
 
 def test_rule_policy_output_has_prompt(case_info, empty_history, action_space):

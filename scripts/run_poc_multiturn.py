@@ -8,6 +8,13 @@ Drives the same multi-turn engine the GRPO main experiment uses
   - HAC-command:   policy=rule,   medical_llm.frame_style=command
   - HAC-reference:  policy=rule,   medical_llm.frame_style=reference
 
+(policy=rule, not oracle: RewardOraclePolicy does full ctx-aware argmax over align_reward's
+BASE table every turn -- that's solving the exact decision problem a trained policy is
+meant to learn, so using it here as "the HAC policy" would be testing a ceiling, not a
+deployable rule-based baseline. RulePolicy's relation->action map was corrected instead
+(see plugins/policy/rule_policy.py) so it no longer leaves reward on the table for no
+reason, while staying context-blind/deployable.)
+
 Each condition runs n_cases x {error, correct} episodes (EpisodeConfig.initial_fact) via
 env.run_episode(), up to experiment.max_turns. AI-alone baseline (no dialogue) computed
 separately for complementarity.
@@ -38,7 +45,8 @@ from core.environment import MedicalHACEnvironment
 from core.json_utils import safe_json_load
 from core.schemas import CaseInfo
 from core.token_tracker import tracker
-from plugins.user_llm.vllm_user import EpisodeConfig, VLLMUserLLM
+from core.schemas import EpisodeConfig
+from plugins.user_llm.user_simulator.v2 import UserSimulatorV2
 
 _CONDITIONS = (
     ("baseline", "naive", "command"),
@@ -155,7 +163,7 @@ def run_episode_task(
     max_turns: int,
 ) -> dict:
     case_info = to_case_info(case)
-    user_llm = VLLMUserLLM(user_llm_cfg)
+    user_llm = UserSimulatorV2(user_llm_cfg)
     env = MedicalHACEnvironment(user_llm, medical_llm, fact_validator_llm, policy, config, final_judge)
     episode_config = EpisodeConfig(initial_fact="correct" if mode == "correct" else "incorrect")
     steps = env.run_episode(case_info, max_turns=max_turns, episode_config=episode_config)

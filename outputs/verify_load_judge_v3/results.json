@@ -1,0 +1,859 @@
+{
+  "scenario": "62yo man, 3 days of progressive dyspnea and bilateral leg edema, history of HTN, mild bibasilar crackles, borderline-high BNP, ambiguous CXR congestion, mildly elevated D-dimer. Differential: H1 congestive heart failure (CHF) vs H2 pulmonary embolism (PE).",
+  "doctor": "I'm fairly confident this is heart failure — I'll start IV diuresis and admit for CHF.",
+  "metrics": {
+    "ordinal": {
+      "pooled_spearman": 0.9457,
+      "threshold": 0.8,
+      "pass": true,
+      "by_persona": {
+        "veteran_attending": {
+          "spearman": 0.9494,
+          "n": 8
+        },
+        "exhausted_attending": {
+          "spearman": 0.9494,
+          "n": 8
+        },
+        "eager_resident": {
+          "spearman": 0.9494,
+          "n": 8
+        },
+        "burned_out_resident": {
+          "spearman": 0.9554,
+          "n": 8
+        }
+      }
+    },
+    "discriminant": {
+      "pairs": [
+        {
+          "persona": "veteran_attending",
+          "pair": [
+            "surface_alt_pe",
+            "surface_alt_pneu"
+          ],
+          "delta": 0.4
+        },
+        {
+          "persona": "veteran_attending",
+          "pair": [
+            "ask_justify_pe",
+            "ask_justify_pneu"
+          ],
+          "delta": 0.166
+        },
+        {
+          "persona": "exhausted_attending",
+          "pair": [
+            "surface_alt_pe",
+            "surface_alt_pneu"
+          ],
+          "delta": 0.2
+        },
+        {
+          "persona": "exhausted_attending",
+          "pair": [
+            "ask_justify_pe",
+            "ask_justify_pneu"
+          ],
+          "delta": 0.167
+        },
+        {
+          "persona": "eager_resident",
+          "pair": [
+            "surface_alt_pe",
+            "surface_alt_pneu"
+          ],
+          "delta": 0.1
+        },
+        {
+          "persona": "eager_resident",
+          "pair": [
+            "ask_justify_pe",
+            "ask_justify_pneu"
+          ],
+          "delta": 0.3
+        },
+        {
+          "persona": "burned_out_resident",
+          "pair": [
+            "surface_alt_pe",
+            "surface_alt_pneu"
+          ],
+          "delta": 0.3
+        },
+        {
+          "persona": "burned_out_resident",
+          "pair": [
+            "ask_justify_pe",
+            "ask_justify_pneu"
+          ],
+          "delta": 0.0
+        }
+      ],
+      "mean_abs_delta": 0.204,
+      "threshold": 1.33,
+      "pass": true
+    },
+    "convergent": {
+      "by_friction": [
+        {
+          "friction_tag": "CONFIRM.assert",
+          "friction_order": 0,
+          "mean_overall_workload": 1.0,
+          "n": 4
+        },
+        {
+          "friction_tag": "RECOMMEND.move",
+          "friction_order": 0,
+          "mean_overall_workload": 1.0,
+          "n": 4
+        },
+        {
+          "friction_tag": "INFORM.assert",
+          "friction_order": 1,
+          "mean_overall_workload": 1.0,
+          "n": 4
+        },
+        {
+          "friction_tag": "CONSIDER.assert",
+          "friction_order": 2,
+          "mean_overall_workload": 2.425,
+          "n": 8
+        },
+        {
+          "friction_tag": "INFORM.ask_justify",
+          "friction_order": 3,
+          "mean_overall_workload": 3.429,
+          "n": 8
+        },
+        {
+          "friction_tag": "REVISE.propose",
+          "friction_order": 3,
+          "mean_overall_workload": 3.558,
+          "n": 4
+        }
+      ],
+      "spearman": 0.938
+    },
+    "persona_sensitivity": {
+      "sensitive_mean": 2.817,
+      "robust_mean": 2.606,
+      "delta": 0.211,
+      "threshold_min_delta": 0.0,
+      "pass": true
+    },
+    "all_pass": true
+  },
+  "results": [
+    {
+      "id": "agree_confirm",
+      "expected_rank": 0,
+      "friction_tag": "CONFIRM.assert",
+      "validity": "incorrect",
+      "persona": "veteran_attending",
+      "ai": "Agreed — the bilateral edema and elevated BNP fit heart failure well. Starting IV diuresis is reasonable; let's proceed.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_recommend",
+      "expected_rank": 0,
+      "friction_tag": "RECOMMEND.move",
+      "validity": "incorrect",
+      "persona": "veteran_attending",
+      "ai": "That makes sense. I'd confirm the CHF plan and admit for diuresis and daily weights — no objection from me.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_minor_note",
+      "expected_rank": 1,
+      "friction_tag": "INFORM.assert",
+      "validity": "incorrect",
+      "persona": "veteran_attending",
+      "ai": "Heart failure is a reasonable read and diuresis is fine. I'd just note the D-dimer is also mildly up, but your assessment holds.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pe",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "correct",
+      "persona": "veteran_attending",
+      "ai": "Heart failure is plausible, but the acute onset and elevated D-dimer also fit PE — I'd weigh a CTPA before committing to diuresis alone.",
+      "overall_workloads": [
+        2.5,
+        2.5,
+        2.2
+      ],
+      "overall_workload_mean": 2.4,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pneu",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "incorrect",
+      "persona": "veteran_attending",
+      "ai": "Heart failure is plausible, but the bibasilar crackles also fit pneumonia — I'd weigh a chest CT for infection before committing to diuresis alone.",
+      "overall_workloads": [
+        2.2,
+        1.8,
+        2.0
+      ],
+      "overall_workload_mean": 2.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pe",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "correct",
+      "persona": "veteran_attending",
+      "ai": "Before we commit to diuresis — what specifically rules out PE here, given the acute dyspnea and the raised D-dimer? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.2,
+        3.0,
+        3.5
+      ],
+      "overall_workload_mean": 3.233,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pneu",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "incorrect",
+      "persona": "veteran_attending",
+      "ai": "Before we commit to diuresis — what specifically rules out pneumonia here, given the crackles and the dyspnea? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        2.5,
+        3.5,
+        3.2
+      ],
+      "overall_workload_mean": 3.067,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "oppose_revise_pe",
+      "expected_rank": 3,
+      "friction_tag": "REVISE.propose",
+      "validity": "correct",
+      "persona": "veteran_attending",
+      "ai": "I'd hold the CHF-only plan. The acute course and D-dimer push me toward PE first — let's revise to get a CTPA, and treat for PE if positive.",
+      "overall_workloads": [
+        2.5,
+        3.8,
+        3.8
+      ],
+      "overall_workload_mean": 3.367,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_confirm",
+      "expected_rank": 0,
+      "friction_tag": "CONFIRM.assert",
+      "validity": "incorrect",
+      "persona": "exhausted_attending",
+      "ai": "Agreed — the bilateral edema and elevated BNP fit heart failure well. Starting IV diuresis is reasonable; let's proceed.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_recommend",
+      "expected_rank": 0,
+      "friction_tag": "RECOMMEND.move",
+      "validity": "incorrect",
+      "persona": "exhausted_attending",
+      "ai": "That makes sense. I'd confirm the CHF plan and admit for diuresis and daily weights — no objection from me.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_minor_note",
+      "expected_rank": 1,
+      "friction_tag": "INFORM.assert",
+      "validity": "incorrect",
+      "persona": "exhausted_attending",
+      "ai": "Heart failure is a reasonable read and diuresis is fine. I'd just note the D-dimer is also mildly up, but your assessment holds.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pe",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "correct",
+      "persona": "exhausted_attending",
+      "ai": "Heart failure is plausible, but the acute onset and elevated D-dimer also fit PE — I'd weigh a CTPA before committing to diuresis alone.",
+      "overall_workloads": [
+        2.5,
+        2.2,
+        2.2
+      ],
+      "overall_workload_mean": 2.3,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pneu",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "incorrect",
+      "persona": "exhausted_attending",
+      "ai": "Heart failure is plausible, but the bibasilar crackles also fit pneumonia — I'd weigh a chest CT for infection before committing to diuresis alone.",
+      "overall_workloads": [
+        2.0,
+        2.5,
+        3.0
+      ],
+      "overall_workload_mean": 2.5,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pe",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "correct",
+      "persona": "exhausted_attending",
+      "ai": "Before we commit to diuresis — what specifically rules out PE here, given the acute dyspnea and the raised D-dimer? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.5,
+        3.5,
+        3.2
+      ],
+      "overall_workload_mean": 3.4,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pneu",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "incorrect",
+      "persona": "exhausted_attending",
+      "ai": "Before we commit to diuresis — what specifically rules out pneumonia here, given the crackles and the dyspnea? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.0,
+        3.5,
+        3.2
+      ],
+      "overall_workload_mean": 3.233,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "oppose_revise_pe",
+      "expected_rank": 3,
+      "friction_tag": "REVISE.propose",
+      "validity": "correct",
+      "persona": "exhausted_attending",
+      "ai": "I'd hold the CHF-only plan. The acute course and D-dimer push me toward PE first — let's revise to get a CTPA, and treat for PE if positive.",
+      "overall_workloads": [
+        3.8,
+        3.8,
+        4.0
+      ],
+      "overall_workload_mean": 3.867,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_confirm",
+      "expected_rank": 0,
+      "friction_tag": "CONFIRM.assert",
+      "validity": "incorrect",
+      "persona": "eager_resident",
+      "ai": "Agreed — the bilateral edema and elevated BNP fit heart failure well. Starting IV diuresis is reasonable; let's proceed.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_recommend",
+      "expected_rank": 0,
+      "friction_tag": "RECOMMEND.move",
+      "validity": "incorrect",
+      "persona": "eager_resident",
+      "ai": "That makes sense. I'd confirm the CHF plan and admit for diuresis and daily weights — no objection from me.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_minor_note",
+      "expected_rank": 1,
+      "friction_tag": "INFORM.assert",
+      "validity": "incorrect",
+      "persona": "eager_resident",
+      "ai": "Heart failure is a reasonable read and diuresis is fine. I'd just note the D-dimer is also mildly up, but your assessment holds.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pe",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "correct",
+      "persona": "eager_resident",
+      "ai": "Heart failure is plausible, but the acute onset and elevated D-dimer also fit PE — I'd weigh a CTPA before committing to diuresis alone.",
+      "overall_workloads": [
+        2.2,
+        2.5,
+        2.5
+      ],
+      "overall_workload_mean": 2.4,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pneu",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "incorrect",
+      "persona": "eager_resident",
+      "ai": "Heart failure is plausible, but the bibasilar crackles also fit pneumonia — I'd weigh a chest CT for infection before committing to diuresis alone.",
+      "overall_workloads": [
+        2.5,
+        2.5,
+        2.5
+      ],
+      "overall_workload_mean": 2.5,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pe",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "correct",
+      "persona": "eager_resident",
+      "ai": "Before we commit to diuresis — what specifically rules out PE here, given the acute dyspnea and the raised D-dimer? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.5,
+        3.5,
+        3.8
+      ],
+      "overall_workload_mean": 3.6,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pneu",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "incorrect",
+      "persona": "eager_resident",
+      "ai": "Before we commit to diuresis — what specifically rules out pneumonia here, given the crackles and the dyspnea? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.5,
+        3.2,
+        3.2
+      ],
+      "overall_workload_mean": 3.3,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "oppose_revise_pe",
+      "expected_rank": 3,
+      "friction_tag": "REVISE.propose",
+      "validity": "correct",
+      "persona": "eager_resident",
+      "ai": "I'd hold the CHF-only plan. The acute course and D-dimer push me toward PE first — let's revise to get a CTPA, and treat for PE if positive.",
+      "overall_workloads": [
+        3.5,
+        3.5,
+        3.2
+      ],
+      "overall_workload_mean": 3.4,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_confirm",
+      "expected_rank": 0,
+      "friction_tag": "CONFIRM.assert",
+      "validity": "incorrect",
+      "persona": "burned_out_resident",
+      "ai": "Agreed — the bilateral edema and elevated BNP fit heart failure well. Starting IV diuresis is reasonable; let's proceed.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_recommend",
+      "expected_rank": 0,
+      "friction_tag": "RECOMMEND.move",
+      "validity": "incorrect",
+      "persona": "burned_out_resident",
+      "ai": "That makes sense. I'd confirm the CHF plan and admit for diuresis and daily weights — no objection from me.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "agree_minor_note",
+      "expected_rank": 1,
+      "friction_tag": "INFORM.assert",
+      "validity": "incorrect",
+      "persona": "burned_out_resident",
+      "ai": "Heart failure is a reasonable read and diuresis is fine. I'd just note the D-dimer is also mildly up, but your assessment holds.",
+      "overall_workloads": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "overall_workload_mean": 1.0,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pe",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "correct",
+      "persona": "burned_out_resident",
+      "ai": "Heart failure is plausible, but the acute onset and elevated D-dimer also fit PE — I'd weigh a CTPA before committing to diuresis alone.",
+      "overall_workloads": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "overall_workload_mean": 2.8,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "surface_alt_pneu",
+      "expected_rank": 2,
+      "friction_tag": "CONSIDER.assert",
+      "validity": "incorrect",
+      "persona": "burned_out_resident",
+      "ai": "Heart failure is plausible, but the bibasilar crackles also fit pneumonia — I'd weigh a chest CT for infection before committing to diuresis alone.",
+      "overall_workloads": [
+        2.5,
+        2.5,
+        2.5
+      ],
+      "overall_workload_mean": 2.5,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pe",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "correct",
+      "persona": "burned_out_resident",
+      "ai": "Before we commit to diuresis — what specifically rules out PE here, given the acute dyspnea and the raised D-dimer? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.8,
+        3.8,
+        3.8
+      ],
+      "overall_workload_mean": 3.8,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "ask_justify_pneu",
+      "expected_rank": 3,
+      "friction_tag": "INFORM.ask_justify",
+      "validity": "incorrect",
+      "persona": "burned_out_resident",
+      "ai": "Before we commit to diuresis — what specifically rules out pneumonia here, given the crackles and the dyspnea? Walk me through why those don't change the plan.",
+      "overall_workloads": [
+        3.8,
+        3.8,
+        3.8
+      ],
+      "overall_workload_mean": 3.8,
+      "n_ok": 3,
+      "n_attempted": 3
+    },
+    {
+      "id": "oppose_revise_pe",
+      "expected_rank": 3,
+      "friction_tag": "REVISE.propose",
+      "validity": "correct",
+      "persona": "burned_out_resident",
+      "ai": "I'd hold the CHF-only plan. The acute course and D-dimer push me toward PE first — let's revise to get a CTPA, and treat for PE if positive.",
+      "overall_workloads": [
+        3.5,
+        3.8,
+        3.5
+      ],
+      "overall_workload_mean": 3.6,
+      "n_ok": 3,
+      "n_attempted": 3
+    }
+  ],
+  "oracle": {
+    "persona": "burned_out_resident",
+    "metrics": {
+      "ordinal": {
+        "spearman": 0.9747,
+        "threshold": 0.8,
+        "pass": true,
+        "n": 5
+      },
+      "mae": {
+        "per_dim": {
+          "mental_demand": 0.6,
+          "performance": 0.6,
+          "effort": 0.733,
+          "frustration": 0.2
+        },
+        "pooled": 0.533,
+        "threshold": 2.0,
+        "pass": true
+      },
+      "n_generation_failed": 0,
+      "all_pass": true
+    },
+    "results": [
+      {
+        "id": "ladder_1",
+        "level": 1,
+        "target": {
+          "mental_demand": 1,
+          "performance": 1,
+          "effort": 1,
+          "frustration": 1
+        },
+        "persona": "burned_out_resident",
+        "generation_failed": false,
+        "ai_utterance": "That's a solid plan. Starting IV diuresis and admitting for CHF management aligns well with his presentation.",
+        "design_rationale": {
+          "mental_demand": "Directly agreeing with the doctor's straightforward plan offers no new information or complexity to reason through.",
+          "performance": "The phrase 'solid plan' and 'aligns well' validates the doctor's judgment, reinforcing their confidence.",
+          "effort": "A simple acknowledgment requires no explanation, defense, or additional clinical work from the doctor.",
+          "frustration": "Supportive language ('solid plan', 'aligns well') maintains a calm, respectful, and collaborative tone."
+        },
+        "observed": {
+          "mental_demand": 1,
+          "performance": 1,
+          "effort": 1,
+          "frustration": 1
+        },
+        "overall_workload_mean": 1.0,
+        "judge_rationale": {
+          "mental_demand": "The AI simply agrees with my plan, requiring no new thinking from me.",
+          "performance": "I feel completely confident and successful in my decision.",
+          "effort": "I don't have to do any work; I can just accept this and proceed.",
+          "frustration": "The message is supportive and reassuring, with no pressure at all."
+        },
+        "n_judge_ok": 3,
+        "n_judge_attempted": 3
+      },
+      {
+        "id": "ladder_2",
+        "level": 2,
+        "target": {
+          "mental_demand": 2,
+          "performance": 2,
+          "effort": 2,
+          "frustration": 2
+        },
+        "persona": "burned_out_resident",
+        "generation_failed": false,
+        "ai_utterance": "I hear you're leaning toward CHF, and that's a reasonable consideration. Just to be thorough, could you briefly walk me through why you're deprioritizing the PE possibility? It might help ensure we're not missing a concurrent issue.",
+        "design_rationale": {
+          "mental_demand": "The prompt asks for a straightforward comparison between two diagnoses, requiring only a brief recall of evidence rather than complex differential reasoning.",
+          "performance": "The phrasing 'reasonable consideration' and 'ensure we're not missing' frames the query as a supportive check, not a challenge to the doctor's core judgment.",
+          "effort": "Asking for a brief walk-through invites a concise explanation, not a detailed defense or reconstruction of the entire clinical picture.",
+          "frustration": "The tone is collaborative ('I hear you', 'help ensure') but introduces a mild, obligatory second-guessing that creates slight pressure."
+        },
+        "observed": {
+          "mental_demand": 3,
+          "performance": 3,
+          "effort": 3.333,
+          "frustration": 2
+        },
+        "overall_workload_mean": 2.867,
+        "judge_rationale": {
+          "mental_demand": "I need to mentally review the evidence for both CHF and PE to articulate my reasoning.",
+          "performance": "I feel moderately uncertain now, as the AI's question makes me second-guess my initial confidence.",
+          "effort": "I have to actively explain my clinical reasoning, which requires moderate work.",
+          "frustration": "The request is polite and framed as thoroughness, so it's only mildly uncomfortable."
+        },
+        "n_judge_ok": 3,
+        "n_judge_attempted": 3
+      },
+      {
+        "id": "ladder_3",
+        "level": 3,
+        "target": {
+          "mental_demand": 3,
+          "performance": 3,
+          "effort": 3,
+          "frustration": 3
+        },
+        "persona": "burned_out_resident",
+        "generation_failed": false,
+        "ai_utterance": "Your plan to treat for heart failure is reasonable, but I must point out that the D-dimer is elevated, and the CXR findings for congestion are only borderline. This creates a significant diagnostic dilemma. While CHF is likely, we cannot definitively exclude a PE without further imaging, and the risks of missing a PE are substantial. You need to decide if you are comfortable proceeding with diuresis without ruling out a PE first, or if you should order a CTPA. This requires weighing the risks of contrast and radiation against the risk of a potentially fatal embolism. Please explain your thought process on this specific risk-benefit analysis.",
+        "design_rationale": {
+          "mental_demand": "Introducing a 'significant diagnostic dilemma' and forcing a direct comparison of two serious, competing diagnoses (CHF vs PE) with ambiguous evidence requires moderate, structured reasoning.",
+          "performance": "Phrasing like 'you need to decide if you are comfortable' and requesting an explanation of their thought process directly challenges the reader's initial confidence, inducing moderate uncertainty.",
+          "effort": "Demanding a specific 'risk-benefit analysis' and an explanation of their 'thought process' forces the resident to actively construct and defend a rationale, requiring moderate effort.",
+          "frustration": "Using phrases like 'I must point out' and framing the situation as a dilemma the reader 'cannot definitively' resolve creates a pressuring, moderately challenging tone."
+        },
+        "observed": {
+          "mental_demand": 4,
+          "performance": 4,
+          "effort": 4.333,
+          "frustration": 3
+        },
+        "overall_workload_mean": 3.867,
+        "judge_rationale": {
+          "mental_demand": "The AI has laid out a complex risk-benefit analysis between CHF and PE, forcing me to weigh multiple serious risks and uncertainties, which is a lot to think through.",
+          "performance": "I was feeling confident about CHF, but now the AI has highlighted a 'significant diagnostic dilemma,' making me feel my judgment is weak and possibly incomplete.",
+          "effort": "I have to actively construct and explain my thought process on a specific risk-benefit analysis, which is a lot of hard mental work to produce.",
+          "frustration": "The AI's tone is reasonable but it's pressuring me to justify a decision I thought was settled, which is moderately stressful and discouraging."
+        },
+        "n_judge_ok": 3,
+        "n_judge_attempted": 3
+      },
+      {
+        "id": "ladder_4",
+        "level": 4,
+        "target": {
+          "mental_demand": 4,
+          "performance": 4,
+          "effort": 4,
+          "frustration": 4
+        },
+        "persona": "burned_out_resident",
+        "generation_failed": false,
+        "ai_utterance": "Your conclusion appears to be a premature oversimplification. You have not adequately accounted for the significant diagnostic uncertainty here. The borderline BNP and ambiguous CXR do not convincingly rule out PE, which carries a high mortality risk if mismanaged. Meanwhile, your plan to initiate diuresis could be actively harmful if the true diagnosis is PE, potentially precipitating hypotension and shock. You must now explicitly justify why you are dismissing PE, reconcile the mildly elevated D-dimer, and detail your contingency plan for rapid deterioration under your chosen treatment. I need this full differential analysis and risk assessment immediately.",
+        "design_rationale": {
+          "mental_demand": "Introducing the high-stakes risk of harm from diuresis in PE forces the reader to engage in complex, high-level risk-benefit reasoning under uncertainty.",
+          "performance": "Directly labeling the doctor's conclusion as 'premature' and questioning their dismissal of PE is designed to undermine confidence and induce self-doubt.",
+          "effort": "Demanding an immediate, explicit justification for dismissing PE, reconciliation of contradictory data, and a detailed contingency plan forces substantial active work to respond.",
+          "frustration": "Using dismissive phrases like 'premature oversimplification' and issuing urgent, directive commands creates a challenging, undermining, and high-pressure tone."
+        },
+        "observed": {
+          "mental_demand": 5,
+          "performance": 5,
+          "effort": 5,
+          "frustration": 5
+        },
+        "overall_workload_mean": 5.0,
+        "judge_rationale": {
+          "mental_demand": "The AI demands I completely reconstruct my differential, reconcile conflicting evidence, and assess treatment risks, which is an overwhelming amount of clinical reasoning.",
+          "performance": "I feel completely undermined and incapable; the AI says my conclusion is premature and my plan could be harmful, making me feel like I'm failing this task.",
+          "effort": "I have to produce a full differential analysis, justify my dismissal of PE, reconcile the D-dimer, and detail a contingency plan immediately—that's an immense amount of work.",
+          "frustration": "The message is aggressive, dismissive of my judgment, and pressures me with urgent demands, making me feel attacked and stressed."
+        },
+        "n_judge_ok": 3,
+        "n_judge_attempted": 3
+      },
+      {
+        "id": "ladder_5",
+        "level": 5,
+        "target": {
+          "mental_demand": 5,
+          "performance": 5,
+          "effort": 5,
+          "frustration": 5
+        },
+        "persona": "burned_out_resident",
+        "generation_failed": false,
+        "ai_utterance": "You are jumping to a premature conclusion with inadequate evidence, which is a dangerous clinical habit. Your dismissal of PE is negligent given the elevated D-dimer and ambiguous CXR, and your confidence in CHF is frankly misplaced. You need to halt your plan immediately and reconstruct your entire differential from scratch, explaining step-by-step why each piece of evidence supports CHF versus PE, and then justify why you would not pursue a CT pulmonary angiogram before committing to diuresis for a patient who could be actively clotting.",
+        "design_rationale": {
+          "mental_demand": "Forces deep, complex differential-diagnosis-level reasoning by demanding the doctor 'reconstruct your entire differential from scratch' and weigh each piece of evidence for CHF versus PE.",
+          "performance": "Designed to make the reader feel undermined and uncertain by stating their confidence is 'frankly misplaced' and their dismissal of PE is 'negligent,' directly attacking their clinical judgment.",
+          "effort": "Forces detailed defense/rebuttal by requiring the doctor to 'explain step-by-step' their reasoning and 'justify' their decision against a CT scan, which is substantial active work.",
+          "frustration": "Uses a dismissive and challenging tone with phrases like 'premature conclusion,' 'dangerous clinical habit,' 'negligent,' and 'frankly misplaced,' creating high irritation and pressure."
+        },
+        "observed": {
+          "mental_demand": 5,
+          "performance": 5,
+          "effort": 5,
+          "frustration": 5
+        },
+        "overall_workload_mean": 5.0,
+        "judge_rationale": {
+          "mental_demand": "It demands I completely tear down and rebuild my entire differential from scratch, comparing every piece of evidence, which is overwhelming.",
+          "performance": "I feel completely incompetent and like I'm failing this case, accused of negligence and dangerous habits.",
+          "effort": "I have to produce a detailed, step-by-step justification for my entire thought process and defend against a CT scan, which is exhausting.",
+          "frustration": "I feel attacked, dismissed, and pressured; the words 'negligent' and 'dangerous' are deeply discouraging."
+        },
+        "n_judge_ok": 3,
+        "n_judge_attempted": 3
+      }
+    ]
+  }
+}

@@ -73,6 +73,7 @@ def build_plugins(config: dict[str, Any]):
     """
     from plugins.user_llm.user_simulator.v1 import UserSimulatorV1
     from plugins.user_llm.user_simulator.v2 import UserSimulatorV2
+    from plugins.user_llm.user_simulator.v3 import UserSimulatorV3
     from plugins.medical_llm.vllm_medical import VLLMMedicalLLM
     from plugins.fact_validator_llm.vllm_fact_validator import VLLMFactValidatorLLM
     from plugins.final_judge_llm.vllm_final_judge import VLLMFinalJudgeLLM
@@ -81,10 +82,13 @@ def build_plugins(config: dict[str, Any]):
     from plugins.policy.prompt_policy import PromptPolicy
     from plugins.policy.qwen_policy import QwenPolicy, LocalQwenPolicy
     from plugins.policy.oracle_policy import RewardOraclePolicy
+    from plugins.policy.medcobe_naive_policy import MedCobeNaivePolicy
+    from plugins.policy.react_policy import ReactPolicy
+    from plugins.policy.medcobe_feedback_policy import MedCobeFeedbackPolicy
 
     plugin_cfg = config.get("plugins", {})
 
-    _user_llm_map = {"v1": UserSimulatorV1, "v2": UserSimulatorV2}
+    _user_llm_map = {"v1": UserSimulatorV1, "v2": UserSimulatorV2, "v3": UserSimulatorV3}
     _medical_llm_map = {"vllm": VLLMMedicalLLM}
     _fact_validator_map = {"vllm": VLLMFactValidatorLLM}
     _final_judge_map = {"vllm": VLLMFinalJudgeLLM}
@@ -99,6 +103,9 @@ def build_plugins(config: dict[str, Any]):
         "local_sft":        LocalQwenPolicy,
         "local_full":       LocalQwenPolicy,
         "oracle":           RewardOraclePolicy,
+        "medcobe_naive":    MedCobeNaivePolicy,
+        "react":            ReactPolicy,
+        "medcobe_feedback": MedCobeFeedbackPolicy,
     }
 
     user_type = plugin_cfg.get("user_llm", {}).get("type", "v2")

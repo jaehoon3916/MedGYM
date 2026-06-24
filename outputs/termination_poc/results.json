@@ -1,0 +1,114 @@
+{
+  "run_meta": {
+    "model": "deepseek/deepseek-v3.2",
+    "max_turns": 8,
+    "data_path": null,
+    "data_dir": "data/sample_data",
+    "specialty_counts": {
+      "cardiology": 1,
+      "dermatology": 0,
+      "jama": 0,
+      "neurology": 0,
+      "oncology": 0,
+      "ophthalmology": 0,
+      "otolaryngology": 0
+    },
+    "policy_type": "medcobe_naive",
+    "initial_user_state": null,
+    "checkpoints": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "burden_dropout_threshold": null,
+    "user_llm_show_options": false,
+    "user_llm_persona": "burned_out_resident",
+    "user_llm_information_sparsity": "dense",
+    "medical_llm_show_case_info": true
+  },
+  "scores": {
+    "n_cases": 1,
+    "accuracy": 1.0,
+    "by_closed_by": {
+      "agreement": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_n_turns": 1,
+        "avg_final_cumulative_burden": 1.0
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      }
+    },
+    "checkpoint_curve": {
+      "0": {
+        "accuracy": 1.0,
+        "n": 1
+      },
+      "1": {
+        "accuracy": 1.0,
+        "n": 1
+      },
+      "2": {
+        "accuracy": 1.0,
+        "n": 1
+      },
+      "4": {
+        "accuracy": 1.0,
+        "n": 1
+      },
+      "8": {
+        "accuracy": 1.0,
+        "n": 1
+      }
+    },
+    "burden_judge_calls_ok": 3,
+    "burden_judge_calls_attempted": 3
+  },
+  "records": [
+    {
+      "case_id": "0000",
+      "initial_user_state": null,
+      "specialty": "cardiology",
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "D",
+      "is_correct": true,
+      "final_cumulative_burden": 1.0,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "D",
+          "is_correct": true
+        },
+        "1": {
+          "self_reported_belief": "D",
+          "is_correct": true
+        },
+        "2": {
+          "self_reported_belief": "D",
+          "is_correct": true
+        },
+        "4": {
+          "self_reported_belief": "D",
+          "is_correct": true
+        },
+        "8": {
+          "self_reported_belief": "D",
+          "is_correct": true
+        }
+      }
+    }
+  ]
+}

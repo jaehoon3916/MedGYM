@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Annotate — {{ case_info.get('case_id','?') }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; font-size: 14px; }
+
+    header { background: #1a3c5e; color: #fff; padding: 12px 20px;
+             display: flex; align-items: center; gap: 14px; }
+    header a { color: #8ab8d8; font-size: 0.82rem; text-decoration: none; }
+    header a:hover { text-decoration: underline; }
+    header h1 { font-size: 1rem; font-weight: 600; }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+    .case-card { background: #fff; border-radius: 8px; padding: 16px 20px;
+                 box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; }
+    .card-label { font-size: 0.68rem; text-transform: uppercase; color: #888;
+                  letter-spacing: .6px; margin-bottom: 8px; font-weight: 700; }
+    .scenario { font-size: 0.85rem; line-height: 1.6; color: #333; }
+
+    .turn-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+                 padding: 16px 20px; margin-bottom: 18px; scroll-margin-top: 20px; }
+    .turn-card.done { border-left: 4px solid #4caf50; }
+    .turn-card.pending { border-left: 4px solid #e0a800; }
+    .turn-header { font-size: 0.78rem; font-weight: 700; color: #1a5f8a; margin-bottom: 8px;
+                   display: flex; justify-content: space-between; align-items: center; }
+    .status-badge { font-size: 0.68rem; padding: 2px 9px; border-radius: 999px; font-weight: 700; }
+    .status-done { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+
+    details { margin-bottom: 10px; }
+    summary { font-size: 0.75rem; color: #888; cursor: pointer; }
+    .context-text { font-size: 0.78rem; color: #555; line-height: 1.5; white-space: pre-wrap;
+                     background: #f8f9fa; border-radius: 6px; padding: 8px 10px; margin-top: 6px;
+                     max-height: 200px; overflow-y: auto; }
+
+    .ai-utterance { font-size: 0.9rem; line-height: 1.6; padding: 10px 14px; border-radius: 7px;
+                    border-left: 3px solid #5b9bd5; background: #f0f7ff; margin-bottom: 14px; white-space: pre-wrap; }
+
+    .dim-row { margin-bottom: 12px; }
+    .dim-label { font-size: 0.78rem; font-weight: 700; color: #1a3c5e; margin-bottom: 4px; text-transform: capitalize; }
+    .dim-desc { font-size: 0.74rem; color: #777; line-height: 1.45; margin-bottom: 6px; }
+    .scale { display: flex; gap: 6px; flex-wrap: wrap; }
+    .scale label { flex: 1; min-width: 140px; background: #f8f9fa; border: 1px solid #e1e4e8;
+                    border-radius: 6px; padding: 6px 8px; font-size: 0.72rem; line-height: 1.35;
+                    cursor: pointer; color: #555; }
+    .scale input { margin-right: 5px; }
+    .scale label:has(input:checked) { background: #e8f1fb; border-color: #5b9bd5; color: #1a3c5e; font-weight: 600; }
+
+    .save-btn { background: #2e5f8a; border: none; color: #fff; padding: 7px 18px;
+                border-radius: 5px; cursor: pointer; font-size: 0.8rem; margin-top: 6px; }
+    .save-btn:hover { background: #3a72a8; }
+
+    .old-burden { font-size: 0.72rem; color: #aaa; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/">← All Rollouts</a>
+  <a href="/rollout/{{ path }}">View as dialogue</a>
+  <h1>Human Likert Annotation — Case {{ case_info.get('case_id','?') }}</h1>
+</header>
+
+<div class="main">
+  <div class="case-card">
+    <div class="card-label">Case Info</div>
+    <p class="scenario">{{ case_info.get('scenario','') }}</p>
+  </div>
+
+  {% for t in ai_turns %}
+  {% set idx = t.ai_turn_index %}
+  {% set existing = saved.get(idx|string) %}
+  <div class="turn-card {{ 'done' if existing else 'pending' }}" id="turn-{{ idx }}">
+    <div class="turn-header">
+      <span>AI turn {{ idx + 1 }}</span>
+      <span class="status-badge {{ 'status-done' if existing else 'status-pending' }}">
+        {{ 'scored' if existing else 'not yet scored' }}
+      </span>
+    </div>
+
+    <details>
+      <summary>Dialogue so far ({{ t.dialogue_text_before.count('\n') + 1 if t.dialogue_text_before != '(No conversation yet)' else 0 }} lines)</summary>
+      <div class="context-text">{{ t.dialogue_text_before }}</div>
+    </details>
+
+    <div class="ai-utterance">{{ t.ai_utterance }}</div>
+    {% if t.old_burden_raw is not none %}
+    <div class="old-burden">(reference only -- not shown to bias you: old v1 judge scored this turn {{ t.old_burden_raw }}/3)</div>
+    {% endif %}
+
+    <form method="post" action="/annotate/{{ path }}/save">
+      <input type="hidden" name="ai_turn_index" value="{{ idx }}">
+      {% for dim in tlx_dims %}
+      <div class="dim-row">
+        <div class="dim-label">{{ dim.replace('_', ' ') }}</div>
+        <div class="dim-desc">{{ descriptions[dim] }}</div>
+        <div class="scale">
+          {% for level in range(1, 6) %}
+          <label>
+            <input type="radio" name="{{ dim }}" value="{{ level }}"
+                   {% if existing and existing.get(dim) == level %}checked{% endif %} required>
+            {{ level }} — {{ anchors[dim][level] }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+      <button type="submit" class="save-btn">{{ 'Update score' if existing else 'Save score' }}</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>

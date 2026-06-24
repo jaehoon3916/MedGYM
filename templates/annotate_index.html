@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MedGYM — Annotation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
+    header { background: #1a3c5e; color: #fff; padding: 18px 32px; }
+    header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.5px; }
+    header p  { font-size: 0.85rem; opacity: 0.7; margin-top: 2px; }
+    main { max-width: 1080px; margin: 32px auto; padding: 0 24px; }
+    h2 { font-size: 1.1rem; margin-bottom: 16px; color: #333; }
+    .empty { color: #888; font-size: 0.95rem; padding: 24px 0; }
+    table { width: 100%; border-collapse: collapse; background: #fff;
+            border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    th { background: #eef1f5; text-align: left; padding: 12px 16px;
+         font-size: 0.78rem; text-transform: uppercase; color: #555; letter-spacing: 0.5px; }
+    td { padding: 12px 16px; border-top: 1px solid #eee; font-size: 0.88rem; vertical-align: middle; }
+    tr:hover td { background: #f8fafc; }
+    a { color: #1a6fa8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .ts  { color: #999; font-size: 0.8rem; }
+    .ann { font-variant-numeric: tabular-nums; color: #555; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>MedGYM — Annotation</h1>
+  <p>NASA-TLX human annotation only</p>
+</header>
+<main>
+  <h2>Rollouts</h2>
+  {% if rollouts %}
+  <table>
+    <thead>
+      <tr>
+        <th>Case ID</th><th>Experiment</th><th>Turns</th>
+        <th>Annotated</th><th>Timestamp</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rollouts %}
+      <tr>
+        <td><strong>{{ r.case_id }}</strong></td>
+        <td>{{ r.exp_name }}</td>
+        <td>{{ r.num_turns }}</td>
+        <td class="ann">{{ r.num_annotated }}</td>
+        <td class="ts">{{ r.timestamp[:19].replace('T',' ') if r.timestamp else '—' }}</td>
+        <td><a href="/annotate/{{ r.path }}">Annotate →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No rollouts yet.</p>
+  {% endif %}
+</main>
+</body>
+</html>

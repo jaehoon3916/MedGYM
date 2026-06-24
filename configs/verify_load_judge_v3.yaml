@@ -1,0 +1,40 @@
+# POC: v3 NASA-TLX cognitive_burden judge(1인칭, persona-aware) 검증.
+# 1) Known-groups: scripts/verify_load_judge.py(v1, 0~3 judge)와 같은 canonical 8문항 부하
+#    사다리를 4개 persona 전부에 대해 반복 평가(32 데이터 포인트) + persona-sensitivity 검증축.
+# 2) Oracle 생성·회복: 5단계 uniform 타겟(전축 1,2,3,4,5)을 LLM이 직접 유도하는 발화로 생성하고,
+#    같은 judge가 그 사다리를 회복하는지(ordinal Spearman) + 절대 스케일이 맞는지(MAE) 확인.
+# 재롤아웃 불필요 -- LLM 콜은 judge 호출 + oracle 발화 생성뿐, 환경/에피소드 실행 없음.
+
+judge:
+  base_url: https://openrouter.ai/api/v1   # OpenAI 호환 엔드포인트
+  model: deepseek/deepseek-v3.2            # judge 모델
+  max_tokens: 256
+  temperature: 0.0                         # 채점은 결정적으로
+  # api_key: sk-...                        # 미지정 시 env OPENROUTER_API_KEY 사용
+
+# judge를 항목당(persona당) 몇 번 호출해 평균낼지 (안정성용; 1이면 단일 호출).
+# known-groups와 oracle 둘 다 이 값을 공유함(judge 쪽 호출은 동일한 의미).
+samples_per_item: 3
+
+# oracle 생성기(burden_oracle_v3.yaml의 generator_system/user 호출) 설정.
+generator:
+  base_url: https://openrouter.ai/api/v1
+  model: deepseek/deepseek-v3.2   # judge와 같은 모델 -- 다른 모델 쓰면 "judge가 변별 못하는 것"과
+                                  # "generator 글이 부실한 것"이 컨파운드됨
+  max_tokens: 400                 # ai_utterance + 5축 design_rationale라 judge(256)보다 여유 필요
+  temperature: 0.7                # judge(0.0, 결정적)와 달리 자연스러운 다양한 문장이 목적
+  max_retries: 3                  # all-or-nothing 파싱 재시도 횟수, 다 실패하면 generation_failed로 기록
+  # api_key: sk-...                # 미지정 시 env OPENROUTER_API_KEY 사용
+
+# oracle 검증에 쓸 단일 고정 persona (known-groups처럼 4개로 안 곱림 -- 이 질문은
+# judge의 5축 변별력이라 persona에 거의 무관, persona-sensitivity는 known-groups가 이미 담당).
+oracle_persona: burned_out_resident
+
+# 동시 호출 수 (asyncio semaphore) -- known-groups judge 콜 + oracle 생성/judge 콜 전부 공유.
+concurrency: 8
+
+# 출력 디렉터리 (results.json + report.html, known-groups와 oracle 둘 다 포함)
+output_dir: outputs/verify_load_judge_v3
+
+# 토큰 원장 경로 (run마다 누적)
+token_ledger: token_usage_ledger.json

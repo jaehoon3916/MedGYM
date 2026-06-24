@@ -118,7 +118,15 @@ class MedicalHACEnvironment:
         else:
             next_obs = self._advance_user_turn()
             done = next_obs.done
-            closed_by = "agreement" if done else None
+            # If the user_llm plugin reports a specific termination_reason in its user_state
+            # (e.g. v3's "agreement" / "burden_dropout"), use that; otherwise fall back to the
+            # old default ("agreement") -- v1/v2's user_state never has this key, so existing
+            # callers (GRPO, run_scaling_poc.py) are unaffected.
+            reported_reason = (
+                next_obs.user_state.model_dump().get("termination_reason")
+                if next_obs.user_state else None
+            )
+            closed_by = reported_reason or ("agreement" if done else None)
 
         final_judgement = self._finalize() if done else None
 

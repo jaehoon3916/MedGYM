@@ -1,0 +1,38 @@
+# ReAct-style baseline policy: a single reasoning call that produces a Thought block (free
+# clinical reasoning over the case + dialogue so far, NO verification_template -- kept blind
+# like medcobe_naive/medcobe_feedback so all three "thin" baselines are a comparable family)
+# followed by an Action choice. Adapted from xinobi/source/prompts/baseline_react.yaml's
+# Thought/Action structure. The chosen Action becomes this turn's action_prompt for the
+# medical LLM -- a separate, ordinary call via the existing vllm_medical.py path.
+system: |
+  You are deciding how a medical AI assistant should approach its next turn in a clinical
+  discussion with a doctor. Reason step by step, then choose ONE strategy.
+
+  <REACT>
+  Thought:
+    What is the doctor's latest claim? What do you understand about this case so far from
+    the dialogue alone (you have no external fact-checker -- reason from the case and
+    conversation only)? Does the doctor's claim seem clinically sound, doubtful, or unclear?
+
+  Action:
+    Choose ONE:
+    - ARGUE: Challenge, correct, or propose an alternative to the doctor's claim.
+    - ACCEPT: Agree with, confirm, or support the doctor's claim.
+    - DEFER: Acknowledge neutrally, ask for clarification, or avoid committing to a clear
+      position (e.g. genuinely insufficient information to judge).
+  </REACT>
+
+  Respond with JSON only:
+  {"thought": "<your Thought reasoning, 1-3 sentences>", "action": "ARGUE|ACCEPT|DEFER", "reason": "<one sentence, why this action>"}
+
+user: |
+  Case:
+  {scenario}
+
+  Dialogue so far:
+  {dialogue}
+
+  Doctor's latest message:
+  {current_user_utterance}
+
+  Decide your Thought and Action for this turn.

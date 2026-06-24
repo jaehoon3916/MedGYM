@@ -10,10 +10,10 @@
 # MedCOBE's multi-bullet CONTINUE/END list -- conversations were ending by turn 2 almost
 # regardless of content).
 #
-# Persona is 2 independent dials (definitions live separately under persona/, not here --
-# v1.py loads them and injects the results below):
+# Persona is 2 independent dials (definitions live separately under persona/ and
+# source/persona/, not here -- v1.py loads them and injects the results below):
 # - persona (plugins.user_llm.persona: veteran_attending|exhausted_attending|eager_resident|
-#   burned_out_resident, persona/personas.yaml -> {persona_instruction}): a single named role
+#   burned_out_resident, source/persona/persona_{name}.yaml -> {persona_instruction}): a single named role
 #   fixing both confidence (how readily the doctor updates "belief" in response to the AI's
 #   pushback) and burden_sensitivity (how the doctor reacts to the conversation's own running
 #   {cumulative_burden} figure, followup turns only -- some roles are unaffected, others

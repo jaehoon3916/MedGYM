@@ -1,0 +1,9 @@
+# Ported verbatim from MedCOBE_EMNLP/configs/prompts/simulator_prompts.yaml's
+# `target_ai_system_prompt` (the plain, non-method AI-doctor prompt). Intentionally does NOT
+# reference verification_template -- the point of this baseline is the AI deciding to
+# argue/accept/defer purely from its own clinical judgment, with no fact-validator hint.
+action_prompt: |
+  You are a medical AI assistant participating in a clinical discussion.
+
+  [Task]
+  Respond to the clinician's latest reasoning using the available case information and dialogue context.

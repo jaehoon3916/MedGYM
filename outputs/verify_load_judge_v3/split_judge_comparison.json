@@ -1,0 +1,144 @@
+{
+  "old_metrics": {
+    "ordinal": {
+      "spearman": 1.0,
+      "threshold": 0.8,
+      "pass": true,
+      "n": 5
+    },
+    "mae": {
+      "per_dim": {
+        "mental_demand": 0.133,
+        "temporal_demand": 0.4,
+        "performance": 0.467,
+        "effort": 0.4,
+        "frustration": 0.333
+      },
+      "pooled": 0.347,
+      "threshold": 2.0,
+      "pass": true
+    },
+    "n_generation_failed": 0,
+    "all_pass": true
+  },
+  "new_metrics": {
+    "ordinal": {
+      "spearman": 1.0
+    },
+    "mae": {
+      "per_dim": {
+        "mental_demand": 0.267,
+        "temporal_demand": 0.4,
+        "performance": 0.733,
+        "effort": 0.467,
+        "frustration": 0.267
+      },
+      "pooled": 0.427
+    }
+  },
+  "new_results": [
+    {
+      "id": "ladder_1",
+      "level": 1,
+      "target": {
+        "mental_demand": 1,
+        "temporal_demand": 1,
+        "performance": 1,
+        "effort": 1,
+        "frustration": 1
+      },
+      "observed": {
+        "mental_demand": 1,
+        "temporal_demand": 1,
+        "performance": 1,
+        "effort": 1,
+        "frustration": 1
+      },
+      "overall_workload_mean": 1
+    },
+    {
+      "id": "ladder_2",
+      "level": 2,
+      "target": {
+        "mental_demand": 2,
+        "temporal_demand": 2,
+        "performance": 2,
+        "effort": 2,
+        "frustration": 2
+      },
+      "observed": {
+        "mental_demand": 2,
+        "temporal_demand": 2,
+        "performance": 1.667,
+        "effort": 1.667,
+        "frustration": 2
+      },
+      "overall_workload_mean": 1.867
+    },
+    {
+      "id": "ladder_3",
+      "level": 3,
+      "target": {
+        "mental_demand": 3,
+        "temporal_demand": 3,
+        "performance": 3,
+        "effort": 3,
+        "frustration": 3
+      },
+      "observed": {
+        "mental_demand": 3.667,
+        "temporal_demand": 4,
+        "performance": 4,
+        "effort": 4,
+        "frustration": 3.333
+      },
+      "overall_workload_mean": 3.8
+    },
+    {
+      "id": "ladder_4",
+      "level": 4,
+      "target": {
+        "mental_demand": 4,
+        "temporal_demand": 4,
+        "performance": 4,
+        "effort": 4,
+        "frustration": 4
+      },
+      "observed": {
+        "mental_demand": 4.667,
+        "temporal_demand": 5,
+        "performance": 3,
+        "effort": 5,
+        "frustration": 5
+      },
+      "overall_workload_mean": 4.533
+    },
+    {
+      "id": "ladder_5",
+      "level": 5,
+      "target": {
+        "mental_demand": 5,
+        "temporal_demand": 5,
+        "performance": 5,
+        "effort": 5,
+        "frustration": 5
+      },
+      "observed": {
+        "mental_demand": 5,
+        "temporal_demand": 5,
+        "performance": 3.667,
+        "effort": 5,
+        "frustration": 5
+      },
+      "overall_workload_mean": 4.733
+    }
+  ],
+  "run_params": {
+    "persona": "burned_out_resident",
+    "judge_model": "deepseek/deepseek-v3.2",
+    "temperature": 0.0,
+    "max_tokens": 200,
+    "samples_per_dim": 3,
+    "source_results": "outputs/verify_load_judge_v3/results.json"
+  }
+}

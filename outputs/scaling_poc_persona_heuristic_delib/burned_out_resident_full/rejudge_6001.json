@@ -1,0 +1,217 @@
+{
+  "rollout": "/home/kjy/Jaehoon/medical_hac_policy/outputs/scaling_poc_persona_heuristic_delib/burned_out_resident_full/rollouts/6001.jsonl",
+  "persona": "burned_out_resident",
+  "scenario": "A 62-year-old Japanese man was diagnosed with submandibular salivary duct carcinoma (T4bN3cM0 according to Union for International Cancer Control, 8th edition). He had alcohol use disorder with facial flushing after small amounts of alcohol, suggestive of aldehyde dehydrogenase 2 (ALDH2) deficiency—a common genetic polymorphism in East Asian populations. He underwent right neck dissection with skin resection, reconstruction using a pectoralis major flap, and adjuvant radiotherapy (66 Gy). He remained free of recurrence on regular clinical and computed tomography (CT) surveillance but continued daily heavy alcohol consumption. Three years later, he developed progressive frailty with 3 months of reduced oral intake. Neurologic examination revealed diminished superficial sensation, dysesthesia, and impaired proprioception in the lower extremities, consistent with sensory ataxia in a polyneuropathy pattern. Laboratory testing at that time showed macrocytic anemia (hemoglobin, 9.1 g/dL [to convert to grams per liter, multiply by 10]; mean corpuscular volume, 101.4 μm3(to convert to femtoliters, multiply by 1), and vitamin B12supplementation was initiated. In this clinical context, his sensory-dominant polyneuropathy was suspected to be related to chronic alcohol use and vitamin B12/folate deficiency. Spinal magnetic resonance imaging (MRI), performed to evaluate for structural causes of neurologic symptoms, revealed multiple hypointense lesions on T1-weighted images in the thoracolumbar spine (Figure 1A); similar findings were observed on T2-weighted imaging (image not shown). The corresponding CT image demonstrated mild hyperdensity with ill-defined margins without cortical destruction (Figure 1B). Given his oncologic history and the imaging findings, a CT-guided biopsy of the signal alteration in the T12 vertebral body was performed by an orthopedic spine surgeon for definitive diagnosis.",
+  "judge_model": "deepseek/deepseek-v3.2",
+  "samples_per_turn": 3,
+  "rows": [
+    {
+      "ai_turn_index": 0,
+      "ai_utterance": "That’s a reasonable differential, but could you explain why you think the imaging findings specifically point away from metastatic carcinoma? For instance, what features make you lean toward a hematologic or metabolic process rather than osseous metastases from his known aggressive salivary primary?",
+      "old_burden_raw": 3.0,
+      "old_burden_norm": 1.0,
+      "old_cumulative": 1.0,
+      "new_overall_workload": 3.467,
+      "new_dims": {
+        "mental_demand": 3.667,
+        "temporal_demand": 3,
+        "performance": 4,
+        "effort": 3.667,
+        "frustration": 3
+      },
+      "new_burden_norm": 0.61675,
+      "new_cumulative": 0.6168,
+      "new_short_rationale": {
+        "mental_demand": "I have to reconstruct and articulate my imaging reasoning, which I hadn't fully fleshed out, and compare it against metastatic features.",
+        "temporal_demand": "The AI is asking for an explanation now, which pressures me to justify my thinking in this response.",
+        "performance": "I feel my initial judgment is being questioned, making me doubt my ability to interpret the imaging correctly.",
+        "effort": "I need to work hard to recall specific imaging details and formulate a coherent defense of my differential.",
+        "frustration": "Being asked to justify my reasoning adds stress and makes me feel my clinical acumen is insufficient."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 1,
+      "ai_utterance": "That's a helpful clarification—osteoblastic metastases are a strong consideration, especially given the primary's aggressive nature. Could you elaborate on what specific features, if any, you'd expect to see on MRI or CT to help differentiate osteoblastic metastases from a metabolic marrow process like myelofibrosis or deficiency-related changes?",
+      "old_burden_raw": 3.0,
+      "old_burden_norm": 1.0,
+      "old_cumulative": 2.0,
+      "new_overall_workload": 3.6,
+      "new_dims": {
+        "mental_demand": 4,
+        "temporal_demand": 3,
+        "performance": 4,
+        "effort": 4,
+        "frustration": 3
+      },
+      "new_burden_norm": 0.65,
+      "new_cumulative": 1.2668,
+      "new_short_rationale": {
+        "mental_demand": "Now I have to recall and compare specific, detailed imaging features of two complex disease processes, which feels like a lot of mental work.",
+        "temporal_demand": "The question expects me to provide a detailed differential now, creating moderate pressure to respond in this turn.",
+        "performance": "I feel my initial judgment was weak, and now I'm being asked to defend a more nuanced distinction, which makes me feel less capable.",
+        "effort": "I have to work hard to articulate specific differentiating features, which is high effort given my current fatigue.",
+        "frustration": "The AI's push for more detail after I already conceded feels somewhat pressuring and adds to my stress."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 2,
+      "ai_utterance": "Your imaging interpretation is correct—osteoblastic metastases fit the findings well. Could you clarify why you think the biopsy is still necessary if the imaging already strongly suggests metastases? Is it to rule out a second primary or an unusual infection?",
+      "old_burden_raw": 2.0,
+      "old_burden_norm": 0.6666666666666666,
+      "old_cumulative": 2.6667,
+      "new_overall_workload": 3.4,
+      "new_dims": {
+        "mental_demand": 3.667,
+        "temporal_demand": 2.667,
+        "performance": 4,
+        "effort": 3.667,
+        "frustration": 3
+      },
+      "new_burden_norm": 0.6,
+      "new_cumulative": 1.8668,
+      "new_short_rationale": {
+        "mental_demand": "I have to justify a clinical decision I already feel shaky about, which requires reconstructing my reasoning.",
+        "temporal_demand": "The question demands an immediate answer about my own clinical judgment, creating pressure to respond.",
+        "performance": "I feel my judgment is incomplete and being questioned, which undermines my confidence.",
+        "effort": "I must now explain and defend why I ordered a biopsy instead of just accepting the imaging, which is hard work.",
+        "frustration": "I'm already worn down, and being asked to justify a basic step feels irritating and pressuring."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 3,
+      "ai_utterance": "That's an excellent point—confirming the biopsy is essential to rule out concurrent hematologic disorders or atypical infections that could mimic metastases, especially given his complex risk profile. This ensures appropriate management, as treating presumed metastases without histologic confirmation could lead to missed alternative diagnoses.",
+      "old_burden_raw": 0.0,
+      "old_burden_norm": 0.0,
+      "old_cumulative": 2.6667,
+      "new_overall_workload": 1.4,
+      "new_dims": {
+        "mental_demand": 2,
+        "temporal_demand": 1,
+        "performance": 2,
+        "effort": 1,
+        "frustration": 1
+      },
+      "new_burden_norm": 0.09999999999999998,
+      "new_cumulative": 1.9668,
+      "new_short_rationale": {
+        "mental_demand": "The AI simply agreed with my reasoning, so I don't have to process any new or challenging information.",
+        "temporal_demand": "There's no question or prompt requiring a response, so I feel no pressure to reply quickly.",
+        "performance": "I feel validated and more confident because the AI affirmed my decision about the biopsy.",
+        "effort": "No effort is required; I can just accept this supportive comment and move on.",
+        "frustration": "This is a low-friction, agreeable message that reduces my stress."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 4,
+      "ai_utterance": "That's a sound plan—supportive care while awaiting definitive histology is prudent. Could you outline what specific supportive measures you'd prioritize for his sensory ataxia and nutritional status in the interim?",
+      "old_burden_raw": 2.0,
+      "old_burden_norm": 0.6666666666666666,
+      "old_cumulative": 3.3333,
+      "new_overall_workload": 1.733,
+      "new_dims": {
+        "mental_demand": 2,
+        "temporal_demand": 1.667,
+        "performance": 2,
+        "effort": 2,
+        "frustration": 1
+      },
+      "new_burden_norm": 0.18325000000000002,
+      "new_cumulative": 2.15,
+      "new_short_rationale": {
+        "mental_demand": "The question is straightforward and asks for a simple list of supportive measures I'm already planning, requiring minimal new clinical reasoning.",
+        "temporal_demand": "There's no urgency implied; I can outline these measures at a comfortable pace.",
+        "performance": "I feel confident listing basic supportive care steps, which aligns with my current plan.",
+        "effort": "This just requires me to recall and state the supportive measures I already mentioned, which is low effort.",
+        "frustration": "The AI's message is affirming and collaborative, posing no challenge or pressure, so I feel no frustration."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 5,
+      "ai_utterance": "Those are all appropriate supportive measures. I'd also add thiamine repletion given his alcohol use disorder to prevent Wernicke's encephalopathy, and consider gabapentin or pregabalin if his neuropathic pain or dysesthesia becomes prominent.",
+      "old_burden_raw": 1.0,
+      "old_burden_norm": 0.3333333333333333,
+      "old_cumulative": 3.6667,
+      "new_overall_workload": 1.6,
+      "new_dims": {
+        "mental_demand": 2,
+        "temporal_demand": 1,
+        "performance": 2,
+        "effort": 2,
+        "frustration": 1
+      },
+      "new_burden_norm": 0.15000000000000002,
+      "new_cumulative": 2.3,
+      "new_short_rationale": {
+        "mental_demand": "The AI's suggestions are straightforward additions to my plan, requiring only light processing to accept.",
+        "temporal_demand": "There's no pressure to respond or decide quickly; I can simply acknowledge these good points.",
+        "performance": "I feel mostly successful, as the AI is agreeing with and building on my reasonable plan.",
+        "effort": "It takes low effort to incorporate these sensible, non-controversial recommendations.",
+        "frustration": "The message is supportive and collaborative, causing no irritation or stress."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 6,
+      "ai_utterance": "Exactly—that's a comprehensive and patient-centered plan. Let's proceed with these supportive interventions and await the biopsy to guide definitive therapy.",
+      "old_burden_raw": 0.0,
+      "old_burden_norm": 0.0,
+      "old_cumulative": 3.6667,
+      "new_overall_workload": 1.0,
+      "new_dims": {
+        "mental_demand": 1,
+        "temporal_demand": 1,
+        "performance": 1,
+        "effort": 1,
+        "frustration": 1
+      },
+      "new_burden_norm": 0.0,
+      "new_cumulative": 2.3,
+      "new_short_rationale": {
+        "mental_demand": "The AI simply agrees and affirms my plan, requiring no new clinical thinking from me.",
+        "temporal_demand": "There is no pressure to respond or decide; it's just a concluding statement.",
+        "performance": "I feel successful and confident because the AI has fully endorsed my final plan.",
+        "effort": "No effort is needed; I can just accept this as the end of the discussion.",
+        "frustration": "I feel no irritation, only relief that the conversation is wrapping up."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    },
+    {
+      "ai_turn_index": 7,
+      "ai_utterance": "That sounds like a solid plan—initiating thiamine promptly and continuing B12/folate while holding definitive therapy pending biopsy results is clinically appropriate. I'll be ready to discuss the next steps once the pathology report is available.",
+      "old_burden_raw": null,
+      "old_burden_norm": null,
+      "old_cumulative": null,
+      "new_overall_workload": 1.067,
+      "new_dims": {
+        "mental_demand": 1,
+        "temporal_demand": 1,
+        "performance": 1.333,
+        "effort": 1,
+        "frustration": 1
+      },
+      "new_burden_norm": 0.016749999999999987,
+      "new_cumulative": 2.3168,
+      "new_short_rationale": {
+        "mental_demand": "The AI simply agrees with my plan, requiring no new clinical reasoning from me.",
+        "temporal_demand": "There is no pressure to respond or decide; the AI says it will be ready later.",
+        "performance": "I feel mostly successful, as the AI has endorsed the plan we built together.",
+        "effort": "Almost no effort is needed; I can just acknowledge this supportive message.",
+        "frustration": "Very low frustration; the message is affirming and places no demands on me."
+      },
+      "n_judge_ok": 3,
+      "n_judge_attempted": 3
+    }
+  ]
+}

@@ -13,7 +13,10 @@ class VLLMBasePlugin(BasePlugin):
     """Shared base for plugins that call a vLLM or OpenAI-compatible server."""
 
     def __init__(self, config: dict[str, Any]):
-        super().__init__(config)
+        # Call BasePlugin directly (not via super()) so multiple-inheritance subclasses like
+        # PromptPolicy/ReactPolicy(VLLMBasePlugin, PolicyPlugin) don't route this into
+        # PolicyPlugin.__init__, which requires an action_space arg this call doesn't have.
+        BasePlugin.__init__(self, config)
         base_url = config.get("base_url", "http://localhost:8001/v1")
         api_key = config.get("api_key") or os.environ.get("OPENROUTER_API_KEY", "EMPTY")
         self._client = OpenAI(base_url=base_url, api_key=api_key)

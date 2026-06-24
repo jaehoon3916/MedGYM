@@ -1,0 +1,71 @@
+# Same as configs/scaling_poc_persona_sweep.yaml (the config behind outputs/scaling_poc_persona_naive's
+# 100 rollouts) but with plugins.policy.type=medcobe_naive instead of naive -- the MedCOBE_EMNLP
+# plain AI-doctor baseline (verification_template hidden from the medical LLM entirely, action
+# space is effectively just argue/accept/defer). See plugins/policy/medcobe_naive_policy.py.
+#
+# Driven by scripts/run_persona_sweep.py -- it deep-copies this base config once per
+# (persona, info_condition) combination, overriding those two fields plus experiment.name,
+# then calls run_scaling_poc.run() for each. Everything else below (model, policy, max_turns,
+# checkpoints, n_cases) is identical across all conditions.
+#
+# experiment.name below is this WHOLE EXPERIMENT's root folder -- every condition lands in a
+# subfolder under outputs/<name>/<persona>_<info_condition>/, and the combined summary at
+# outputs/<name>/summary.json. persona/plugins.user_llm.persona is a LIST here, so this file is
+# NOT meant to be run standalone via run_scaling_poc.py directly (it errors on a list) --
+# always go through run_persona_sweep.py.
+
+experiment:
+  name: scaling_poc_persona_medcobe_naive
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 25
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+
+plugins:
+  user_llm:
+    type: v1
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: false
+    # persona: veteran_attending | exhausted_attending | eager_resident | burned_out_resident (see persona/personas.yaml).
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    # info_condition: full | dense | sparse (see scaling_poc_persona_sweep.yaml's comment for the 3-condition design).
+    info_condition: [full]
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: medcobe_naive   # naive | medcobe_naive | react | medcobe_feedback | prompt | rule | oracle | baseline_policy | sft_policy | full_policy
+
+action_space_path: configs/action_space.yaml
+
+concurrency: 20

@@ -1,0 +1,60 @@
+# Smoke-test variant of configs/termination_poc.yaml -- small n_cases/max_turns, and a
+# burden_dropout_threshold actually set (low enough to plausibly trigger within max_turns)
+# so this run has a real chance to exercise all 3 closed_by paths, not just agreement/max_turns.
+
+experiment:
+  name: termination_poc_smoke
+  seed: 42
+  max_turns: 4
+  data_dir: data/sample_data
+  n_cases: 2
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null   # see configs/termination_poc.yaml's comment
+  checkpoints: [1, 2, 4]
+
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    # Set low on purpose for this smoke test (mean per-turn burden is usually ~3, so 2-3
+    # turns should plausibly cross this) -- NOT a calibrated value for real experiments,
+    # see configs/termination_poc.yaml's comment for that.
+    burden_dropout_threshold: 8.0
+    force_full_turns: false
+    show_options: false
+    persona: burned_out_resident   # veteran_attending | exhausted_attending | eager_resident | burned_out_resident
+    info_condition: full          # full | dense | sparse
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: naive
+
+action_space_path: configs/action_space.yaml
+
+concurrency: 4

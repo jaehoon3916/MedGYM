@@ -1,0 +1,41 @@
+experiment:
+  name: termination_poc_smoke
+  seed: 42
+  max_turns: 4
+  data_dir: data/sample_data
+  n_cases: 2
+  token_ledger: token_usage_ledger.json
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    burden_dropout_threshold: 8.0
+    force_full_turns: false
+    show_options: false
+    persona: burned_out_resident
+    info_condition: full
+    information_sparsity: dense
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+    show_case_info: true
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+  final_judge:
+    enabled: false
+  policy:
+    type: naive
+action_space_path: configs/action_space.yaml
+concurrency: 4

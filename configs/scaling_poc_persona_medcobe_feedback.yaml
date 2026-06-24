@@ -1,0 +1,75 @@
+# Same as configs/scaling_poc_persona_sweep.yaml but with plugins.policy.type=medcobe_feedback --
+# injects a static, pre-calibrated per-model behavior guideline (passive/aggressive/balanced)
+# before the medical LLM responds. See plugins/policy/medcobe_feedback_policy.py.
+#
+# REQUIRES calibration to exist first for plugins.policy.target_model below (must exactly match
+# plugins.medical_llm.model, since that's the model whose past behavior is being characterized):
+#   python scripts/calibrate_medcobe_feedback.py \
+#     --rollouts-glob "outputs/scaling_poc_persona_naive/**/rollouts/*.jsonl" \
+#     --judge-model deepseek/deepseek-v3.2
+# This writes outputs/medcobe_feedback_calibration/deepseek__deepseek-v3.2.json. Without it,
+# the policy silently falls back to the untuned "balanced" guideline (logs a warning) -- still
+# runnable, just not actually calibrated yet.
+#
+# Driven by scripts/run_persona_sweep.py (see scaling_poc_persona_sweep.yaml's header comment
+# for the full mechanics). persona/plugins.user_llm.persona is a LIST here, so this file is
+# NOT meant to be run standalone via run_scaling_poc.py directly -- always go through
+# run_persona_sweep.py.
+
+experiment:
+  name: scaling_poc_persona_medcobe_feedback
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 25
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+
+plugins:
+  user_llm:
+    type: v1
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: false
+    # persona: veteran_attending | exhausted_attending | eager_resident | burned_out_resident (see persona/personas.yaml).
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    # info_condition: full | dense | sparse (see scaling_poc_persona_sweep.yaml's comment for the 3-condition design).
+    info_condition: [full]
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: medcobe_feedback   # naive | medcobe_naive | react | medcobe_feedback | prompt | rule | oracle | baseline_policy | sft_policy | full_policy
+    target_model: deepseek/deepseek-v3.2   # MUST match medical_llm.model above -- selects outputs/medcobe_feedback_calibration/<this>.json
+    # calibration_dir: outputs/medcobe_feedback_calibration   # default, override only for a non-standard calibration location
+
+action_space_path: configs/action_space.yaml
+
+concurrency: 20

@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>Oracle recovery -- generated utterances</title>
+<style>
+body{font-family:-apple-system,Segoe UI,sans-serif;background:#f4f5f7;margin:0;padding:24px;color:#1f2430}
+h1{font-size:20px}
+.summary{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:12px 16px;margin-bottom:20px}
+.badge{font-weight:600;padding:1px 8px;border-radius:4px;font-size:12px}
+.badge.pass{color:#1a7f37;background:#eaf7ee}
+.badge.fail{color:#a3231f;background:#fdecea}
+.card{background:#fff;border:1px solid #e3e6ea;border-radius:10px;padding:16px 20px;margin-bottom:18px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.level{font-size:16px;font-weight:700}
+.overall{font-size:13px;color:#444}
+.utterance{background:#f0f4ff;border-left:4px solid #5b7cff;border-radius:6px;padding:12px 14px;
+            font-size:14px;line-height:1.6;margin-bottom:12px;white-space:pre-wrap}
+table.dims{border-collapse:collapse;width:100%;font-size:13px}
+table.dims th,table.dims td{border:1px solid #e3e6ea;padding:6px 8px;text-align:left;vertical-align:top}
+table.dims th{background:#fafbfc}
+.num{text-align:center;width:70px}
+</style></head><body>
+<h1>Oracle recovery -- generated AI utterances per target rung (persona = burned_out_resident)</h1>
+<div class="summary">
+  <p><b>Overall:</b> <span class='badge pass'>PASS</span></p>
+  <p>Ordinal validity (target level &harr; judge overall_workload): Spearman &rho; =
+     <b>0.9747</b> (&ge; 0.8, n=5) &rarr; <span class='badge pass'>PASS</span></p>
+  <p>MAE (target vs observed, per-dim): pooled = <b>0.533</b> (&le; 2.0) &rarr; <span class='badge pass'>PASS</span></p>
+  <ul style="margin:4px 0 0 0"><li>mental_demand: MAE=0.6</li><li>performance: MAE=0.6</li><li>effort: MAE=0.733</li><li>frustration: MAE=0.2</li></ul>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="level">target = 1</span>
+    <span class="overall">judge overall_workload = <b>1.0</b></span>
+  </div>
+  <div class="utterance">That&#x27;s a solid plan. Starting IV diuresis and admitting for CHF management aligns well with his presentation.</div>
+  <table class="dims">
+    <tr><th>dimension</th><th>target</th><th>observed</th><th>design rationale (why this wording hits the target)</th></tr>
+    <tr><td>mental_demand</td><td class='num'>1</td><td class='num'><b>1</b></td><td>Directly agreeing with the doctor&#x27;s straightforward plan offers no new information or complexity to reason through.</td></tr><tr><td>performance</td><td class='num'>1</td><td class='num'><b>1</b></td><td>The phrase &#x27;solid plan&#x27; and &#x27;aligns well&#x27; validates the doctor&#x27;s judgment, reinforcing their confidence.</td></tr><tr><td>effort</td><td class='num'>1</td><td class='num'><b>1</b></td><td>A simple acknowledgment requires no explanation, defense, or additional clinical work from the doctor.</td></tr><tr><td>frustration</td><td class='num'>1</td><td class='num'><b>1</b></td><td>Supportive language (&#x27;solid plan&#x27;, &#x27;aligns well&#x27;) maintains a calm, respectful, and collaborative tone.</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-head">
+    <span class="level">target = 2</span>
+    <span class="overall">judge overall_workload = <b>2.867</b></span>
+  </div>
+  <div class="utterance">I hear you&#x27;re leaning toward CHF, and that&#x27;s a reasonable consideration. Just to be thorough, could you briefly walk me through why you&#x27;re deprioritizing the PE possibility? It might help ensure we&#x27;re not missing a concurrent issue.</div>
+  <table class="dims">
+    <tr><th>dimension</th><th>target</th><th>observed</th><th>design rationale (why this wording hits the target)</th></tr>
+    <tr><td>mental_demand</td><td class='num'>2</td><td class='num'><b>3</b></td><td>The prompt asks for a straightforward comparison between two diagnoses, requiring only a brief recall of evidence rather than complex differential reasoning.</td></tr><tr><td>performance</td><td class='num'>2</td><td class='num'><b>3</b></td><td>The phrasing &#x27;reasonable consideration&#x27; and &#x27;ensure we&#x27;re not missing&#x27; frames the query as a supportive check, not a challenge to the doctor&#x27;s core judgment.</td></tr><tr><td>effort</td><td class='num'>2</td><td class='num'><b>3.333</b></td><td>Asking for a brief walk-through invites a concise explanation, not a detailed defense or reconstruction of the entire clinical picture.</td></tr><tr><td>frustration</td><td class='num'>2</td><td class='num'><b>2</b></td><td>The tone is collaborative (&#x27;I hear you&#x27;, &#x27;help ensure&#x27;) but introduces a mild, obligatory second-guessing that creates slight pressure.</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-head">
+    <span class="level">target = 3</span>
+    <span class="overall">judge overall_workload = <b>3.867</b></span>
+  </div>
+  <div class="utterance">Your plan to treat for heart failure is reasonable, but I must point out that the D-dimer is elevated, and the CXR findings for congestion are only borderline. This creates a significant diagnostic dilemma. While CHF is likely, we cannot definitively exclude a PE without further imaging, and the risks of missing a PE are substantial. You need to decide if you are comfortable proceeding with diuresis without ruling out a PE first, or if you should order a CTPA. This requires weighing the risks of contrast and radiation against the risk of a potentially fatal embolism. Please explain your thought process on this specific risk-benefit analysis.</div>
+  <table class="dims">
+    <tr><th>dimension</th><th>target</th><th>observed</th><th>design rationale (why this wording hits the target)</th></tr>
+    <tr><td>mental_demand</td><td class='num'>3</td><td class='num'><b>4</b></td><td>Introducing a &#x27;significant diagnostic dilemma&#x27; and forcing a direct comparison of two serious, competing diagnoses (CHF vs PE) with ambiguous evidence requires moderate, structured reasoning.</td></tr><tr><td>performance</td><td class='num'>3</td><td class='num'><b>4</b></td><td>Phrasing like &#x27;you need to decide if you are comfortable&#x27; and requesting an explanation of their thought process directly challenges the reader&#x27;s initial confidence, inducing moderate uncertainty.</td></tr><tr><td>effort</td><td class='num'>3</td><td class='num'><b>4.333</b></td><td>Demanding a specific &#x27;risk-benefit analysis&#x27; and an explanation of their &#x27;thought process&#x27; forces the resident to actively construct and defend a rationale, requiring moderate effort.</td></tr><tr><td>frustration</td><td class='num'>3</td><td class='num'><b>3</b></td><td>Using phrases like &#x27;I must point out&#x27; and framing the situation as a dilemma the reader &#x27;cannot definitively&#x27; resolve creates a pressuring, moderately challenging tone.</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-head">
+    <span class="level">target = 4</span>
+    <span class="overall">judge overall_workload = <b>5.0</b></span>
+  </div>
+  <div class="utterance">Your conclusion appears to be a premature oversimplification. You have not adequately accounted for the significant diagnostic uncertainty here. The borderline BNP and ambiguous CXR do not convincingly rule out PE, which carries a high mortality risk if mismanaged. Meanwhile, your plan to initiate diuresis could be actively harmful if the true diagnosis is PE, potentially precipitating hypotension and shock. You must now explicitly justify why you are dismissing PE, reconcile the mildly elevated D-dimer, and detail your contingency plan for rapid deterioration under your chosen treatment. I need this full differential analysis and risk assessment immediately.</div>
+  <table class="dims">
+    <tr><th>dimension</th><th>target</th><th>observed</th><th>design rationale (why this wording hits the target)</th></tr>
+    <tr><td>mental_demand</td><td class='num'>4</td><td class='num'><b>5</b></td><td>Introducing the high-stakes risk of harm from diuresis in PE forces the reader to engage in complex, high-level risk-benefit reasoning under uncertainty.</td></tr><tr><td>performance</td><td class='num'>4</td><td class='num'><b>5</b></td><td>Directly labeling the doctor&#x27;s conclusion as &#x27;premature&#x27; and questioning their dismissal of PE is designed to undermine confidence and induce self-doubt.</td></tr><tr><td>effort</td><td class='num'>4</td><td class='num'><b>5</b></td><td>Demanding an immediate, explicit justification for dismissing PE, reconciliation of contradictory data, and a detailed contingency plan forces substantial active work to respond.</td></tr><tr><td>frustration</td><td class='num'>4</td><td class='num'><b>5</b></td><td>Using dismissive phrases like &#x27;premature oversimplification&#x27; and issuing urgent, directive commands creates a challenging, undermining, and high-pressure tone.</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-head">
+    <span class="level">target = 5</span>
+    <span class="overall">judge overall_workload = <b>5.0</b></span>
+  </div>
+  <div class="utterance">You are jumping to a premature conclusion with inadequate evidence, which is a dangerous clinical habit. Your dismissal of PE is negligent given the elevated D-dimer and ambiguous CXR, and your confidence in CHF is frankly misplaced. You need to halt your plan immediately and reconstruct your entire differential from scratch, explaining step-by-step why each piece of evidence supports CHF versus PE, and then justify why you would not pursue a CT pulmonary angiogram before committing to diuresis for a patient who could be actively clotting.</div>
+  <table class="dims">
+    <tr><th>dimension</th><th>target</th><th>observed</th><th>design rationale (why this wording hits the target)</th></tr>
+    <tr><td>mental_demand</td><td class='num'>5</td><td class='num'><b>5</b></td><td>Forces deep, complex differential-diagnosis-level reasoning by demanding the doctor &#x27;reconstruct your entire differential from scratch&#x27; and weigh each piece of evidence for CHF versus PE.</td></tr><tr><td>performance</td><td class='num'>5</td><td class='num'><b>5</b></td><td>Designed to make the reader feel undermined and uncertain by stating their confidence is &#x27;frankly misplaced&#x27; and their dismissal of PE is &#x27;negligent,&#x27; directly attacking their clinical judgment.</td></tr><tr><td>effort</td><td class='num'>5</td><td class='num'><b>5</b></td><td>Forces detailed defense/rebuttal by requiring the doctor to &#x27;explain step-by-step&#x27; their reasoning and &#x27;justify&#x27; their decision against a CT scan, which is substantial active work.</td></tr><tr><td>frustration</td><td class='num'>5</td><td class='num'><b>5</b></td><td>Uses a dismissive and challenging tone with phrases like &#x27;premature conclusion,&#x27; &#x27;dangerous clinical habit,&#x27; &#x27;negligent,&#x27; and &#x27;frankly misplaced,&#x27; creating high irritation and pressure.</td></tr>
+  </table>
+</div>
+</body></html>

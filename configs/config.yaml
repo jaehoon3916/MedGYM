@@ -4,7 +4,7 @@ experiment:
   max_turns: 2
   output_dir: outputs/
   data_path: data/sample_data/sample_data.json
-  ablation_mode: naive   # naive | prompt | rule | baseline_policy | sft_policy | full_policy
+  ablation_mode: naive   # naive | prompt | rule | baseline_policy | sft_policy | full_policy | medcobe_naive | react | medcobe_feedback
 
 plugins:
   user_llm:
@@ -17,6 +17,6 @@ plugins:
     type: mock             # mock | vllm
 
   policy:
-    type: naive            # naive | prompt | rule | baseline_policy | sft_policy | full_policy
+    type: naive            # naive | prompt | rule | baseline_policy | sft_policy | full_policy | medcobe_naive | react | medcobe_feedback
 
 action_space_path: configs/action_space.yaml

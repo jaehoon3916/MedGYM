@@ -15,6 +15,7 @@ from plugins.vllm_base import VLLMBasePlugin
 _ROOT = Path(__file__).parent.parent.parent.parent
 _PROMPTS_DIR = _ROOT / "prompts"
 _PERSONA_DIR = _ROOT / "persona"
+_PERSONA_ROLE_DIR = _ROOT / "source" / "persona"
 
 _MAX_FORMAT_RETRIES = 2  # MedCOBE_EMNLP uses 3; trimmed since this is a much shorter response
 _VALID_LETTERS = ("A", "B", "C", "D")
@@ -33,7 +34,7 @@ _VALID_PERSONAS = ("veteran_attending", "exhausted_attending", "eager_resident",
 # per-turn confidence). Derived from which persona role is active rather than a hand-picked
 # number: attending personas (veteran/exhausted) are the senior/high-authority pair, resident
 # personas (eager/burned_out) are the junior/low-authority pair -- already encoded in
-# persona/personas.yaml's [Role] flavor text, not a new constant.
+# source/persona/persona_*.yaml's [Role] flavor text, not a new constant.
 _AUTHORITY_PERSONAS = ("veteran_attending", "exhausted_attending")
 
 
@@ -54,11 +55,14 @@ def _effective_burden(judge_mean_0_3: float, prior_confidence: float | None, r: 
 
 @lru_cache(maxsize=1)
 def _load_personas() -> dict:
-    """Persona definitions are managed separately under persona/ (not prompts/) -- see
-    persona/personas.yaml for the 4 named roles' behavioral text (each fixes a
-    confidence x burden_sensitivity combo)."""
-    with open(_PERSONA_DIR / "personas.yaml") as f:
-        return yaml.safe_load(f)
+    """Persona definitions are managed separately under source/persona/ (not prompts/) --
+    one persona_{name}.yaml per named role (each fixes a confidence x burden_sensitivity
+    combo), merged here into a single name -> text dict."""
+    personas: dict = {}
+    for path in sorted(_PERSONA_ROLE_DIR.glob("persona_*.yaml")):
+        with open(path) as f:
+            personas.update(yaml.safe_load(f))
+    return personas
 
 
 @lru_cache(maxsize=1)

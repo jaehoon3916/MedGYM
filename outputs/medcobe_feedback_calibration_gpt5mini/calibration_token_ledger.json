@@ -1,0 +1,20 @@
+{
+  "per_model": {
+    "openai/gpt-5-mini": {
+      "calls": 126,
+      "prompt_tokens": 234701,
+      "completion_tokens": 91747,
+      "reasoning_tokens": 72704,
+      "total_tokens": 326448
+    }
+  },
+  "grand_total": {
+    "calls": 126,
+    "prompt_tokens": 234701,
+    "completion_tokens": 91747,
+    "reasoning_tokens": 72704,
+    "total_tokens": 326448
+  },
+  "total_episodes": 1,
+  "updated_at": "2026-06-26T23:44:48.603709+00:00"
+}

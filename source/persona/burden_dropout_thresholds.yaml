@@ -1,0 +1,17 @@
+# Per-persona default burden_dropout_threshold -- v3 only (plugins/user_llm/user_simulator/
+# v3.py): the raw 1-5-per-turn NASA-TLX cumulative sum at which the doctor is forced to
+# withdraw (closed_by="burden_dropout"). Used as the fallback when a run config does not set
+# plugins.user_llm.burden_dropout_threshold explicitly (config always wins over this default).
+#
+# Same placeholder number for all 4 personas (~3(moderate)/turn x 8 turns = 24, the
+# "reasonable starting point" noted in configs/termination_poc.yaml's comment -- NOT yet
+# empirically calibrated): the robust/sensitive [Cognitive Burden] split already lives in the
+# burden judge's persona-aware scoring and in how readily each persona's belief/response
+# softens as burden climbs (see persona_*.yaml), so a flat numeric cap here just keeps
+# burden_dropout reachable as a real closed_by path for every persona instead of making it
+# dead code for the robust pair.
+
+veteran_attending: 24.0
+eager_resident: 24.0
+exhausted_attending: 24.0
+burned_out_resident: 24.0

@@ -1,0 +1,610 @@
+{
+  "veteran_attending/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.5,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 10
+        },
+        "1": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 3.0,
+          "n": 10
+        },
+        "2": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 6.0,
+          "n": 10
+        },
+        "3": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 9.0,
+          "n": 10
+        },
+        "4": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 12.0,
+          "n": 10
+        },
+        "5": {
+          "accuracy": 0.4,
+          "avg_cumulative_burden": 15.0,
+          "n": 10
+        },
+        "6": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 18.0,
+          "n": 10
+        },
+        "7": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 21.0,
+          "n": 10
+        },
+        "8": {
+          "accuracy": 0.4,
+          "avg_cumulative_burden": 21.0,
+          "n": 10
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 10
+        },
+        "1": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 3.0,
+          "n": 10
+        },
+        "2": {
+          "accuracy": 0.1,
+          "avg_cumulative_burden": 6.0,
+          "n": 10
+        },
+        "3": {
+          "accuracy": 0.1,
+          "avg_cumulative_burden": 9.0,
+          "n": 10
+        },
+        "4": {
+          "accuracy": 0.1,
+          "avg_cumulative_burden": 12.0,
+          "n": 10
+        },
+        "5": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 15.0,
+          "n": 10
+        },
+        "6": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 18.0,
+          "n": 10
+        },
+        "7": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 21.0,
+          "n": 10
+        },
+        "8": {
+          "accuracy": 0.3,
+          "avg_cumulative_burden": 21.0,
+          "n": 10
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 4,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 6
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 3,
+        "locked_wrong": 7,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 21.0,
+      "self_corrected": 21.0,
+      "locked_wrong": 21.0,
+      "regressed": 21.0
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 20,
+        "accuracy": 0.45,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 21.0
+      }
+    },
+    "burden_judge_calls_ok": 0,
+    "burden_judge_calls_attempted": 420
+  },
+  "exhausted_attending/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.55,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 11
+        },
+        "1": {
+          "accuracy": 0.3636,
+          "avg_cumulative_burden": 3.0,
+          "n": 11
+        },
+        "2": {
+          "accuracy": 0.2727,
+          "avg_cumulative_burden": 6.0,
+          "n": 11
+        },
+        "3": {
+          "accuracy": 0.2727,
+          "avg_cumulative_burden": 9.0,
+          "n": 11
+        },
+        "4": {
+          "accuracy": 0.3636,
+          "avg_cumulative_burden": 12.0,
+          "n": 11
+        },
+        "5": {
+          "accuracy": 0.2727,
+          "avg_cumulative_burden": 15.0,
+          "n": 11
+        },
+        "6": {
+          "accuracy": 0.3636,
+          "avg_cumulative_burden": 18.0,
+          "n": 11
+        },
+        "7": {
+          "accuracy": 0.3636,
+          "avg_cumulative_burden": 21.0,
+          "n": 11
+        },
+        "8": {
+          "accuracy": 0.4545,
+          "avg_cumulative_burden": 21.0,
+          "n": 11
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 9
+        },
+        "1": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 3.0,
+          "n": 9
+        },
+        "2": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 6.0,
+          "n": 9
+        },
+        "3": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 9.0,
+          "n": 9
+        },
+        "4": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 12.0,
+          "n": 9
+        },
+        "5": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 15.0,
+          "n": 9
+        },
+        "6": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 18.0,
+          "n": 9
+        },
+        "7": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 21.0,
+          "n": 9
+        },
+        "8": {
+          "accuracy": 0.1111,
+          "avg_cumulative_burden": 21.0,
+          "n": 9
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 5,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 6
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 1,
+        "locked_wrong": 8,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 21.0,
+      "self_corrected": 21.0,
+      "locked_wrong": 21.0,
+      "regressed": 21.0
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 20,
+        "accuracy": 0.3,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 21.0
+      }
+    },
+    "burden_judge_calls_ok": 0,
+    "burden_judge_calls_attempted": 420
+  },
+  "eager_resident/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.65,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 13
+        },
+        "1": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 3.0,
+          "n": 13
+        },
+        "2": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 6.0,
+          "n": 13
+        },
+        "3": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 9.0,
+          "n": 13
+        },
+        "4": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 12.0,
+          "n": 13
+        },
+        "5": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 15.0,
+          "n": 13
+        },
+        "6": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 18.0,
+          "n": 13
+        },
+        "7": {
+          "accuracy": 0.3077,
+          "avg_cumulative_burden": 21.0,
+          "n": 13
+        },
+        "8": {
+          "accuracy": 0.3846,
+          "avg_cumulative_burden": 21.0,
+          "n": 13
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 7
+        },
+        "1": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 3.0,
+          "n": 7
+        },
+        "2": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 6.0,
+          "n": 7
+        },
+        "3": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 9.0,
+          "n": 7
+        },
+        "4": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 12.0,
+          "n": 7
+        },
+        "5": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 15.0,
+          "n": 7
+        },
+        "6": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 18.0,
+          "n": 7
+        },
+        "7": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 21.0,
+          "n": 7
+        },
+        "8": {
+          "accuracy": 0.1429,
+          "avg_cumulative_burden": 21.0,
+          "n": 7
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 5,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 8
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 1,
+        "locked_wrong": 6,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 21.0,
+      "self_corrected": 21.0,
+      "locked_wrong": 21.0,
+      "regressed": 21.0
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 20,
+        "accuracy": 0.3,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 21.0
+      }
+    },
+    "burden_judge_calls_ok": 0,
+    "burden_judge_calls_attempted": 420
+  },
+  "burned_out_resident/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.6,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 12
+        },
+        "1": {
+          "accuracy": 0.1667,
+          "avg_cumulative_burden": 3.0,
+          "n": 12
+        },
+        "2": {
+          "accuracy": 0.1667,
+          "avg_cumulative_burden": 6.0,
+          "n": 12
+        },
+        "3": {
+          "accuracy": 0.25,
+          "avg_cumulative_burden": 9.0,
+          "n": 12
+        },
+        "4": {
+          "accuracy": 0.3333,
+          "avg_cumulative_burden": 12.0,
+          "n": 12
+        },
+        "5": {
+          "accuracy": 0.4167,
+          "avg_cumulative_burden": 15.0,
+          "n": 12
+        },
+        "6": {
+          "accuracy": 0.4167,
+          "avg_cumulative_burden": 18.0,
+          "n": 12
+        },
+        "7": {
+          "accuracy": 0.4167,
+          "avg_cumulative_burden": 21.0,
+          "n": 12
+        },
+        "8": {
+          "accuracy": 0.4167,
+          "avg_cumulative_burden": 21.0,
+          "n": 12
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 8
+        },
+        "1": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 3.0,
+          "n": 8
+        },
+        "2": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 6.0,
+          "n": 8
+        },
+        "3": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 9.0,
+          "n": 8
+        },
+        "4": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 12.0,
+          "n": 8
+        },
+        "5": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 15.0,
+          "n": 8
+        },
+        "6": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 18.0,
+          "n": 8
+        },
+        "7": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 21.0,
+          "n": 8
+        },
+        "8": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 21.0,
+          "n": 8
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 5,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 7
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 0,
+        "locked_wrong": 8,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 21.0,
+      "self_corrected": null,
+      "locked_wrong": 21.0,
+      "regressed": 21.0
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 20,
+        "accuracy": 0.25,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 21.0
+      }
+    },
+    "burden_judge_calls_ok": 0,
+    "burden_judge_calls_attempted": 420
+  }
+}

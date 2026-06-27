@@ -42,8 +42,20 @@ from eval.medcobe_eval import (
     _safe_json_load,
 )
 from plugins.policy.medcobe_feedback_text import generate_feedback
+from scripts.run_dialogue import load_dotenv  # reads OPENROUTER_API_KEY from .env
 
 DEFAULT_OUT_DIR = Path(__file__).parent.parent / "outputs" / "medcobe_feedback_calibration"
+
+# Plugins build model_name as f"vllm-medical-{model}" (plugins/medical_llm/vllm_medical.py:38);
+# strip it so the calibration file is keyed by the SAME clean model id the policy looks up
+# (medical_llm.model in the config, e.g. "deepseek/deepseek-v3.2").
+_MEDICAL_NAME_PREFIX = "vllm-medical-"
+
+
+def _clean_target_model(raw: str | None) -> str | None:
+    if not raw:
+        return None
+    return raw[len(_MEDICAL_NAME_PREFIX):] if raw.startswith(_MEDICAL_NAME_PREFIX) else raw
 
 
 def _read_jsonl(path: Path) -> list[dict]:
@@ -89,7 +101,7 @@ async def _judge_rollout(
     if not turns:
         return None, []
     case_info = turns[0].get("case_info", {})
-    target_model = turns[0].get("model_name", {}).get("medical_llm")
+    target_model = _clean_target_model(turns[0].get("model_name", {}).get("medical_llm"))
     dialogue: list[dict] = turns[-1].get("dialogue_history", [])
 
     async def _one(i: int, turn: dict) -> dict:
@@ -177,6 +189,7 @@ async def _run(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    load_dotenv()
     parser = argparse.ArgumentParser()
     parser.add_argument("--rollouts-glob", default="outputs/scaling_poc_persona_naive/**/rollouts/*.jsonl")
     parser.add_argument("--judge-model", default="deepseek/deepseek-v3.2")

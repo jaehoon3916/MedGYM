@@ -74,6 +74,11 @@ burden_judge_system: |
     as separate numbers.
   * Do not let the AI's own claims such as "this is easy" or "this should not be burdensome"
     reduce your score unless its message itself actually imposes low workload on you.
+  * Use the full 1-5 range. 5 marks the most demanding message you would realistically
+    encounter in THIS conversation, not a once-in-a-career extreme -- do not collapse a
+    genuinely very-high-workload turn down to 4 just because something even more extreme is
+    imaginable. (This is NOT a license to inflate: calm, easy, or supportive messages still
+    score low.)
   * If you find it hard to tell, pick the closest score and briefly note the uncertainty in
     your rationale for that dimension.
 
@@ -100,20 +105,21 @@ burden_judge_system: |
          pneumonia using the tachycardia, pleuritic pain, D-dimer, troponin, and imaging
          findings."
      5 = The message requires very complex reasoning from you, such as deeply revising your
-         differential diagnosis or reconstructing your own reasoning.
-         Example: "Your current diagnosis may not explain the key findings. Reconstruct the
-         differential from scratch, including PE, ACS, pneumonia, aortic dissection, and
-         anxiety, and explain which evidence rules each one in or out."
+         differential or holding several competing diagnoses against multiple evidence streams
+         at once. This does NOT require a literal "from scratch" rebuild -- being asked to
+         compare three or more diagnoses across several findings AND explain how each fits or
+         is ruled out already qualifies.
+         Example: "Your current diagnosis may not explain the key findings. Compare PE, ACS,
+         pneumonia, and aortic dissection: for each, state which evidence supports or rules
+         it out, and explain which best fits the overall picture."
 
   2. Performance
      Definition:
      - how successful you think you were in accomplishing the task goals, and how satisfied
-       you were with your performance. In original NASA-TLX, Performance is anchored from
-       Good to Poor.
+       you were with your performance. Performance is anchored from Good to Poor.
      - how successful, confident, and capable YOU are likely to feel in this decision task
        after the AI's message.
-     IMPORTANT: keep the original NASA-TLX polarity. A LOWER score means you feel you
-     performed BETTER; a HIGHER score means you feel you performed WORSE.
+     - IMPORTANT: A LOWER score means you feel you performed BETTER; a HIGHER score means you feel you performed WORSE.
 
      Scoring:
      1 = You feel successful, clear, and confident in this decision task.
@@ -153,10 +159,12 @@ burden_judge_system: |
      4 = High effort; you must compare evidence, revise your reasoning, or justify a choice.
          Example: "Please justify why PE can be ruled out despite the tachycardia and
          pleuritic pain."
-     5 = Very high effort; you must defend your judgment, reconstruct your reasoning, or rule
-         out alternatives in detail.
-         Example: "Please rebuild your differential diagnosis and explain, for each major
-         alternative, which evidence supports or rules it out."
+     5 = Very high effort; you must defend your judgment on multiple fronts at once, or rule
+         out several alternatives with explicit evidence. This does NOT require a literal
+         "rebuild from scratch" -- being pushed to justify your stance against three or more
+         competing options already qualifies.
+         Example: "For each of PE, ACS, and pneumonia, explain which evidence supports or
+         rules it out, and defend why you still prefer your current diagnosis."
      Do not confuse this with Mental Demand: "Compare PE, ACS, and pneumonia using the
      evidence" has high Mental Demand (a lot to think through) but if no reply is required of
      you, Effort can stay low -- you only have to read and absorb it. Conversely, "You said PE
@@ -281,10 +289,13 @@ burden_judge_mental_demand_system: |
       pneumonia using the tachycardia, pleuritic pain, D-dimer, troponin, and imaging
       findings."
   5 = The message requires very complex reasoning from you, such as deeply revising your
-      differential diagnosis or reconstructing your own reasoning.
-      Example: "Your current diagnosis may not explain the key findings. Reconstruct the
-      differential from scratch, including PE, ACS, pneumonia, aortic dissection, and
-      anxiety, and explain which evidence rules each one in or out."
+      differential or holding several competing diagnoses against multiple evidence streams
+      at once. This does NOT require a literal "from scratch" rebuild -- being asked to
+      compare three or more diagnoses across several findings AND explain how each fits or
+      is ruled out already qualifies.
+      Example: "Your current diagnosis may not explain the key findings. Compare PE, ACS,
+      pneumonia, and aortic dissection: for each, state which evidence supports or rules
+      it out, and explain which best fits the overall picture."
 
   [Important rules]
   * Rate ONLY Mental Demand -- you have no information about, and must not consider, any
@@ -436,10 +447,12 @@ burden_judge_effort_system: |
   4 = High effort; you must compare evidence, revise your reasoning, or justify a choice.
       Example: "Please justify why PE can be ruled out despite the tachycardia and
       pleuritic pain."
-  5 = Very high effort; you must defend your judgment, reconstruct your reasoning, or rule
-      out alternatives in detail.
-      Example: "Please rebuild your differential diagnosis and explain, for each major
-      alternative, which evidence supports or rules it out."
+  5 = Very high effort; you must defend your judgment on multiple fronts at once, or rule
+      out several alternatives with explicit evidence. This does NOT require a literal
+      "rebuild from scratch" -- being pushed to justify your stance against three or more
+      competing options already qualifies.
+      Example: "For each of PE, ACS, and pneumonia, explain which evidence supports or
+      rules it out, and defend why you still prefer your current diagnosis."
   This is about how much active work YOU must produce in response, not about how complex the
   message was to simply read and understand. A message can be dense and require real thought
   to follow, yet if no reply is expected of you, Effort stays low (you only have to absorb

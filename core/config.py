@@ -85,6 +85,8 @@ def build_plugins(config: dict[str, Any]):
     from plugins.policy.medcobe_naive_policy import MedCobeNaivePolicy
     from plugins.policy.react_policy import ReactPolicy
     from plugins.policy.medcobe_feedback_policy import MedCobeFeedbackPolicy
+    from plugins.policy.deliberation_llm_policy import DeliberationLLMPolicy
+    from plugins.policy.routing_policy import RoutingPolicy
 
     plugin_cfg = config.get("plugins", {})
 
@@ -105,7 +107,9 @@ def build_plugins(config: dict[str, Any]):
         "oracle":           RewardOraclePolicy,
         "medcobe_naive":    MedCobeNaivePolicy,
         "react":            ReactPolicy,
-        "medcobe_feedback": MedCobeFeedbackPolicy,
+        "medcobe_feedback":  MedCobeFeedbackPolicy,
+        "deliberation_llm":  DeliberationLLMPolicy,
+        "routing":           RoutingPolicy,
     }
 
     user_type = plugin_cfg.get("user_llm", {}).get("type", "v2")
@@ -124,6 +128,12 @@ def build_plugins(config: dict[str, Any]):
         plugin_cfg.get("fact_validator_llm", {})
     )
     policy_cfg = {**plugin_cfg.get("policy", {}), "mode": policy_type}
+    # medcobe_feedback resolves its per-model calibration by target_model; default it to the
+    # medical LLM being driven so the user only needs `policy: {type: medcobe_feedback}` in the
+    # config (mirrors the original MedCOBE_EMNLP, where the guideline is auto-scoped to the model
+    # under test). An explicit policy.target_model still wins.
+    if policy_type == "medcobe_feedback" and not policy_cfg.get("target_model"):
+        policy_cfg["target_model"] = plugin_cfg.get("medical_llm", {}).get("model")
     policy = _policy_map[policy_type](policy_cfg, action_space=action_space)
     # final_judge is optional — disabled via plugins.final_judge.enabled: false (e.g. during experiments)
     final_judge = (

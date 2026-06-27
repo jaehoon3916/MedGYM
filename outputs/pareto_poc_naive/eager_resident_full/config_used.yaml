@@ -1,0 +1,55 @@
+experiment:
+  name: pareto_poc_naive/eager_resident_full
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 20
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+  checkpoints:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-5-mini
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: false
+    show_options: false
+    persona: eager_resident
+    info_condition: full
+    information_sparsity: dense
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+    show_case_info: true
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+  policy:
+    type: oracle
+action_space_path: configs/action_space.yaml
+concurrency: 20

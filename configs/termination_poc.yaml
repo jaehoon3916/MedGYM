@@ -1,4 +1,4 @@
-# scripts/run_termination_poc.py -- v3 doctor simulator as the REAL multi-turn harness, with
+# scripts/run_poc.py -- v3 doctor simulator as the REAL multi-turn harness, with
 # 3 actual termination conditions (agreement / burden_dropout / max_turns) instead of
 # scripts/run_scaling_poc.py's "always run to max_turns + checkpoint re-judge" design.
 # Accuracy is read directly off the doctor's own belief at the terminal turn. final_judge is
@@ -6,7 +6,7 @@
 # mode -- nothing lettered to point at) -- never called at all when show_options=true.
 
 experiment:
-  name: termination_poc
+  name: pareto_poc_naive
   seed: 42
   max_turns: 8
   data_dir: data/sample_data       # mutually exclusive with data_path (single-specialty file)
@@ -22,25 +22,29 @@ experiment:
   # here" curve -- belief-based (self-reported belief at/before that turn), NOT final_judge
   # re-scoring (this script doesn't use final_judge at all). c_eff = min(c, n_turns_actual),
   # so checkpoints beyond a real early termination just collapse to the terminal belief.
-  checkpoints: [1, 2, 4, 8]
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
 
 plugins:
   user_llm:
     type: v3                       # this script hardcodes UserSimulatorV3 per-case regardless of this value -- kept for clarity/run_meta only
     base_url: https://openrouter.ai/api/v1
-    model: deepseek/deepseek-v3.2
+    model: openai/gpt-5-mini
     max_tokens: 256
     temperature: 0.8
     burden_samples_per_item: 3      # Stage-1 NASA-TLX judge calls per AI turn, averaged
     # burden_dropout_threshold: raw 1-5-per-turn sum (NOT normalized) the doctor tolerates
-    # before forcibly withdrawing (closed_by="burden_dropout"). No guessed default -- omit
-    # (or leave commented) to disable burden-driven dropout entirely (inf). Calibrate empirically
-    # once real rollouts exist; e.g. 8 turns x 3(moderate) = 24 is a reasonable starting point to try.
+    # before forcibly withdrawing (closed_by="burden_dropout"). Omit (or leave commented) to
+    # fall back to this persona's default in source/persona/burden_dropout_thresholds.yaml
+    # (currently 24.0 for all 4 personas, an uncalibrated placeholder). Uncomment to override
+    # that default for this run.
     # burden_dropout_threshold: 24.0
     force_full_turns: false         # MUST be false here (true would suppress all 3 real terminations)
     show_options: false
-    # persona: veteran_attending | exhausted_attending | eager_resident | burned_out_resident (see persona/personas.yaml)
-    persona: burned_out_resident
+    # persona: veteran_attending | exhausted_attending | eager_resident | burned_out_resident
+    # (see source/persona/persona_*.yaml). A single string runs just that one persona; a LIST
+    # makes scripts/run_poc.py:main() auto-sweep all of them (one run per entry,
+    # combined report + outputs/termination_poc/summary.json) -- no separate sweep config needed.
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
     # info_condition: full | dense | sparse (see configs/scaling_poc_persona_sweep.yaml's comment
     # for the 3-condition design) -- resolved into show_case_info/information_sparsity below.
     info_condition: full
@@ -69,8 +73,8 @@ plugins:
     temperature: 0.0
 
   policy:
-    type: medcobe_naive                     # naive | medcobe_naive | react | medcobe_feedback | prompt | rule | oracle | baseline_policy | sft_policy | full_policy
+    type: oracle                    # naive | medcobe_naive | react | medcobe_feedback | prompt | rule | oracle | baseline_policy | sft_policy | full_policy
 
 action_space_path: configs/action_space.yaml
 
-concurrency: 1
+concurrency: 20

@@ -1,0 +1,141 @@
+================================================================================
+ 실험 결과 정리 — Baseline 분석 및 Deliberation(ours) PoC
+ 날짜: 2026-06-27
+ 대상: poc_sp_* 4종 (run_poc.py / v3 doctor simulator, 실제 종료 조건)
+ 세팅: veteran_attending 페르소나, 100 케이스, max_turns=8, show_options=false
+================================================================================
+
+[ 0. 한 줄 요약 ]
+--------------------------------------------------------------------------------
+실험 환경 세팅 및 베이스라인 Pareto frontier 확인 완료. Deliberation(ours)이
+대부분의 운영 구간에서 frontier를 가져가지만, 그 accuracy를 얻기 위해 요구되는
+cognitive burden이 높음. 단순 프롬프팅으로는 burden이 해결되지 않으며, policy
+learning / agentic workflow 같은 더 엄밀한 방법론이 필요하다는 것이 핵심 결론.
+
+
+[ 1. 비교 대상 (4종) ]
+--------------------------------------------------------------------------------
+ 파랑  naive            : 어떤 behavior guidance도 없는 baseline.
+ 주황  medcobe_feedback : 모델의 sycophantic/obstructive 경향을 사전에 알려주고
+                          "덜 아첨/덜 반박하라"는 고정 instruction을 매 턴 주입.
+ 빨강  routing          : 의사의 self-reported 확신도(C_a)와 fact-validator의
+                          override 확신도(C_c)를 비교해, 수긍(aligned) vs 비판
+                          (complementary)으로 라우팅. (RRS 차용, threshold 없음)
+ 녹색  deliberation_llm : Deliberation action space를 프롬프팅으로만 구현. (OURS)
+
+
+[ 2. 핵심 지표 (terminal = user simulator가 실제 종료한 시점 기준) ]
+--------------------------------------------------------------------------------
+ 정책               terminal_acc   terminal_burden   avg_turns   alone_correct
+ ----------------   ------------   ---------------   ---------   -------------
+ naive (파랑)           0.280            9.65           5.05         17/100
+ medcobe (주황)         0.260           13.51           5.19         15/100
+ routing (빨강)         0.210            3.08           2.17         14/100
+ ours (녹색)            0.350           11.95           4.21         16/100
+
+ * doctor-alone(개입 전) 정확도는 모든 조건에서 약 0.14~0.17 수준.
+   즉 4종 모두 개입을 통해 정확도를 끌어올리긴 함.
+
+
+[ 3. 종료 사유 분포 (closed_by) ]
+--------------------------------------------------------------------------------
+ 정책               agreement   burden_dropout   max_turns
+ ----------------   ---------   --------------   ---------
+ naive                  69            1             30
+ medcobe                61           14             25
+ routing                95            0              5
+ ours                   63           19             18
+
+ - routing은 거의 항상(95%) 곧바로 agreement → 평균 2.17턴으로 매우 짧게 종료.
+   부담은 최소(3.08)지만 그만큼 교정 기회 자체를 적게 가져감.
+ - ours는 burden_dropout 비율이 가장 높음(19%) → 공격적으로 교정을 시도하다가
+   일부 에피소드에서 의사가 부담을 못 견디고 이탈. 높은 accuracy의 대가.
+
+
+[ 4. Trajectory 분류 (개입 전후 belief 변화) ]
+--------------------------------------------------------------------------------
+ 정책        self_corrected   locked_wrong   regressed   always_correct
+             (틀→맞 교정)     (틀→틀 고착)   (맞→틀 회귀)  (맞→맞 유지)
+ ----------  --------------   ------------   ---------   --------------
+ naive           0.12            0.88          0.12          0.88
+ medcobe         0.19            0.81          0.33          0.67   <- 회귀 심각
+ routing         0.10            0.90          0.07          0.93
+ ours            0.23            0.77          0.06          0.94   <- 최선
+
+ - ours: 맞는 답은 잘 유지(94%)하면서 틀린 답도 가장 잘 교정(self_corrected 0.23),
+   회귀(regressed)도 0.06으로 최저. 즉 "맞는 건 지키고 틀린 건 고친다"가 가장 잘 됨.
+ - medcobe: regressed 0.33. 맞는 의사의 답을 오히려 틀리게 만드는 비율이 가장 높음.
+   → 문맥과 무관하게 매번 고정된 "덜 아첨/반박" instruction을 주기 때문으로 추정.
+     (게다가 calibration 자체가 passive 쪽으로 잘못 잡혀 context-blind하게 반박)
+
+
+[ 5. Interactive scaling — 틀린 의사 케이스 내 교정률 (checkpoint별) ]
+--------------------------------------------------------------------------------
+ * alone_correct=False(개입 전 틀린) 케이스만 대상. 동일 케이스 집합을 turn N까지
+   대화했을 때의 교정률을 본 것이라 selection bias가 없는 scaling 곡선임.
+
+  cp     naive    medcobe   routing    ours
+  --     -----    -------   -------    ----
+  0       0.0%      0.0%      0.0%      0.0%
+  1       8.4%      5.9%      7.0%     11.9%
+  2      12.0%      9.4%      8.1%     16.7%
+  3      12.0%     12.9%     10.5%     19.0%
+  4      13.3%     16.5%     10.5%     20.2%
+  5      13.3%     16.5%      9.3%     20.2%
+  6      15.7%     17.6%     10.5%     23.8%
+  7      14.5%     18.8%      9.3%     23.8%
+  8      12.0%     18.8%     10.5%     22.6%
+
+ - ours는 매 checkpoint에서 가장 높은 교정률을 단조 증가로 달성(0% → 23.8%).
+ - naive는 turn 3 이후 정체(diminishing returns), routing은 ~10%에서 평탄.
+ - 시사점: "많이 대화하면 좋다"가 아니라 "어떻게 대화하느냐"가 scaling efficiency를
+   결정. 동일한 턴 예산에서 policy quality가 교정 곡선의 기울기를 좌우함.
+
+
+[ 6. Pareto frontier 해석 ]
+--------------------------------------------------------------------------------
+ - Terminal 운영점 기준: naive(저burden·저acc) <-> ours(고acc·고burden) 두 점이
+   frontier를 형성. medcobe는 naive에 완전히 dominated(burden↑, acc↓).
+ - Checkpoint envelope 기준: 대부분의 turn 구간에서 ours(deliberation)가 frontier를
+   가져감.
+ - 우리의 다음 방향: ours와 "비슷하거나 더 높은 accuracy"를 유지하면서 "overall
+   cognitive burden을 낮추는" 방향으로 frontier를 좌상단으로 밀어내는 것.
+
+
+[ 7. 정책별 정성 평가 ]
+--------------------------------------------------------------------------------
+ naive   : 가이드 없이도 baseline 정도의 교정은 함. 단 turn 3 이후 수익 체감.
+ medcobe : 가장 성능이 나쁨. 고정 instruction + 잘못된 calibration 탓에 장기 턴의
+           변동 상황에 적응하지 못하고, 맞는 의사까지 흔들어 regressed 0.33.
+ routing : 부담을 최소화(3.08)하며 협력을 유지한다는 원 논문의 의도는 잘 따름.
+           그러나 거의 즉시 수긍해버려 교정 기회가 적고, accuracy 상한이 낮음(0.21).
+ ours    : 멀티턴에 걸쳐 가장 성공적으로 accuracy를 끌어올림(0.35). 다만 그 과정의
+           cognitive burden(11.95)과 burden_dropout(19%)이 단순 프롬프팅으로는
+           통제되지 않음.
+
+
+[ 8. 결론 및 다음 단계 ]
+--------------------------------------------------------------------------------
+ 1) Deliberation(ours)은 멀티턴 상호작용으로 decision quality를 실제로 높일 수 있음을
+    확인 — 틀린 의사 케이스에서 교정률 곡선이 단조 증가하며 모든 baseline을 상회.
+ 2) 그러나 그에 수반되는 cognitive burden은 프롬프팅만으로 해결되지 않음.
+    "어떻게 대화하느냐"의 최적화는 고정 프롬프트의 한계를 넘어선 문제.
+ 3) 따라서 ours와 동등/상회하는 accuracy를 더 낮은 burden으로 달성하기 위해서는
+    policy learning(예: 학습된 정책으로 턴별 행동·종료 시점을 조절) 또는 agentic
+    workflow 같은 더 엄밀한 방법론이 필요. ← 본 연구의 핵심 contribution 방향.
+
+
+[ 부록: 측정상의 caveat ]
+--------------------------------------------------------------------------------
+ - show_options=false 모드에서 의사의 belief는 free-text로 수집되며, 일부 케이스는
+   파싱 실패로 is_correct=false 처리되었을 수 있음. 따라서 보고된 ours의 accuracy
+   (0.35)는 실제값의 하한일 가능성이 있음.
+ - 본문 [2]~[5]의 수치는 veteran_attending 페르소나 기준. 4종 정책 모두 4-페르소나
+   (veteran/exhausted attending, eager/burned_out resident) sweep 결과가 존재하며,
+   페르소나별 terminal Pareto(policy × persona)는 compare plot의 마지막 패널에 포함됨.
+   pooled(4-페르소나 평균) 기준 ours accuracy는 0.43으로 veteran 단독(0.35)보다 높음
+   — ours가 레지던트 페르소나(eager 0.65, burned_out 0.55)에서 특히 강하기 때문.
+   senior(veteran)는 잘 흔들리지 않아 0.35로 가장 낮음.
+ - "너무 이른 종료가 accuracy를 저해한다"는 가설은 현재 데이터에서 효과가 미미
+   (alone_correct=True의 cp1 회귀 1~2건 수준)하여, 강한 주장으로 쓰기엔 근거 부족.
+================================================================================

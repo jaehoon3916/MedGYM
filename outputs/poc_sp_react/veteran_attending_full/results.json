@@ -1,0 +1,1572 @@
+{
+  "run_meta": {
+    "model": "deepseek/deepseek-v3.2",
+    "max_turns": 8,
+    "data_path": null,
+    "data_dir": "data/sample_data",
+    "specialty_counts": {
+      "cardiology": 3,
+      "dermatology": 3,
+      "jama": 3,
+      "neurology": 3,
+      "oncology": 3,
+      "ophthalmology": 3,
+      "otolaryngology": 2
+    },
+    "policy_type": "react",
+    "initial_user_state": null,
+    "checkpoints": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "burden_dropout_threshold": null,
+    "user_llm_show_options": false,
+    "user_llm_persona": "veteran_attending",
+    "user_llm_information_sparsity": "dense",
+    "medical_llm_show_case_info": true
+  },
+  "scores": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.3,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 6
+        },
+        "1": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 1.5667,
+          "n": 6
+        },
+        "2": {
+          "accuracy": 0.8333,
+          "avg_cumulative_burden": 2.4667,
+          "n": 6
+        },
+        "3": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 3.3333,
+          "n": 6
+        },
+        "4": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 4.0667,
+          "n": 6
+        },
+        "5": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 4.7,
+          "n": 6
+        },
+        "6": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 5.3167,
+          "n": 6
+        },
+        "7": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 5.7833,
+          "n": 6
+        },
+        "8": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 5.7833,
+          "n": 6
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 14
+        },
+        "1": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 2.1286,
+          "n": 14
+        },
+        "2": {
+          "accuracy": 0.0714,
+          "avg_cumulative_burden": 3.5429,
+          "n": 14
+        },
+        "3": {
+          "accuracy": 0.1429,
+          "avg_cumulative_burden": 4.9143,
+          "n": 14
+        },
+        "4": {
+          "accuracy": 0.2143,
+          "avg_cumulative_burden": 6.0286,
+          "n": 14
+        },
+        "5": {
+          "accuracy": 0.1429,
+          "avg_cumulative_burden": 6.9929,
+          "n": 14
+        },
+        "6": {
+          "accuracy": 0.1429,
+          "avg_cumulative_burden": 7.8071,
+          "n": 14
+        },
+        "7": {
+          "accuracy": 0.1429,
+          "avg_cumulative_burden": 8.6429,
+          "n": 14
+        },
+        "8": {
+          "accuracy": 0.2143,
+          "avg_cumulative_burden": 8.6429,
+          "n": 14
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 4,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 2
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 3,
+        "locked_wrong": 11,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 6.025,
+      "self_corrected": 5.4,
+      "locked_wrong": 9.5273,
+      "regressed": 5.3
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 16,
+        "rate": 0.8,
+        "accuracy": 0.375,
+        "avg_n_turns": 2.31,
+        "avg_final_cumulative_burden": 3.66
+      },
+      "burden_dropout": {
+        "n": 3,
+        "rate": 0.15,
+        "accuracy": 0.0,
+        "avg_n_turns": 7,
+        "avg_final_cumulative_burden": 25.5
+      },
+      "max_turns": {
+        "n": 1,
+        "rate": 0.05,
+        "accuracy": 1.0,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 20.6
+      }
+    },
+    "avg_n_turns": 3.3,
+    "burden_judge_calls_ok": 195,
+    "burden_judge_calls_attempted": 195
+  },
+  "records": [
+    {
+      "case_id": "4000",
+      "initial_user_state": null,
+      "specialty": "oncology",
+      "alone_correct": true,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "C",
+      "is_correct": true,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "1000",
+      "initial_user_state": null,
+      "specialty": "dermatology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "D",
+      "is_correct": true,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "6000",
+      "initial_user_state": null,
+      "specialty": "otolaryngology",
+      "alone_correct": true,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "C",
+      "is_correct": true,
+      "final_cumulative_burden": 1.1,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "2": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "3": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "4": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "5": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "6": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "7": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "8": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        }
+      }
+    },
+    {
+      "case_id": "0001",
+      "initial_user_state": null,
+      "specialty": "cardiology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "B",
+      "is_correct": false,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "0000",
+      "initial_user_state": null,
+      "specialty": "cardiology",
+      "alone_correct": true,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": "D",
+      "is_correct": true,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": "D",
+          "is_correct": true,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "1001",
+      "initial_user_state": null,
+      "specialty": "dermatology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 2.8,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.8,
+          "avg_burden": 2.8
+        }
+      }
+    },
+    {
+      "case_id": "1002",
+      "initial_user_state": null,
+      "specialty": "dermatology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 1.0,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        }
+      }
+    },
+    {
+      "case_id": "4002",
+      "initial_user_state": null,
+      "specialty": "oncology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "3002",
+      "initial_user_state": null,
+      "specialty": "neurology",
+      "alone_correct": false,
+      "n_turns_actual": 1,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 1.2,
+      "burden_judge_calls_ok": 3,
+      "burden_judge_calls_attempted": 3,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "3001",
+      "initial_user_state": null,
+      "specialty": "neurology",
+      "alone_correct": false,
+      "n_turns_actual": 2,
+      "closed_by": "agreement",
+      "terminal_belief": "C",
+      "is_correct": true,
+      "final_cumulative_burden": 4.3,
+      "burden_judge_calls_ok": 6,
+      "burden_judge_calls_attempted": 6,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.0,
+          "avg_burden": 3.0
+        },
+        "2": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "3": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "4": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "5": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "6": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "7": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        },
+        "8": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 4.3,
+          "avg_burden": 2.15
+        }
+      }
+    },
+    {
+      "case_id": "5001",
+      "initial_user_state": null,
+      "specialty": "ophthalmology",
+      "alone_correct": true,
+      "n_turns_actual": 3,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 3.2,
+      "burden_judge_calls_ok": 9,
+      "burden_judge_calls_attempted": 9,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "B",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "B",
+          "is_correct": true,
+          "cumulative_burden": 1.0,
+          "avg_burden": 1.0
+        },
+        "2": {
+          "self_reported_belief": "B",
+          "is_correct": true,
+          "cumulative_burden": 2.0,
+          "avg_burden": 1.0
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.2,
+          "avg_burden": 1.0667
+        }
+      }
+    },
+    {
+      "case_id": "6001",
+      "initial_user_state": null,
+      "specialty": "otolaryngology",
+      "alone_correct": false,
+      "n_turns_actual": 3,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 3.5999999999999996,
+      "burden_judge_calls_ok": 9,
+      "burden_judge_calls_attempted": 9,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.2,
+          "avg_burden": 1.2
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.4,
+          "avg_burden": 1.2
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.6,
+          "avg_burden": 1.2
+        }
+      }
+    },
+    {
+      "case_id": "2001",
+      "initial_user_state": null,
+      "specialty": "jama",
+      "alone_correct": false,
+      "n_turns_actual": 4,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 11.4,
+      "burden_judge_calls_ok": 12,
+      "burden_judge_calls_attempted": 12,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.7,
+          "avg_burden": 2.7
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 6.1,
+          "avg_burden": 3.05
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 9.6,
+          "avg_burden": 3.2
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 11.4,
+          "avg_burden": 2.85
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 11.4,
+          "avg_burden": 2.85
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 11.4,
+          "avg_burden": 2.85
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 11.4,
+          "avg_burden": 2.85
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 11.4,
+          "avg_burden": 2.85
+        }
+      }
+    },
+    {
+      "case_id": "2002",
+      "initial_user_state": null,
+      "specialty": "jama",
+      "alone_correct": false,
+      "n_turns_actual": 5,
+      "closed_by": "agreement",
+      "terminal_belief": "C",
+      "is_correct": true,
+      "final_cumulative_burden": 10.7,
+      "burden_judge_calls_ok": 15,
+      "burden_judge_calls_attempted": 15,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "B",
+          "is_correct": false,
+          "cumulative_burden": 3.0,
+          "avg_burden": 3.0
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.5,
+          "avg_burden": 2.75
+        },
+        "3": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 8.0,
+          "avg_burden": 2.6667
+        },
+        "4": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 9.5,
+          "avg_burden": 2.375
+        },
+        "5": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 10.7,
+          "avg_burden": 2.14
+        },
+        "6": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 10.7,
+          "avg_burden": 2.14
+        },
+        "7": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 10.7,
+          "avg_burden": 2.14
+        },
+        "8": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 10.7,
+          "avg_burden": 2.14
+        }
+      }
+    },
+    {
+      "case_id": "5000",
+      "initial_user_state": null,
+      "specialty": "ophthalmology",
+      "alone_correct": false,
+      "n_turns_actual": 5,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 5.9,
+      "burden_judge_calls_ok": 15,
+      "burden_judge_calls_attempted": 15,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 1.1,
+          "avg_burden": 1.1
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.3,
+          "avg_burden": 1.15
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.5,
+          "avg_burden": 1.1667
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 4.7,
+          "avg_burden": 1.175
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.9,
+          "avg_burden": 1.18
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.9,
+          "avg_burden": 1.18
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.9,
+          "avg_burden": 1.18
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.9,
+          "avg_burden": 1.18
+        }
+      }
+    },
+    {
+      "case_id": "5002",
+      "initial_user_state": null,
+      "specialty": "ophthalmology",
+      "alone_correct": true,
+      "n_turns_actual": 6,
+      "closed_by": "agreement",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 7.4,
+      "burden_judge_calls_ok": 18,
+      "burden_judge_calls_attempted": 18,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "C",
+          "is_correct": true,
+          "cumulative_burden": 1.4,
+          "avg_burden": 1.4
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 2.6,
+          "avg_burden": 1.3
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.8,
+          "avg_burden": 1.2667
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 5.0,
+          "avg_burden": 1.25
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 6.2,
+          "avg_burden": 1.24
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 7.4,
+          "avg_burden": 1.2333
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 7.4,
+          "avg_burden": 1.2333
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 7.4,
+          "avg_burden": 1.2333
+        }
+      }
+    },
+    {
+      "case_id": "4001",
+      "initial_user_state": null,
+      "specialty": "oncology",
+      "alone_correct": false,
+      "n_turns_actual": 7,
+      "closed_by": "burden_dropout",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 24.900000000000002,
+      "burden_judge_calls_ok": 21,
+      "burden_judge_calls_attempted": 21,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.3,
+          "avg_burden": 3.3
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 6.5,
+          "avg_burden": 3.25
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 10.0,
+          "avg_burden": 3.3333
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 13.5,
+          "avg_burden": 3.375
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 17.3,
+          "avg_burden": 3.46
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 21.1,
+          "avg_burden": 3.5167
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 24.9,
+          "avg_burden": 3.5571
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 24.9,
+          "avg_burden": 3.5571
+        }
+      }
+    },
+    {
+      "case_id": "0002",
+      "initial_user_state": null,
+      "specialty": "cardiology",
+      "alone_correct": true,
+      "n_turns_actual": 8,
+      "closed_by": "max_turns",
+      "terminal_belief": "A",
+      "is_correct": true,
+      "final_cumulative_burden": 20.599999999999998,
+      "burden_judge_calls_ok": 21,
+      "burden_judge_calls_attempted": 21,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 3.5,
+          "avg_burden": 3.5
+        },
+        "2": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 6.7,
+          "avg_burden": 3.35
+        },
+        "3": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 9.5,
+          "avg_burden": 3.1667
+        },
+        "4": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 12.7,
+          "avg_burden": 3.175
+        },
+        "5": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 15.3,
+          "avg_burden": 3.06
+        },
+        "6": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 17.8,
+          "avg_burden": 2.9667
+        },
+        "7": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 20.6,
+          "avg_burden": 2.9429
+        },
+        "8": {
+          "self_reported_belief": "A",
+          "is_correct": true,
+          "cumulative_burden": 20.6,
+          "avg_burden": 2.575
+        }
+      }
+    },
+    {
+      "case_id": "3000",
+      "initial_user_state": null,
+      "specialty": "neurology",
+      "alone_correct": false,
+      "n_turns_actual": 7,
+      "closed_by": "burden_dropout",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 25.9,
+      "burden_judge_calls_ok": 21,
+      "burden_judge_calls_attempted": 21,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.4,
+          "avg_burden": 3.4
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 6.9,
+          "avg_burden": 3.45
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 10.4,
+          "avg_burden": 3.4667
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 14.2,
+          "avg_burden": 3.55
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 18.0,
+          "avg_burden": 3.6
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 21.8,
+          "avg_burden": 3.6333
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 25.9,
+          "avg_burden": 3.7
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 25.9,
+          "avg_burden": 3.7
+        }
+      }
+    },
+    {
+      "case_id": "2000",
+      "initial_user_state": null,
+      "specialty": "jama",
+      "alone_correct": false,
+      "n_turns_actual": 7,
+      "closed_by": "burden_dropout",
+      "terminal_belief": null,
+      "is_correct": false,
+      "final_cumulative_burden": 25.700000000000003,
+      "burden_judge_calls_ok": 21,
+      "burden_judge_calls_attempted": 21,
+      "checkpoints": {
+        "0": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 0,
+          "avg_burden": 0.0
+        },
+        "1": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 3.5,
+          "avg_burden": 3.5
+        },
+        "2": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 7.0,
+          "avg_burden": 3.5
+        },
+        "3": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 10.8,
+          "avg_burden": 3.6
+        },
+        "4": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 14.6,
+          "avg_burden": 3.65
+        },
+        "5": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 18.1,
+          "avg_burden": 3.62
+        },
+        "6": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 21.9,
+          "avg_burden": 3.65
+        },
+        "7": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 25.7,
+          "avg_burden": 3.6714
+        },
+        "8": {
+          "self_reported_belief": null,
+          "is_correct": false,
+          "cumulative_burden": 25.7,
+          "avg_burden": 3.6714
+        }
+      }
+    }
+  ]
+}

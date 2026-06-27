@@ -64,6 +64,15 @@ def _load_personas() -> dict:
 
 
 @lru_cache(maxsize=1)
+def _load_burden_dropout_thresholds() -> dict:
+    """Per-persona default burden_dropout_threshold -- see
+    source/persona/burden_dropout_thresholds.yaml. A run config's explicit
+    burden_dropout_threshold always overrides this."""
+    with open(_PERSONA_ROLE_DIR / "burden_dropout_thresholds.yaml") as f:
+        return yaml.safe_load(f)
+
+
+@lru_cache(maxsize=1)
 def _load_sparsity_persona() -> dict:
     with open(_PERSONA_DIR / "information_sparsity.yaml") as f:
         return yaml.safe_load(f)
@@ -194,11 +203,14 @@ class UserSimulatorV3(VLLMBasePlugin, UserLLMPlugin):
         # consumer (e.g. reward/dropout) requires it). Monotonically non-decreasing by
         # construction -- no decay/relief modeling for now (see plan baseline-snug-acorn.md).
         self._burden_cumulative: float = 0.0
-        # Disabled (inf) by default -- no guessed-tight number here, since burden tolerance is
-        # explicitly persona-dependent (the 4 named personas already encode burden_sensitivity)
-        # and this needs empirical calibration once real rollouts exist. When the running raw
-        # sum crosses this, the doctor is forced to withdraw this turn (see _followup_turn).
-        self._burden_dropout_threshold: float = float(config.get("burden_dropout_threshold", float("inf")))
+        # Defaults to this persona's entry in source/persona/burden_dropout_thresholds.yaml
+        # (currently the same uncalibrated placeholder for all 4 personas) unless a run config
+        # sets plugins.user_llm.burden_dropout_threshold explicitly, which always wins. When
+        # the running raw sum crosses this, the doctor is forced to withdraw this turn (see
+        # _followup_turn).
+        self._burden_dropout_threshold: float = float(
+            config.get("burden_dropout_threshold", _load_burden_dropout_thresholds()[self._persona])
+        )
         # Placeholder for a possible future "judge-only" vs "judge+formula" A/B comparison --
         # default False per the plan's recommendation to DROP authority amplification in v3
         # (Stage 1 is already persona-aware, so re-applying a hand-picked multiplier on top

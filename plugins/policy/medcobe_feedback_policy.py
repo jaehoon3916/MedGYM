@@ -36,8 +36,10 @@ class MedCobeFeedbackPolicy(PolicyPlugin):
             else:
                 print(
                     f"[medcobe_feedback] no calibration file for target_model="
-                    f"{self._target_model!r} at {path} -- falling back to balanced guideline. "
-                    f"Run scripts/calibrate_medcobe_feedback.py to calibrate."
+                    f"{self._target_model!r} at {path} -- falling back to balanced (untuned) "
+                    f"guideline. To calibrate this model once:\n"
+                    f"  python scripts/calibrate_medcobe_feedback.py "
+                    f'--rollouts-glob "outputs/termination_poc/**/rollouts/*.jsonl"'
                 )
         self._guideline = generate_feedback(self._sycophancy, self._obstruction)
 

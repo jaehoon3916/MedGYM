@@ -102,6 +102,12 @@ def main(config_path: str) -> None:
         json.dump(all_scores, f, indent=2, ensure_ascii=False)
     print(f"  Combined summary saved to {summary_dir / 'summary.json'}")
 
+    try:
+        from plot.code.plot_scaling_poc import plot_overall
+        plot_overall(summary_dir)
+    except Exception as e:
+        print(f"  [plot] overall 플롯 생성 실패 (결과는 저장됨): {e}")
+
 
 if __name__ == "__main__":
     import argparse

@@ -342,6 +342,18 @@ def aggregate(records: list[dict], checkpoints: list[int]) -> dict:
     }
     burden_calls_ok = sum(r.get("burden_judge_calls_ok", 0) for r in records)
     burden_calls_attempted = sum(r.get("burden_judge_calls_attempted", 0) for r in records)
+
+    _reasons = ["agreement", "burden_dropout", "max_turns"]
+    by_closed_by: dict[str, dict] = {}
+    for reason in _reasons:
+        rows = [r for r in records if r.get("closed_by") == reason]
+        by_closed_by[reason] = {
+            "n": len(rows),
+            "rate": round(len(rows) / len(records), 4) if records else 0.0,
+            "avg_n_turns": round(statistics.mean(r["n_turns_actual"] for r in rows), 2) if rows else None,
+        }
+    avg_n_turns = round(statistics.mean(r["n_turns_actual"] for r in records), 2) if records else 0.0
+
     return {
         "all_checkpoints": all_cps,
         "doctor_alone_accuracy": doctor_alone_accuracy,
@@ -350,6 +362,8 @@ def aggregate(records: list[dict], checkpoints: list[int]) -> dict:
         "burden_by_trajectory": burden_by_trajectory,
         "burden_judge_calls_ok": burden_calls_ok,
         "burden_judge_calls_attempted": burden_calls_attempted,
+        "by_closed_by": by_closed_by,
+        "avg_n_turns": avg_n_turns,
     }
 
 
@@ -552,6 +566,12 @@ def run(config: dict) -> dict:
     with open(results_path, "w") as f:
         json.dump({"run_meta": run_meta, "scores": scores, "records": records}, f, indent=2, ensure_ascii=False)
     print(f"  Results saved to {results_path}")
+
+    try:
+        from plot.code.plot_scaling_poc import plot_overall
+        plot_overall(output_dir)
+    except Exception as e:
+        print(f"  [plot] overall 플롯 생성 실패 (결과는 저장됨): {e}")
 
     tracker.accumulate_to_ledger(
         _ROOT / exp.get("token_ledger", "token_usage_ledger.json"),

@@ -232,9 +232,9 @@
           {% endif %}
         </div>
         <div class="turn-body">
-          {% for dlg in t.dialogue_history[-2:] %}
+          {% for dlg in (t.dialogue_history[-3:] if t.turn_id == 0 else t.dialogue_history[-2:]) %}
           <div class="bubble bubble-{{ dlg.speaker }}">
-            <div class="bubble-label">{% if dlg.speaker == 'medical' %}Medical AI{% else %}User (Patient){% endif %}</div>
+            <div class="bubble-label">{% if dlg.speaker == 'medical' %}Medical AI{% else %}Doctor{% endif %}</div>
             <div class="bubble-text">{{ dlg.text }}</div>
           </div>
           {% endfor %}

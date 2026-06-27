@@ -1,0 +1,610 @@
+{
+  "veteran_attending/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.25,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 5
+        },
+        "1": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 3.16,
+          "n": 5
+        },
+        "2": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 5.26,
+          "n": 5
+        },
+        "3": {
+          "accuracy": 0.8,
+          "avg_cumulative_burden": 7.26,
+          "n": 5
+        },
+        "4": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 9.2,
+          "n": 5
+        },
+        "5": {
+          "accuracy": 0.8,
+          "avg_cumulative_burden": 11.08,
+          "n": 5
+        },
+        "6": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 12.78,
+          "n": 5
+        },
+        "7": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 14.26,
+          "n": 5
+        },
+        "8": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 14.26,
+          "n": 5
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 15
+        },
+        "1": {
+          "accuracy": 0.0667,
+          "avg_cumulative_burden": 3.0,
+          "n": 15
+        },
+        "2": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 5.82,
+          "n": 15
+        },
+        "3": {
+          "accuracy": 0.1333,
+          "avg_cumulative_burden": 8.5333,
+          "n": 15
+        },
+        "4": {
+          "accuracy": 0.1333,
+          "avg_cumulative_burden": 11.04,
+          "n": 15
+        },
+        "5": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 13.6,
+          "n": 15
+        },
+        "6": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 15.5933,
+          "n": 15
+        },
+        "7": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 17.3667,
+          "n": 15
+        },
+        "8": {
+          "accuracy": 0.2,
+          "avg_cumulative_burden": 17.3667,
+          "n": 15
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 5,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 0
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 3,
+        "locked_wrong": 12,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 14.26,
+      "self_corrected": 18.4333,
+      "locked_wrong": 17.1,
+      "regressed": null
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 10,
+        "accuracy": 0.5,
+        "avg_n_turns": 4.3,
+        "avg_final_cumulative_burden": 12.38
+      },
+      "burden_dropout": {
+        "n": 5,
+        "accuracy": 0.4,
+        "avg_n_turns": 7,
+        "avg_final_cumulative_burden": 25.24
+      },
+      "max_turns": {
+        "n": 5,
+        "accuracy": 0.2,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 16.36
+      }
+    },
+    "burden_judge_calls_ok": 339,
+    "burden_judge_calls_attempted": 339
+  },
+  "exhausted_attending/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.35,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 7
+        },
+        "1": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 3.2571,
+          "n": 7
+        },
+        "2": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.2286,
+          "n": 7
+        },
+        "3": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 6.7714,
+          "n": 7
+        },
+        "4": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 8.2,
+          "n": 7
+        },
+        "5": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 9.3857,
+          "n": 7
+        },
+        "6": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 10.5571,
+          "n": 7
+        },
+        "7": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 11.7,
+          "n": 7
+        },
+        "8": {
+          "accuracy": 0.8571,
+          "avg_cumulative_burden": 11.7,
+          "n": 7
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 13
+        },
+        "1": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 3.3231,
+          "n": 13
+        },
+        "2": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 6.0538,
+          "n": 13
+        },
+        "3": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 8.6154,
+          "n": 13
+        },
+        "4": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 10.6923,
+          "n": 13
+        },
+        "5": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 12.4692,
+          "n": 13
+        },
+        "6": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 14.2538,
+          "n": 13
+        },
+        "7": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 15.7615,
+          "n": 13
+        },
+        "8": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 15.7615,
+          "n": 13
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 6,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 1
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 3,
+        "locked_wrong": 10,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 12.8167,
+      "self_corrected": 13.8,
+      "locked_wrong": 16.35,
+      "regressed": 5.0
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 12,
+        "accuracy": 0.5,
+        "avg_n_turns": 3.25,
+        "avg_final_cumulative_burden": 7.88
+      },
+      "burden_dropout": {
+        "n": 5,
+        "accuracy": 0.2,
+        "avg_n_turns": 6.8,
+        "avg_final_cumulative_burden": 26.16
+      },
+      "max_turns": {
+        "n": 3,
+        "accuracy": 0.3333,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 20.5
+      }
+    },
+    "burden_judge_calls_ok": 282,
+    "burden_judge_calls_attempted": 282
+  },
+  "eager_resident/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.3,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 6
+        },
+        "1": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 2.4333,
+          "n": 6
+        },
+        "2": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 3.7,
+          "n": 6
+        },
+        "3": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 4.3,
+          "n": 6
+        },
+        "4": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 4.8167,
+          "n": 6
+        },
+        "5": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 5.4333,
+          "n": 6
+        },
+        "6": {
+          "accuracy": 0.5,
+          "avg_cumulative_burden": 5.8,
+          "n": 6
+        },
+        "7": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 6.05,
+          "n": 6
+        },
+        "8": {
+          "accuracy": 0.6667,
+          "avg_cumulative_burden": 6.05,
+          "n": 6
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 14
+        },
+        "1": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 2.6286,
+          "n": 14
+        },
+        "2": {
+          "accuracy": 0.2143,
+          "avg_cumulative_burden": 3.8786,
+          "n": 14
+        },
+        "3": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 4.6571,
+          "n": 14
+        },
+        "4": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 5.2786,
+          "n": 14
+        },
+        "5": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 5.7143,
+          "n": 14
+        },
+        "6": {
+          "accuracy": 0.2143,
+          "avg_cumulative_burden": 6.0214,
+          "n": 14
+        },
+        "7": {
+          "accuracy": 0.3571,
+          "avg_cumulative_burden": 6.4,
+          "n": 14
+        },
+        "8": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 6.4,
+          "n": 14
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 4,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 2
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 4,
+        "locked_wrong": 10,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 5.0,
+      "self_corrected": 4.875,
+      "locked_wrong": 7.01,
+      "regressed": 8.15
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 18,
+        "accuracy": 0.4444,
+        "avg_n_turns": 2.67,
+        "avg_final_cumulative_burden": 5.08
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 2,
+        "accuracy": 0.0,
+        "avg_n_turns": 8,
+        "avg_final_cumulative_burden": 17.2
+      }
+    },
+    "burden_judge_calls_ok": 186,
+    "burden_judge_calls_attempted": 186
+  },
+  "burned_out_resident/full": {
+    "all_checkpoints": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "doctor_alone_accuracy": 0.35,
+    "curve": {
+      "true": {
+        "0": {
+          "accuracy": 1.0,
+          "avg_cumulative_burden": 0,
+          "n": 7
+        },
+        "1": {
+          "accuracy": 0.2857,
+          "avg_cumulative_burden": 3.2286,
+          "n": 7
+        },
+        "2": {
+          "accuracy": 0.5714,
+          "avg_cumulative_burden": 4.6143,
+          "n": 7
+        },
+        "3": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.3,
+          "n": 7
+        },
+        "4": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.5143,
+          "n": 7
+        },
+        "5": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.5143,
+          "n": 7
+        },
+        "6": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.5143,
+          "n": 7
+        },
+        "7": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.5143,
+          "n": 7
+        },
+        "8": {
+          "accuracy": 0.7143,
+          "avg_cumulative_burden": 5.5143,
+          "n": 7
+        }
+      },
+      "false": {
+        "0": {
+          "accuracy": 0.0,
+          "avg_cumulative_burden": 0,
+          "n": 13
+        },
+        "1": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 3.4077,
+          "n": 13
+        },
+        "2": {
+          "accuracy": 0.1538,
+          "avg_cumulative_burden": 4.7692,
+          "n": 13
+        },
+        "3": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        },
+        "4": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        },
+        "5": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        },
+        "6": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        },
+        "7": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        },
+        "8": {
+          "accuracy": 0.2308,
+          "avg_cumulative_burden": 5.0,
+          "n": 13
+        }
+      }
+    },
+    "trajectory_counts": {
+      "true": {
+        "always_correct": 5,
+        "self_corrected": 0,
+        "locked_wrong": 0,
+        "regressed": 2
+      },
+      "false": {
+        "always_correct": 0,
+        "self_corrected": 3,
+        "locked_wrong": 10,
+        "regressed": 0
+      }
+    },
+    "burden_by_trajectory": {
+      "always_correct": 5.4,
+      "self_corrected": 4.2,
+      "locked_wrong": 5.24,
+      "regressed": 5.8
+    },
+    "by_closed_by": {
+      "agreement": {
+        "n": 20,
+        "accuracy": 0.35,
+        "avg_n_turns": 2,
+        "avg_final_cumulative_burden": 5.18
+      },
+      "burden_dropout": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      },
+      "max_turns": {
+        "n": 0,
+        "accuracy": null,
+        "avg_n_turns": null,
+        "avg_final_cumulative_burden": null
+      }
+    },
+    "burden_judge_calls_ok": 120,
+    "burden_judge_calls_attempted": 120
+  }
+}

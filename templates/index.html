@@ -9,14 +9,26 @@
     header { background: #1a3c5e; color: #fff; padding: 18px 32px; }
     header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.5px; }
     header p  { font-size: 0.85rem; opacity: 0.7; margin-top: 2px; }
-    main { max-width: 1080px; margin: 32px auto; padding: 0 24px; }
-    h2 { font-size: 1.1rem; margin-bottom: 16px; color: #333; }
+    main { max-width: 1080px; margin: 32px auto; padding: 0 24px 48px; }
     .empty { color: #888; font-size: 0.95rem; padding: 24px 0; }
+    .exp-block { margin-bottom: 36px; }
+    .exp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+      padding: 10px 14px; background: #e4eaf2; border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .exp-header:hover { background: #d5dde8; }
+    .exp-title { font-size: 1rem; font-weight: 600; color: #1a3c5e; }
+    .exp-count { font-size: 0.8rem; color: #666; }
+    .exp-toggle { font-size: 0.85rem; color: #555; }
+    .exp-body { display: none; }
+    .exp-body.open { display: block; }
     table { width: 100%; border-collapse: collapse; background: #fff;
             border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    th { background: #eef1f5; text-align: left; padding: 12px 16px;
-         font-size: 0.78rem; text-transform: uppercase; color: #555; letter-spacing: 0.5px; }
-    td { padding: 12px 16px; border-top: 1px solid #eee; font-size: 0.88rem; vertical-align: middle; }
+    th { background: #eef1f5; text-align: left; padding: 10px 14px;
+         font-size: 0.75rem; text-transform: uppercase; color: #555; letter-spacing: 0.5px; }
+    td { padding: 10px 14px; border-top: 1px solid #eee; font-size: 0.85rem; vertical-align: middle; }
     tr:hover td { background: #f8fafc; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.73rem; font-weight: 600; }
     .badge-local  { background: #e8f4fd; color: #1a6fa8; }
@@ -24,8 +36,9 @@
     .badge-grpo   { background: #fdf3e6; color: #a85c1a; }
     a { color: #1a6fa8; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .ts  { color: #999; font-size: 0.8rem; }
+    .ts  { color: #999; font-size: 0.78rem; }
     .tok { font-variant-numeric: tabular-nums; color: #555; }
+    .cond { font-size: 0.78rem; color: #777; }
   </style>
 </head>
 <body>
@@ -34,36 +47,57 @@
   <p>Dialogue-based Medical HAC Policy</p>
 </header>
 <main>
-  <h2>Saved Rollouts</h2>
-  {% if rollouts %}
-  <table>
-    <thead>
-      <tr>
-        <th>Case ID</th><th>Experiment</th><th>Turns</th>
-        <th>Policy</th><th>Total Tokens</th><th>Timestamp</th><th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rollouts %}
-      <tr>
-        <td><strong>{{ r.case_id }}</strong></td>
-        <td>{{ r.exp_name }}</td>
-        <td>{{ r.num_turns }}</td>
-        <td>
-          <span class="badge {% if 'grpo' in r.policy %}badge-grpo{% elif 'sft' in r.policy %}badge-sft{% else %}badge-local{% endif %}">
-            {{ r.policy }}
-          </span>
-        </td>
-        <td class="tok">{{ "{:,}".format(r.total_tokens) if r.total_tokens else '—' }}</td>
-        <td class="ts">{{ r.timestamp[:19].replace('T',' ') if r.timestamp else '—' }}</td>
-        <td><a href="/rollout/{{ r.path }}">View →</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% if groups %}
+    {% for exp_name, rollouts in groups.items() %}
+    <div class="exp-block">
+      <div class="exp-header" onclick="toggle('{{ exp_name }}')">
+        <span class="exp-title">{{ exp_name }}</span>
+        <span>
+          <span class="exp-count">{{ rollouts|length }} rollouts</span>
+          &nbsp;
+          <span class="exp-toggle" id="arrow-{{ exp_name }}">▶</span>
+        </span>
+      </div>
+      <div class="exp-body" id="body-{{ exp_name }}">
+        <table>
+          <thead>
+            <tr>
+              <th>Case ID</th><th>Condition</th><th>Turns</th>
+              <th>Policy</th><th>Total Tokens</th><th>Timestamp</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rollouts %}
+            <tr>
+              <td><strong>{{ r.case_id }}</strong></td>
+              <td class="cond">{{ r.condition }}</td>
+              <td>{{ r.num_turns }}</td>
+              <td>
+                <span class="badge {% if 'grpo' in r.policy %}badge-grpo{% elif 'sft' in r.policy %}badge-sft{% else %}badge-local{% endif %}">
+                  {{ r.policy }}
+                </span>
+              </td>
+              <td class="tok">{{ "{:,}".format(r.total_tokens) if r.total_tokens else '—' }}</td>
+              <td class="ts">{{ r.timestamp[:19].replace('T',' ') if r.timestamp else '—' }}</td>
+              <td><a href="/rollout/{{ r.path }}">View →</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
   {% else %}
-  <p class="empty">No rollouts yet. Run <code>python scripts/run_dialogue.py</code> to generate one.</p>
+  <p class="empty">No rollouts yet. Run <code>python scripts/run_poc.py</code> to generate one.</p>
   {% endif %}
 </main>
+<script>
+  function toggle(name) {
+    const body = document.getElementById('body-' + name);
+    const arrow = document.getElementById('arrow-' + name);
+    const open = body.classList.toggle('open');
+    arrow.textContent = open ? '▼' : '▶';
+  }
+</script>
 </body>
 </html>

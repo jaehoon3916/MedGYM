@@ -48,8 +48,9 @@ def main():
             for name, ep in personas:
                 obs = env.reset(case_info, ep, max_turns=max_turns)
                 while not obs.done:
+                    kw = {"verification_template": obs.verification} if policy.needs_verification else {}
                     po = policy.select_action(
-                        obs.case_info, obs.dialogue_history, obs.current_user_utterance, obs.verification,
+                        obs.case_info, obs.dialogue_history, obs.current_user_utterance, **kw,
                     )
                     messages = _build_messages(
                         obs.verification, obs.current_user_utterance, obs.dialogue_history,

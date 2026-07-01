@@ -1,0 +1,326 @@
+{
+  "n_trials": 3,
+  "ai_alone_accuracy": 0.736,
+  "n_cases": 250,
+  "n_ai_blind": 66,
+  "ai_blind_rate": 0.264,
+  "ai_blind_case_ids": [
+    "0006",
+    "0007",
+    "0008",
+    "0011",
+    "0012",
+    "0014",
+    "0016",
+    "0018",
+    "0020",
+    "0021",
+    "0025",
+    "0031",
+    "0034",
+    "1004",
+    "1006",
+    "1012",
+    "1017",
+    "1020",
+    "1021",
+    "1022",
+    "1026",
+    "1035",
+    "1037",
+    "1039",
+    "2000",
+    "2001",
+    "2004",
+    "2006",
+    "2010",
+    "2018",
+    "2024",
+    "2025",
+    "2035",
+    "2038",
+    "2039",
+    "3000",
+    "3003",
+    "3004",
+    "3010",
+    "3015",
+    "4008",
+    "4012",
+    "4017",
+    "4025",
+    "4028",
+    "5004",
+    "5006",
+    "5007",
+    "5016",
+    "5017",
+    "5018",
+    "5021",
+    "6009",
+    "6013",
+    "6014",
+    "6015",
+    "6016",
+    "6019",
+    "6020",
+    "6021",
+    "6023",
+    "6027",
+    "6029",
+    "6030",
+    "6034",
+    "6037"
+  ],
+  "by_policy": {
+    "naive": {
+      "results_path": "outputs/poc_0630_naive/veteran_attending_full/results.json",
+      "n_total_records": 250,
+      "overall_accuracy": 0.56,
+      "ai_blind_n": 66,
+      "ai_blind_curve": {
+        "0": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "1": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "2": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "3": {
+          "accuracy": 0.2576,
+          "n": 66
+        },
+        "4": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "5": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "6": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "7": {
+          "accuracy": 0.3182,
+          "n": 66
+        },
+        "8": {
+          "accuracy": 0.3182,
+          "n": 66
+        }
+      },
+      "double_blind_n": 47,
+      "double_blind_curve": {
+        "0": {
+          "accuracy": 0.0,
+          "n": 47
+        },
+        "1": {
+          "accuracy": 0.0851,
+          "n": 47
+        },
+        "2": {
+          "accuracy": 0.0638,
+          "n": 47
+        },
+        "3": {
+          "accuracy": 0.0638,
+          "n": 47
+        },
+        "4": {
+          "accuracy": 0.0851,
+          "n": 47
+        },
+        "5": {
+          "accuracy": 0.0851,
+          "n": 47
+        },
+        "6": {
+          "accuracy": 0.1489,
+          "n": 47
+        },
+        "7": {
+          "accuracy": 0.1702,
+          "n": 47
+        },
+        "8": {
+          "accuracy": 0.1702,
+          "n": 47
+        }
+      }
+    },
+    "medcobe_feedback": {
+      "results_path": "outputs/poc_0630_medcobe_feedback/veteran_attending_full/results.json",
+      "n_total_records": 250,
+      "overall_accuracy": 0.54,
+      "ai_blind_n": 66,
+      "ai_blind_curve": {
+        "0": {
+          "accuracy": 0.2424,
+          "n": 66
+        },
+        "1": {
+          "accuracy": 0.2727,
+          "n": 66
+        },
+        "2": {
+          "accuracy": 0.2424,
+          "n": 66
+        },
+        "3": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "4": {
+          "accuracy": 0.303,
+          "n": 66
+        },
+        "5": {
+          "accuracy": 0.3485,
+          "n": 66
+        },
+        "6": {
+          "accuracy": 0.2727,
+          "n": 66
+        },
+        "7": {
+          "accuracy": 0.3333,
+          "n": 66
+        },
+        "8": {
+          "accuracy": 0.3333,
+          "n": 66
+        }
+      },
+      "double_blind_n": 50,
+      "double_blind_curve": {
+        "0": {
+          "accuracy": 0.0,
+          "n": 50
+        },
+        "1": {
+          "accuracy": 0.08,
+          "n": 50
+        },
+        "2": {
+          "accuracy": 0.1,
+          "n": 50
+        },
+        "3": {
+          "accuracy": 0.16,
+          "n": 50
+        },
+        "4": {
+          "accuracy": 0.22,
+          "n": 50
+        },
+        "5": {
+          "accuracy": 0.32,
+          "n": 50
+        },
+        "6": {
+          "accuracy": 0.22,
+          "n": 50
+        },
+        "7": {
+          "accuracy": 0.32,
+          "n": 50
+        },
+        "8": {
+          "accuracy": 0.32,
+          "n": 50
+        }
+      }
+    },
+    "deliberation_llm": {
+      "results_path": "outputs/poc_0630_deliberation_llm/veteran_attending_full/results.json",
+      "n_total_records": 250,
+      "overall_accuracy": 0.6,
+      "ai_blind_n": 66,
+      "ai_blind_curve": {
+        "0": {
+          "accuracy": 0.3182,
+          "n": 66
+        },
+        "1": {
+          "accuracy": 0.3182,
+          "n": 66
+        },
+        "2": {
+          "accuracy": 0.303,
+          "n": 66
+        },
+        "3": {
+          "accuracy": 0.3333,
+          "n": 66
+        },
+        "4": {
+          "accuracy": 0.303,
+          "n": 66
+        },
+        "5": {
+          "accuracy": 0.3182,
+          "n": 66
+        },
+        "6": {
+          "accuracy": 0.2879,
+          "n": 66
+        },
+        "7": {
+          "accuracy": 0.3333,
+          "n": 66
+        },
+        "8": {
+          "accuracy": 0.3333,
+          "n": 66
+        }
+      },
+      "double_blind_n": 45,
+      "double_blind_curve": {
+        "0": {
+          "accuracy": 0.0,
+          "n": 45
+        },
+        "1": {
+          "accuracy": 0.0,
+          "n": 45
+        },
+        "2": {
+          "accuracy": 0.0667,
+          "n": 45
+        },
+        "3": {
+          "accuracy": 0.1111,
+          "n": 45
+        },
+        "4": {
+          "accuracy": 0.0889,
+          "n": 45
+        },
+        "5": {
+          "accuracy": 0.1111,
+          "n": 45
+        },
+        "6": {
+          "accuracy": 0.0667,
+          "n": 45
+        },
+        "7": {
+          "accuracy": 0.1333,
+          "n": 45
+        },
+        "8": {
+          "accuracy": 0.1333,
+          "n": 45
+        }
+      }
+    }
+  }
+}

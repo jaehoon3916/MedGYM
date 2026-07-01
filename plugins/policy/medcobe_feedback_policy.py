@@ -4,7 +4,7 @@ from typing import Any
 
 from plugins.policy.base import PolicyPlugin
 from plugins.policy.medcobe_feedback_text import generate_feedback
-from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, PolicyOutput
 
 DEFAULT_CALIBRATION_DIR = Path(__file__).resolve().parents[2] / "outputs" / "medcobe_feedback_calibration"
 
@@ -49,12 +49,13 @@ class MedCobeFeedbackPolicy(PolicyPlugin):
     def load(self) -> None:
         pass
 
-    def select_action(
+    needs_verification = False
+
+    def select_action(  # type: ignore[override]
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         current_user_utterance: str,
-        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         action_prompt = (
             f"[Behavior Guideline]\n{self._guideline}\n\n"

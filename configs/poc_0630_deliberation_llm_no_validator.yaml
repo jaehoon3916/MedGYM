@@ -1,0 +1,62 @@
+# poc_0630 — deliberation_llm ablation: fact_validator OFF
+# poc_0630_deliberation_llm과 단 하나만 다름: policy.use_fact_validator = false.
+#   → 같은 deliberation_llm policy/템플릿을 쓰되, validator만 끈다. config.py가
+#     NullFactValidator를 자동 주입(API call 0)하고, 단일 user 템플릿의
+#     {fact_validation_block}이 ""로 채워져 fact-validation 섹션이 통째로 빠진다.
+# ablation 비교: naive < deliberation_llm(use_fact_validator=false) < deliberation_llm
+# user_llm/medical_llm/persona/n_cases는 poc_0630_naive와도 동일해 직접 비교 가능.
+
+experiment:
+  name: poc_0630_deliberation_llm_no_validator
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 250
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: true
+    persona: [veteran_attending]
+    info_condition: full
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 528
+    temperature: 0.7
+
+  # fact_validator_llm 블록 생략 — use_fact_validator=false면 config.py가 NullFactValidator를
+  # 강제 주입하므로 여기 무엇을 적어도 무시됨. 혼동 방지 위해 아예 제거.
+
+  final_judge:
+    enabled: false
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: deliberation_llm
+    use_fact_validator: false        # ablation toggle: validator OFF (default true)
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 512
+    temperature: 0.0
+    reveal_correct_option: false
+
+action_space_path: configs/action_space.yaml
+concurrency: 20

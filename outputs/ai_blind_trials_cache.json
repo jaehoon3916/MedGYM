@@ -1,0 +1,1252 @@
+{
+  "0002": [
+    true,
+    true,
+    true
+  ],
+  "0001": [
+    false,
+    true,
+    false
+  ],
+  "0000": [
+    true,
+    true,
+    true
+  ],
+  "0003": [
+    true,
+    true,
+    true
+  ],
+  "0004": [
+    true,
+    true,
+    true
+  ],
+  "0005": [
+    true,
+    true,
+    true
+  ],
+  "0006": [
+    false,
+    false,
+    false
+  ],
+  "0007": [
+    false,
+    false,
+    false
+  ],
+  "0008": [
+    false,
+    false,
+    false
+  ],
+  "0009": [
+    true,
+    true,
+    true
+  ],
+  "0010": [
+    true,
+    true,
+    false
+  ],
+  "0011": [
+    false,
+    false,
+    false
+  ],
+  "0013": [
+    true,
+    true,
+    true
+  ],
+  "0012": [
+    false,
+    false,
+    false
+  ],
+  "0014": [
+    false,
+    false,
+    false
+  ],
+  "0015": [
+    true,
+    true,
+    true
+  ],
+  "0016": [
+    false,
+    false,
+    false
+  ],
+  "0017": [
+    true,
+    true,
+    true
+  ],
+  "0018": [
+    false,
+    false,
+    false
+  ],
+  "0019": [
+    true,
+    true,
+    true
+  ],
+  "0020": [
+    false,
+    false,
+    false
+  ],
+  "0021": [
+    false,
+    false,
+    false
+  ],
+  "0022": [
+    true,
+    true,
+    true
+  ],
+  "0023": [
+    true,
+    true,
+    true
+  ],
+  "0024": [
+    true,
+    true,
+    true
+  ],
+  "0025": [
+    false,
+    false,
+    false
+  ],
+  "0026": [
+    true,
+    true,
+    true
+  ],
+  "0027": [
+    true,
+    true,
+    true
+  ],
+  "0028": [
+    true,
+    true,
+    true
+  ],
+  "0029": [
+    true,
+    true,
+    true
+  ],
+  "0030": [
+    true,
+    true,
+    true
+  ],
+  "0031": [
+    false,
+    false,
+    false
+  ],
+  "0032": [
+    true,
+    true,
+    true
+  ],
+  "0033": [
+    true,
+    true,
+    true
+  ],
+  "0034": [
+    false,
+    false,
+    false
+  ],
+  "1000": [
+    true,
+    true,
+    true
+  ],
+  "1001": [
+    true,
+    true,
+    true
+  ],
+  "1002": [
+    true,
+    true,
+    true
+  ],
+  "1003": [
+    true,
+    true,
+    true
+  ],
+  "1004": [
+    false,
+    false,
+    false
+  ],
+  "1005": [
+    true,
+    true,
+    true
+  ],
+  "1006": [
+    false,
+    false,
+    false
+  ],
+  "1008": [
+    true,
+    true,
+    true
+  ],
+  "1007": [
+    true,
+    true,
+    true
+  ],
+  "1009": [
+    true,
+    true,
+    true
+  ],
+  "1010": [
+    true,
+    true,
+    true
+  ],
+  "1011": [
+    true,
+    true,
+    true
+  ],
+  "1012": [
+    false,
+    false,
+    false
+  ],
+  "1013": [
+    true,
+    true,
+    true
+  ],
+  "1014": [
+    true,
+    true,
+    true
+  ],
+  "1015": [
+    true,
+    true,
+    true
+  ],
+  "1016": [
+    true,
+    true,
+    true
+  ],
+  "1017": [
+    false,
+    false,
+    false
+  ],
+  "1018": [
+    true,
+    true,
+    true
+  ],
+  "1019": [
+    true,
+    true,
+    true
+  ],
+  "1020": [
+    false,
+    false,
+    false
+  ],
+  "1022": [
+    false,
+    false,
+    false
+  ],
+  "1021": [
+    false,
+    false,
+    false
+  ],
+  "1023": [
+    true,
+    true,
+    true
+  ],
+  "1024": [
+    true,
+    true,
+    true
+  ],
+  "1025": [
+    false,
+    true,
+    false
+  ],
+  "1026": [
+    false,
+    false,
+    false
+  ],
+  "1028": [
+    true,
+    true,
+    true
+  ],
+  "1027": [
+    true,
+    true,
+    true
+  ],
+  "1029": [
+    true,
+    true,
+    true
+  ],
+  "1030": [
+    true,
+    true,
+    true
+  ],
+  "1032": [
+    true,
+    true,
+    true
+  ],
+  "1031": [
+    true,
+    true,
+    true
+  ],
+  "1034": [
+    true,
+    true,
+    true
+  ],
+  "1033": [
+    true,
+    true,
+    true
+  ],
+  "1035": [
+    false,
+    false,
+    false
+  ],
+  "1036": [
+    true,
+    true,
+    true
+  ],
+  "1038": [
+    true,
+    true,
+    true
+  ],
+  "1037": [
+    false,
+    false,
+    false
+  ],
+  "1039": [
+    false,
+    false,
+    false
+  ],
+  "2000": [
+    false,
+    false,
+    false
+  ],
+  "2001": [
+    false,
+    false,
+    false
+  ],
+  "2002": [
+    true,
+    true,
+    true
+  ],
+  "2003": [
+    true,
+    true,
+    true
+  ],
+  "2004": [
+    false,
+    false,
+    false
+  ],
+  "2005": [
+    true,
+    true,
+    true
+  ],
+  "2006": [
+    false,
+    false,
+    false
+  ],
+  "2007": [
+    true,
+    true,
+    true
+  ],
+  "2008": [
+    true,
+    true,
+    true
+  ],
+  "2009": [
+    true,
+    true,
+    true
+  ],
+  "2010": [
+    false,
+    false,
+    false
+  ],
+  "2011": [
+    true,
+    true,
+    false
+  ],
+  "2013": [
+    true,
+    true,
+    true
+  ],
+  "2012": [
+    true,
+    true,
+    true
+  ],
+  "2014": [
+    true,
+    true,
+    true
+  ],
+  "2015": [
+    true,
+    true,
+    true
+  ],
+  "2016": [
+    true,
+    true,
+    true
+  ],
+  "2017": [
+    true,
+    true,
+    true
+  ],
+  "2019": [
+    true,
+    true,
+    true
+  ],
+  "2018": [
+    false,
+    false,
+    false
+  ],
+  "2020": [
+    true,
+    true,
+    true
+  ],
+  "2021": [
+    true,
+    true,
+    true
+  ],
+  "2022": [
+    true,
+    true,
+    true
+  ],
+  "2023": [
+    true,
+    true,
+    true
+  ],
+  "2026": [
+    false,
+    true,
+    true
+  ],
+  "2024": [
+    false,
+    false,
+    false
+  ],
+  "2025": [
+    false,
+    false,
+    false
+  ],
+  "2028": [
+    true,
+    true,
+    true
+  ],
+  "2027": [
+    true,
+    true,
+    true
+  ],
+  "2029": [
+    true,
+    true,
+    false
+  ],
+  "2030": [
+    true,
+    true,
+    true
+  ],
+  "2031": [
+    true,
+    true,
+    true
+  ],
+  "2032": [
+    true,
+    true,
+    true
+  ],
+  "2033": [
+    true,
+    true,
+    true
+  ],
+  "2034": [
+    true,
+    true,
+    true
+  ],
+  "2035": [
+    false,
+    false,
+    false
+  ],
+  "2036": [
+    true,
+    true,
+    true
+  ],
+  "2037": [
+    true,
+    true,
+    true
+  ],
+  "2038": [
+    false,
+    false,
+    false
+  ],
+  "2039": [
+    false,
+    false,
+    false
+  ],
+  "3000": [
+    false,
+    false,
+    false
+  ],
+  "3001": [
+    true,
+    true,
+    true
+  ],
+  "3003": [
+    false,
+    false,
+    false
+  ],
+  "3002": [
+    false,
+    true,
+    true
+  ],
+  "3004": [
+    false,
+    false,
+    false
+  ],
+  "3005": [
+    true,
+    true,
+    true
+  ],
+  "3006": [
+    true,
+    true,
+    true
+  ],
+  "3007": [
+    true,
+    true,
+    true
+  ],
+  "3008": [
+    true,
+    true,
+    true
+  ],
+  "3009": [
+    true,
+    true,
+    false
+  ],
+  "3010": [
+    false,
+    false,
+    false
+  ],
+  "3011": [
+    true,
+    false,
+    true
+  ],
+  "3012": [
+    true,
+    true,
+    true
+  ],
+  "3013": [
+    true,
+    true,
+    true
+  ],
+  "3014": [
+    true,
+    true,
+    true
+  ],
+  "3015": [
+    false,
+    false,
+    false
+  ],
+  "3016": [
+    true,
+    true,
+    true
+  ],
+  "3018": [
+    true,
+    false,
+    true
+  ],
+  "3017": [
+    true,
+    true,
+    true
+  ],
+  "3019": [
+    true,
+    true,
+    true
+  ],
+  "3020": [
+    true,
+    true,
+    true
+  ],
+  "3021": [
+    true,
+    true,
+    true
+  ],
+  "3022": [
+    true,
+    true,
+    true
+  ],
+  "3023": [
+    true,
+    true,
+    true
+  ],
+  "4000": [
+    true,
+    true,
+    true
+  ],
+  "4002": [
+    true,
+    true,
+    true
+  ],
+  "4001": [
+    true,
+    true,
+    true
+  ],
+  "4003": [
+    true,
+    true,
+    true
+  ],
+  "4005": [
+    true,
+    true,
+    true
+  ],
+  "4004": [
+    true,
+    true,
+    true
+  ],
+  "4006": [
+    true,
+    true,
+    true
+  ],
+  "4007": [
+    true,
+    true,
+    true
+  ],
+  "4008": [
+    false,
+    false,
+    false
+  ],
+  "4009": [
+    true,
+    true,
+    true
+  ],
+  "4010": [
+    true,
+    true,
+    true
+  ],
+  "4011": [
+    true,
+    true,
+    true
+  ],
+  "4012": [
+    false,
+    false,
+    false
+  ],
+  "4013": [
+    true,
+    true,
+    true
+  ],
+  "4016": [
+    true,
+    true,
+    true
+  ],
+  "4014": [
+    true,
+    true,
+    true
+  ],
+  "4015": [
+    true,
+    true,
+    true
+  ],
+  "4017": [
+    false,
+    false,
+    false
+  ],
+  "4018": [
+    true,
+    true,
+    true
+  ],
+  "4019": [
+    true,
+    true,
+    true
+  ],
+  "4020": [
+    true,
+    true,
+    true
+  ],
+  "4021": [
+    true,
+    true,
+    true
+  ],
+  "4022": [
+    true,
+    true,
+    true
+  ],
+  "4023": [
+    true,
+    false,
+    false
+  ],
+  "4024": [
+    true,
+    true,
+    true
+  ],
+  "4025": [
+    false,
+    false,
+    false
+  ],
+  "4026": [
+    true,
+    true,
+    true
+  ],
+  "4027": [
+    true,
+    true,
+    true
+  ],
+  "4028": [
+    false,
+    false,
+    false
+  ],
+  "4029": [
+    true,
+    true,
+    true
+  ],
+  "4030": [
+    true,
+    true,
+    true
+  ],
+  "4031": [
+    true,
+    true,
+    true
+  ],
+  "4032": [
+    true,
+    true,
+    true
+  ],
+  "5000": [
+    true,
+    true,
+    true
+  ],
+  "5001": [
+    true,
+    true,
+    true
+  ],
+  "5002": [
+    true,
+    true,
+    true
+  ],
+  "5003": [
+    true,
+    true,
+    true
+  ],
+  "5005": [
+    true,
+    true,
+    true
+  ],
+  "5004": [
+    false,
+    false,
+    false
+  ],
+  "5006": [
+    false,
+    false,
+    false
+  ],
+  "5007": [
+    false,
+    false,
+    false
+  ],
+  "5008": [
+    true,
+    true,
+    true
+  ],
+  "5009": [
+    true,
+    true,
+    true
+  ],
+  "5010": [
+    true,
+    true,
+    true
+  ],
+  "5011": [
+    true,
+    true,
+    true
+  ],
+  "5012": [
+    true,
+    true,
+    true
+  ],
+  "5013": [
+    true,
+    true,
+    true
+  ],
+  "5014": [
+    true,
+    true,
+    true
+  ],
+  "5015": [
+    true,
+    true,
+    true
+  ],
+  "5016": [
+    false,
+    false,
+    false
+  ],
+  "5017": [
+    false,
+    false,
+    false
+  ],
+  "5018": [
+    false,
+    false,
+    false
+  ],
+  "5019": [
+    true,
+    true,
+    true
+  ],
+  "5020": [
+    true,
+    true,
+    true
+  ],
+  "5021": [
+    false,
+    false,
+    false
+  ],
+  "5022": [
+    true,
+    true,
+    true
+  ],
+  "5023": [
+    true,
+    true,
+    true
+  ],
+  "5024": [
+    true,
+    true,
+    true
+  ],
+  "5025": [
+    true,
+    true,
+    true
+  ],
+  "5026": [
+    true,
+    true,
+    true
+  ],
+  "5027": [
+    true,
+    true,
+    true
+  ],
+  "5028": [
+    true,
+    true,
+    true
+  ],
+  "5029": [
+    true,
+    true,
+    true
+  ],
+  "5030": [
+    true,
+    true,
+    true
+  ],
+  "5031": [
+    true,
+    true,
+    true
+  ],
+  "5033": [
+    true,
+    true,
+    true
+  ],
+  "5032": [
+    false,
+    false,
+    true
+  ],
+  "5035": [
+    true,
+    true,
+    true
+  ],
+  "5034": [
+    true,
+    true,
+    true
+  ],
+  "5036": [
+    true,
+    true,
+    true
+  ],
+  "5037": [
+    true,
+    true,
+    true
+  ],
+  "5038": [
+    true,
+    true,
+    true
+  ],
+  "6000": [
+    true,
+    true,
+    true
+  ],
+  "6001": [
+    true,
+    true,
+    true
+  ],
+  "6003": [
+    true,
+    true,
+    true
+  ],
+  "6002": [
+    true,
+    true,
+    true
+  ],
+  "6004": [
+    false,
+    true,
+    true
+  ],
+  "6005": [
+    true,
+    true,
+    true
+  ],
+  "6006": [
+    true,
+    true,
+    true
+  ],
+  "6007": [
+    true,
+    true,
+    true
+  ],
+  "6008": [
+    true,
+    true,
+    true
+  ],
+  "6009": [
+    false,
+    false,
+    false
+  ],
+  "6010": [
+    true,
+    true,
+    true
+  ],
+  "6012": [
+    true,
+    true,
+    true
+  ],
+  "6013": [
+    false,
+    false,
+    false
+  ],
+  "6011": [
+    true,
+    true,
+    true
+  ],
+  "6014": [
+    false,
+    false,
+    false
+  ],
+  "6016": [
+    false,
+    false,
+    false
+  ],
+  "6015": [
+    false,
+    false,
+    false
+  ],
+  "6017": [
+    true,
+    true,
+    true
+  ],
+  "6018": [
+    true,
+    true,
+    true
+  ],
+  "6019": [
+    false,
+    false,
+    false
+  ],
+  "6020": [
+    false,
+    false,
+    false
+  ],
+  "6021": [
+    false,
+    false,
+    false
+  ],
+  "6023": [
+    false,
+    false,
+    false
+  ],
+  "6022": [
+    true,
+    true,
+    true
+  ],
+  "6024": [
+    true,
+    true,
+    true
+  ],
+  "6025": [
+    true,
+    true,
+    true
+  ],
+  "6026": [
+    true,
+    true,
+    true
+  ],
+  "6027": [
+    false,
+    false,
+    false
+  ],
+  "6028": [
+    true,
+    true,
+    true
+  ],
+  "6029": [
+    false,
+    false,
+    false
+  ],
+  "6030": [
+    false,
+    false,
+    false
+  ],
+  "6031": [
+    true,
+    true,
+    true
+  ],
+  "6032": [
+    true,
+    true,
+    true
+  ],
+  "6033": [
+    true,
+    true,
+    true
+  ],
+  "6034": [
+    false,
+    false,
+    false
+  ],
+  "6036": [
+    true,
+    true,
+    true
+  ],
+  "6035": [
+    true,
+    true,
+    true
+  ],
+  "6037": [
+    false,
+    false,
+    false
+  ],
+  "6038": [
+    true,
+    true,
+    true
+  ]
+}

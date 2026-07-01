@@ -17,7 +17,8 @@ import yaml
 from core.config import build_plugins
 from core.schemas import CaseInfo, DialogueHistory, DialogueTurn, EpisodeConfig
 from plugins.user_llm.user_simulator.v3 import (
-    UserSimulatorV3, _load_prompts, _parse_opening, _parse_followup_no_options,
+    UserSimulatorV3, _letter_from_option_text, _load_prompts, _parse_opening,
+    _parse_followup_no_options,
 )
 from plugins.user_llm.user_simulator.v3_burden import (
     _TLX_DIMS,
@@ -264,10 +265,40 @@ def test_parse_opening_no_options_keeps_free_text_belief_instead_of_discarding_i
     assert belief == "Apocrine hidrocystoma"
 
 
-def test_parse_opening_options_still_requires_a_letter():
+def test_parse_opening_options_accepts_letter_prefix():
+    raw = json.dumps({"response": "hi", "belief": "C. Laryngeal histoplasmosis", "confidence": 0.7, "reasoning": "r"})
+    _utterance, belief, _reasoning, _confidence = _parse_opening(raw, lettered=True)
+    assert belief == "C"
+
+
+def test_parse_opening_options_recovers_option_letter_from_response():
+    raw = json.dumps({
+        "response": "The best next step is transthoracic echocardiography (Option D).",
+        "belief": "Perform transthoracic echocardiography in the emergency department.",
+        "confidence": 0.7,
+        "reasoning": "r",
+    })
+    _utterance, belief, _reasoning, _confidence = _parse_opening(raw, lettered=True)
+    assert belief == "D"
+
+
+def test_parse_opening_options_rejects_unlettered_free_text():
     raw = json.dumps({"response": "hi", "belief": "Apocrine hidrocystoma", "confidence": 0.7, "reasoning": "r"})
     _utterance, belief, _reasoning, _confidence = _parse_opening(raw, lettered=True)
-    assert belief is None  # not a valid A-D letter, correctly rejected in lettered mode
+    assert belief is None
+
+
+def test_letter_from_option_text_recovers_unlettered_opening_belief():
+    options = {
+        "A": "Recommend outpatient follow-up",
+        "B": "Obtain blood cultures",
+        "C": "Obtain serial cardiac troponin measurements",
+        "D": "Perform transthoracic echocardiography in the emergency department",
+    }
+    assert _letter_from_option_text(
+        "Perform transthoracic echocardiography in the emergency department.",
+        options,
+    ) == "D"
 
 
 def test_parse_followup_no_options_captures_free_text_belief():

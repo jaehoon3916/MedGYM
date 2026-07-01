@@ -6,6 +6,8 @@ from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, Policy
 
 
 class PolicyPlugin(BasePlugin):
+    needs_verification: bool = True  # False → select_action skips verification_template param
+
     def __init__(self, config: dict[str, Any], action_space: dict[str, Any]):
         super().__init__(config)
         self.action_space = action_space
@@ -16,6 +18,6 @@ class PolicyPlugin(BasePlugin):
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         current_user_utterance: str,
-        verification_template: VerificationTemplate,
+        verification_template: VerificationTemplate | None = None,
     ) -> PolicyOutput:
         pass

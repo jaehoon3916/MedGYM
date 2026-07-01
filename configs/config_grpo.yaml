@@ -69,9 +69,8 @@ reward:
   # r_final for the optimum. Revisit empirically once an interaction-scaling curve exists.
   lambda_align: 0.3                # process shaping (r_align.txt)
   lambda_final: 1.0                # outcome: user reached gold (final_judge)
-  lambda_len: 0.05                 # efficiency: penalize turns beyond tau_star
+  lambda_burden: 0.02              # interaction cost: penalize cumulative NASA-TLX burden
   lambda_fmt: 0.1                  # valid stage.locution format
-  tau_star: 3
 
 training:
   learning_rate: 1.0e-5

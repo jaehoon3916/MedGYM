@@ -118,9 +118,14 @@ def load_rollouts() -> list:
         summary_path = jsonl_file.parent / "tokens" / (jsonl_file.stem + "_token_summary.json")
         token_summary = _read_json(summary_path)
         total_tokens = sum(v.get("total_tokens", 0) for v in token_summary.values())
+        rel = jsonl_file.relative_to(OUTPUTS_DIR)
+        parts = rel.parts
+        exp_name = parts[0]
+        condition = parts[1] if len(parts) >= 3 else ""
         rollouts.append({
-            "path": str(jsonl_file.relative_to(OUTPUTS_DIR)),
-            "exp_name": jsonl_file.parent.name,
+            "path": str(rel),
+            "exp_name": exp_name,
+            "condition": condition,
             "case_id": first.get("case_id", "?"),
             "num_turns": len(turns),
             "timestamp": first.get("timestamp", ""),
@@ -143,8 +148,13 @@ def load_rollout(rel_path: str):
 
 @app.route("/")
 def index():
+    from collections import defaultdict
     rollouts = load_rollouts()
-    return render_template("index.html", rollouts=rollouts)
+    grouped: dict[str, list] = defaultdict(list)
+    for r in rollouts:
+        grouped[r["exp_name"]].append(r)
+    groups = dict(sorted(grouped.items()))
+    return render_template("index.html", groups=groups, rollouts=rollouts)
 
 
 @app.route("/rollout/<path:rel_path>")

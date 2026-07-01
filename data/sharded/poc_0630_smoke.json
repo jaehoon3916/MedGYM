@@ -1,0 +1,1094 @@
+{
+  "0000": {
+    "case_id": "0000",
+    "specialty": "cardiology",
+    "n_shards": 35,
+    "initial_shard": "55-year-old man, previously healthy, woke up with a buzzing sensation in his chest.",
+    "shards": [
+      {
+        "shard_id": 0,
+        "shard": "55-year-old man, previously healthy, woke up with a buzzing sensation in his chest.",
+        "segment": "A previously healthy 55-year-old man presented to his local family medicine clinic after waking up with a buzzing sensation in his chest."
+      },
+      {
+        "shard_id": 1,
+        "shard": "On auscultation, there's a grade 6 out of 6, decrescendo, diastolic murmur at the right upper sternal border.",
+        "segment": "A buzzing, decrescendo, grade 6/6 diastolic murmur (DM) was heard at the right upper sternal border (Figure 1;Video 1)."
+      },
+      {
+        "shard_id": 2,
+        "shard": "Palpation of the chest reveals a thrill along the sternal border.",
+        "segment": "Chest palpation demonstrated a thrill along the sternal border."
+      },
+      {
+        "shard_id": 3,
+        "shard": "The point of maximal impulse is laterally displaced.",
+        "segment": "The point of maximal impulse was laterally displaced."
+      },
+      {
+        "shard_id": 4,
+        "shard": "The ECG shows moderate voltage criteria for left ventricular hypertrophy.",
+        "segment": "Electrocardiogram showed moderate voltage criteria for left ventricular (LV) hypertrophy."
+      },
+      {
+        "shard_id": 5,
+        "shard": "The ECG also shows ST and T wave abnormalities in the lateral leads.",
+        "segment": "Electrocardiogram showed ST and T abnormalities in the lateral leads."
+      },
+      {
+        "shard_id": 6,
+        "shard": "The murmur radiates throughout the precordium.",
+        "segment": "The murmur radiated throughout the precordium."
+      },
+      {
+        "shard_id": 7,
+        "shard": "The murmur radiates into the abdomen.",
+        "segment": "The murmur radiated into the abdomen."
+      },
+      {
+        "shard_id": 8,
+        "shard": "The murmur radiates to both carotid arteries.",
+        "segment": "The murmur radiated to the bilateral carotids."
+      },
+      {
+        "shard_id": 9,
+        "shard": "The murmur is even audible in the posterior thorax.",
+        "segment": "The murmur was audible in the posterior thorax."
+      },
+      {
+        "shard_id": 10,
+        "shard": "He was directed to go to the local emergency department.",
+        "segment": "He was directed to the local emergency department."
+      },
+      {
+        "shard_id": 11,
+        "shard": "His initial pulse was 100 beats per minute.",
+        "segment": "His initial vital signs included pulse of 100 beats/min."
+      },
+      {
+        "shard_id": 12,
+        "shard": "Auscultation reveals a regular rate and rhythm.",
+        "segment": "Auscultation revealed regular rate and rhythm."
+      },
+      {
+        "shard_id": 13,
+        "shard": "The second heart sounds (S2) are soft.",
+        "segment": "Auscultation revealed soft second (S2) heart sounds."
+      },
+      {
+        "shard_id": 14,
+        "shard": "The first heart sounds (S1) are normal.",
+        "segment": "Auscultation revealed normal first (S1) heart sounds."
+      },
+      {
+        "shard_id": 15,
+        "shard": "The ECG shows a normal sinus rhythm.",
+        "segment": "Electrocardiogram showed normal sinus rhythm."
+      },
+      {
+        "shard_id": 16,
+        "shard": "He reports lifting televisions in the days before this.",
+        "segment": "He had been lifting televisions in the preceding days."
+      },
+      {
+        "shard_id": 17,
+        "shard": "His initial blood pressure was 124 over 71.",
+        "segment": "His initial vital signs included blood pressure of 124/71 mm Hg."
+      },
+      {
+        "shard_id": 18,
+        "shard": "His respiratory rate was 18 breaths per minute.",
+        "segment": "His initial vital signs included respiratory rate of 18 breaths/min."
+      },
+      {
+        "shard_id": 19,
+        "shard": "His oxygen saturation was 98% on room air.",
+        "segment": "His initial vital signs included oxygen saturation of 98% as measured by pulse oximetry."
+      },
+      {
+        "shard_id": 20,
+        "shard": "His body mass index is 25.",
+        "segment": "His initial vital signs included body mass index (calculated as weight in kilograms divided by height in meters squared) of 25."
+      },
+      {
+        "shard_id": 21,
+        "shard": "His temperature was 36.6 degrees Celsius.",
+        "segment": "His initial vital signs included temperature of 36.6 °C."
+      },
+      {
+        "shard_id": 22,
+        "shard": "On exam, he is alert.",
+        "segment": "On physical examination, he was alert."
+      },
+      {
+        "shard_id": 23,
+        "shard": "He is oriented.",
+        "segment": "On physical examination, he was oriented."
+      },
+      {
+        "shard_id": 24,
+        "shard": "He is in no acute distress.",
+        "segment": "On physical examination, he was in no acute distress."
+      },
+      {
+        "shard_id": 25,
+        "shard": "He works in retail sales.",
+        "segment": "He worked in retail sales."
+      },
+      {
+        "shard_id": 26,
+        "shard": "He denies any chest pain.",
+        "segment": "He denied chest pain."
+      },
+      {
+        "shard_id": 27,
+        "shard": "He denies shortness of breath.",
+        "segment": "He denied dyspnea."
+      },
+      {
+        "shard_id": 28,
+        "shard": "He denies palpitations.",
+        "segment": "He denied palpitations."
+      },
+      {
+        "shard_id": 29,
+        "shard": "He denies feeling lightheaded.",
+        "segment": "He denied lightheadedness."
+      },
+      {
+        "shard_id": 30,
+        "shard": "He denies diaphoresis or sweating.",
+        "segment": "He denied diaphoresis."
+      },
+      {
+        "shard_id": 31,
+        "shard": "He denies having a fever.",
+        "segment": "He denied fever."
+      },
+      {
+        "shard_id": 32,
+        "shard": "He denies any swelling in his legs.",
+        "segment": "He denied lower-extremity edema."
+      },
+      {
+        "shard_id": 33,
+        "shard": "He denies feeling fatigued.",
+        "segment": "He denied fatigue."
+      },
+      {
+        "shard_id": 34,
+        "shard": "A phonocardiogram was obtained, consistent with a grade 6 diastolic murmur.",
+        "segment": "Phonocardiogram in a patient with a grade 6 diastolic murmur."
+      }
+    ],
+    "_raw_segments": [
+      {
+        "segment": "A previously healthy 55-year-old man presented to his local family medicine clinic after waking up with a buzzing sensation in his chest."
+      },
+      {
+        "segment": "He denied chest pain."
+      },
+      {
+        "segment": "He denied dyspnea."
+      },
+      {
+        "segment": "He denied palpitations."
+      },
+      {
+        "segment": "He denied lightheadedness."
+      },
+      {
+        "segment": "He denied diaphoresis."
+      },
+      {
+        "segment": "He denied fever."
+      },
+      {
+        "segment": "He denied lower-extremity edema."
+      },
+      {
+        "segment": "He denied fatigue."
+      },
+      {
+        "segment": "He worked in retail sales."
+      },
+      {
+        "segment": "He had been lifting televisions in the preceding days."
+      },
+      {
+        "segment": "His initial vital signs included blood pressure of 124/71 mm Hg."
+      },
+      {
+        "segment": "His initial vital signs included pulse of 100 beats/min."
+      },
+      {
+        "segment": "His initial vital signs included temperature of 36.6 °C."
+      },
+      {
+        "segment": "His initial vital signs included respiratory rate of 18 breaths/min."
+      },
+      {
+        "segment": "His initial vital signs included oxygen saturation of 98% as measured by pulse oximetry."
+      },
+      {
+        "segment": "His initial vital signs included body mass index (calculated as weight in kilograms divided by height in meters squared) of 25."
+      },
+      {
+        "segment": "He was directed to the local emergency department."
+      },
+      {
+        "segment": "On physical examination, he was alert."
+      },
+      {
+        "segment": "On physical examination, he was oriented."
+      },
+      {
+        "segment": "On physical examination, he was in no acute distress."
+      },
+      {
+        "segment": "Chest palpation demonstrated a thrill along the sternal border."
+      },
+      {
+        "segment": "The point of maximal impulse was laterally displaced."
+      },
+      {
+        "segment": "Auscultation revealed regular rate and rhythm."
+      },
+      {
+        "segment": "Auscultation revealed normal first (S1) heart sounds."
+      },
+      {
+        "segment": "Auscultation revealed soft second (S2) heart sounds."
+      },
+      {
+        "segment": "A buzzing, decrescendo, grade 6/6 diastolic murmur (DM) was heard at the right upper sternal border (Figure 1;Video 1)."
+      },
+      {
+        "segment": "The murmur radiated throughout the precordium."
+      },
+      {
+        "segment": "The murmur radiated into the abdomen."
+      },
+      {
+        "segment": "The murmur radiated to the bilateral carotids."
+      },
+      {
+        "segment": "The murmur was audible in the posterior thorax."
+      },
+      {
+        "segment": "Electrocardiogram showed normal sinus rhythm."
+      },
+      {
+        "segment": "Electrocardiogram showed moderate voltage criteria for left ventricular (LV) hypertrophy."
+      },
+      {
+        "segment": "Electrocardiogram showed ST and T abnormalities in the lateral leads."
+      },
+      {
+        "segment": "Phonocardiogram in a patient with a grade 6 diastolic murmur."
+      }
+    ]
+  },
+  "1000": {
+    "case_id": "1000",
+    "specialty": "dermatology",
+    "n_shards": 52,
+    "initial_shard": "A woman in her 30s with a chronic, painful, non-healing ulcer on her fifth finger.",
+    "shards": [
+      {
+        "shard_id": 0,
+        "shard": "A woman in her 30s with a chronic, painful, non-healing ulcer on her fifth finger.",
+        "segment": "A woman in her 30s presented with a chronic, painful, nonhealing ulcer on her fifth finger"
+      },
+      {
+        "shard_id": 1,
+        "shard": "The biopsy shows a poorly circumscribed infiltrate of atypical epithelioid cells within the dermis, dissecting between collagen bundles with a mixed inflammatory infiltrate.",
+        "segment": "Figure 1B: Poorly circumscribed infiltrate of atypical epithelioid cells within the dermis dissecting between collagen bundles with mixed inflammatory infiltrate."
+      },
+      {
+        "shard_id": 2,
+        "shard": "The epithelioid cells have round to oval, enlarged nuclei with vesicular chromatin.",
+        "segment": "Figure 1B: Epithelioid cells have round to oval, enlarged nuclei with vesicular chromatin."
+      },
+      {
+        "shard_id": 3,
+        "shard": "The epithelioid cells have abundant amphophilic cytoplasm.",
+        "segment": "Figure 1B: Epithelioid cells have abundant amphophilic cytoplasm."
+      },
+      {
+        "shard_id": 4,
+        "shard": "Some of the epithelioid cells are pleomorphic.",
+        "segment": "Figure 1B: Some epithelioid cells are pleomorphic."
+      },
+      {
+        "shard_id": 5,
+        "shard": "Despite exhaustive therapy for pyoderma gangrenosum, the wound continued to enlarge to 4.5 by 3.0 centimeters.",
+        "segment": "Despite exhaustive PG-directed therapy, the wound continued to enlarge to 4.5 × 3.0 cm"
+      },
+      {
+        "shard_id": 6,
+        "shard": "The wound exposed tendon.",
+        "segment": "the wound exposed tendon"
+      },
+      {
+        "shard_id": 7,
+        "shard": "The wound had increased drainage.",
+        "segment": "the wound had increased drainage"
+      },
+      {
+        "shard_id": 8,
+        "shard": "The wound had increased pain.",
+        "segment": "the wound had increased pain"
+      },
+      {
+        "shard_id": 9,
+        "shard": "A 3-mm punch biopsy showed neutrophilic inflammation.",
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed neutrophilic inflammation"
+      },
+      {
+        "shard_id": 10,
+        "shard": "The biopsy also showed epidermal hyperplasia.",
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed epidermal hyperplasia"
+      },
+      {
+        "shard_id": 11,
+        "shard": "The biopsy showed no evidence of infectious organisms.",
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed no evidence of infectious organisms"
+      },
+      {
+        "shard_id": 12,
+        "shard": "On exam, her PARACELSUS score was greater than 10.",
+        "segment": "On examination, her PARACELSUS score was greater than 10"
+      },
+      {
+        "shard_id": 13,
+        "shard": "The PARACELSUS score suggested a possible diagnosis of pyoderma gangrenosum.",
+        "segment": "the PARACELSUS score suggested the possible diagnosis of pyoderma gangrenosum (PG)"
+      },
+      {
+        "shard_id": 14,
+        "shard": "The ulcer developed after a trauma one year earlier.",
+        "segment": "the ulcer developed after trauma 1 year earlier"
+      },
+      {
+        "shard_id": 15,
+        "shard": "The lesion initially appeared as a skin-colored papule.",
+        "segment": "The lesion initially appeared as a skin-colored papule"
+      },
+      {
+        "shard_id": 16,
+        "shard": "It initially had associated numbness and tingling.",
+        "segment": "the lesion initially had associated numbness and tingling"
+      },
+      {
+        "shard_id": 17,
+        "shard": "It was initially presumed to be a wart.",
+        "segment": "the lesion was presumed to be a wart"
+      },
+      {
+        "shard_id": 18,
+        "shard": "It was treated with cryotherapy.",
+        "segment": "the lesion was treated with cryotherapy"
+      },
+      {
+        "shard_id": 19,
+        "shard": "When that treatment failed, a biopsy was performed.",
+        "segment": "When treatment failed, a biopsy was performed"
+      },
+      {
+        "shard_id": 20,
+        "shard": "That biopsy suggested a traumatized dermatofibroma.",
+        "segment": "the biopsy suggested traumatized dermatofibroma"
+      },
+      {
+        "shard_id": 21,
+        "shard": "The lesion continued to grow.",
+        "segment": "the lesion continued to grow"
+      },
+      {
+        "shard_id": 22,
+        "shard": "It continued to ulcerate.",
+        "segment": "the lesion continued to ulcerate"
+      },
+      {
+        "shard_id": 23,
+        "shard": "It continued to become more painful.",
+        "segment": "the lesion continued to become more painful"
+      },
+      {
+        "shard_id": 24,
+        "shard": "She was treated with intralesional triamcinolone.",
+        "segment": "She was treated with intralesional triamcinolone"
+      },
+      {
+        "shard_id": 25,
+        "shard": "She was also treated with doxycycline.",
+        "segment": "She was treated with doxycycline"
+      },
+      {
+        "shard_id": 26,
+        "shard": "There was no improvement with the intralesional triamcinolone and doxycycline.",
+        "segment": "there was no improvement with intralesional triamcinolone and doxycycline"
+      },
+      {
+        "shard_id": 27,
+        "shard": "This prompted a referral to dermatology.",
+        "segment": "this prompted referral to dermatology"
+      },
+      {
+        "shard_id": 28,
+        "shard": "Superficial wound cultures grew gram-positive cocci.",
+        "segment": "superficial wound cultures grew gram-positive cocci"
+      },
+      {
+        "shard_id": 29,
+        "shard": "We began treatment with mupirocin ointment.",
+        "segment": "We began treatment with mupirocin ointment"
+      },
+      {
+        "shard_id": 30,
+        "shard": "We also began treatment with oral prednisone.",
+        "segment": "We began treatment with oral prednisone"
+      },
+      {
+        "shard_id": 31,
+        "shard": "There was improvement in the ulcer size with mupirocin and prednisone.",
+        "segment": "there was improvement in ulcer size with mupirocin and prednisone"
+      },
+      {
+        "shard_id": 32,
+        "shard": "There was improvement in ulcer drainage.",
+        "segment": "there was improvement in ulcer drainage with mupirocin and prednisone"
+      },
+      {
+        "shard_id": 33,
+        "shard": "There was improvement in ulcer pain.",
+        "segment": "there was improvement in ulcer pain with mupirocin and prednisone"
+      },
+      {
+        "shard_id": 34,
+        "shard": "She was then transitioned to cyclosporine.",
+        "segment": "then transitioned to cyclosporine"
+      },
+      {
+        "shard_id": 35,
+        "shard": "Cyclosporine was discontinued due to adverse effects.",
+        "segment": "cyclosporine was discontinued due to adverse effects"
+      },
+      {
+        "shard_id": 36,
+        "shard": "The ulcer progressed to a deep, violaceous lesion.",
+        "segment": "The ulcer progressed to a deep, violaceous lesion"
+      },
+      {
+        "shard_id": 37,
+        "shard": "It had undermined borders.",
+        "segment": "The ulcer had undermined borders"
+      },
+      {
+        "shard_id": 38,
+        "shard": "It had yellow discharge.",
+        "segment": "The ulcer had yellow discharge"
+      },
+      {
+        "shard_id": 39,
+        "shard": "She was then treated with adalimumab.",
+        "segment": "She was then treated with adalimumab"
+      },
+      {
+        "shard_id": 40,
+        "shard": "She was also treated with minocycline.",
+        "segment": "She was then treated with minocycline"
+      },
+      {
+        "shard_id": 41,
+        "shard": "And she was treated with dapsone.",
+        "segment": "She was then treated with dapsone"
+      },
+      {
+        "shard_id": 42,
+        "shard": "The ulcer increased in size despite adalimumab, minocycline, and dapsone.",
+        "segment": "the ulcer increased in size despite adalimumab, minocycline, and dapsone"
+      },
+      {
+        "shard_id": 43,
+        "shard": "After reinitiating prednisone, she reported clinical improvement.",
+        "segment": "After reinitiating prednisone, she reported clinical improvement"
+      },
+      {
+        "shard_id": 44,
+        "shard": "Symptoms again worsened after tapering the prednisone.",
+        "segment": "symptoms again worsened after tapering prednisone"
+      },
+      {
+        "shard_id": 45,
+        "shard": "Radiology demonstrated soft tissue swelling.",
+        "segment": "Radiology demonstrated soft tissue swelling"
+      },
+      {
+        "shard_id": 46,
+        "shard": "Radiology demonstrated no bony necrosis.",
+        "segment": "Radiology demonstrated no bony necrosis"
+      },
+      {
+        "shard_id": 47,
+        "shard": "This prompted evaluation with point-of-care high-frequency ultrasonography.",
+        "segment": "this prompted evaluation with point-of-care high-frequency ultrasonography (HFUS)"
+      },
+      {
+        "shard_id": 48,
+        "shard": "It also prompted evaluation with a repeat biopsy.",
+        "segment": "this prompted evaluation with repeat biopsy"
+      },
+      {
+        "shard_id": 49,
+        "shard": "Figure 1A shows the fifth digit ulceration with raised, erythematous borders and drainage on the initial dermatology visit.",
+        "segment": "Figure 1A"
+      },
+      {
+        "shard_id": 50,
+        "shard": "Figure 1A shows the fifth digit ulceration with raised, erythematous borders and drainage on the initial dermatology visit.",
+        "segment": "Figure 1A: Fifth digit ulceration with raised, erythematous borders and drainage on initial dermatology visit."
+      },
+      {
+        "shard_id": 51,
+        "shard": "Figure 1B shows the histopathology findings from the repeat biopsy.",
+        "segment": "Figure 1B"
+      }
+    ],
+    "_raw_segments": [
+      {
+        "segment": "A woman in her 30s"
+      },
+      {
+        "segment": "presented with a chronic, painful, nonhealing ulcer on her fifth finger"
+      },
+      {
+        "segment": "the ulcer developed after trauma 1 year earlier"
+      },
+      {
+        "segment": "Figure 1A"
+      },
+      {
+        "segment": "The lesion initially appeared as a skin-colored papule"
+      },
+      {
+        "segment": "the lesion initially had associated numbness and tingling"
+      },
+      {
+        "segment": "the lesion was presumed to be a wart"
+      },
+      {
+        "segment": "the lesion was treated with cryotherapy"
+      },
+      {
+        "segment": "When treatment failed, a biopsy was performed"
+      },
+      {
+        "segment": "the biopsy suggested traumatized dermatofibroma"
+      },
+      {
+        "segment": "the lesion continued to grow"
+      },
+      {
+        "segment": "the lesion continued to ulcerate"
+      },
+      {
+        "segment": "the lesion continued to become more painful"
+      },
+      {
+        "segment": "She was treated with intralesional triamcinolone"
+      },
+      {
+        "segment": "She was treated with doxycycline"
+      },
+      {
+        "segment": "there was no improvement with intralesional triamcinolone and doxycycline"
+      },
+      {
+        "segment": "this prompted referral to dermatology"
+      },
+      {
+        "segment": "On examination, her PARACELSUS score was greater than 10"
+      },
+      {
+        "segment": "the PARACELSUS score suggested the possible diagnosis of pyoderma gangrenosum (PG)"
+      },
+      {
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed epidermal hyperplasia"
+      },
+      {
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed neutrophilic inflammation"
+      },
+      {
+        "segment": "Results of a punch biopsy cut to a depth of 3 mm showed no evidence of infectious organisms"
+      },
+      {
+        "segment": "superficial wound cultures grew gram-positive cocci"
+      },
+      {
+        "segment": "We began treatment with mupirocin ointment"
+      },
+      {
+        "segment": "We began treatment with oral prednisone"
+      },
+      {
+        "segment": "there was improvement in ulcer size with mupirocin and prednisone"
+      },
+      {
+        "segment": "there was improvement in ulcer drainage with mupirocin and prednisone"
+      },
+      {
+        "segment": "there was improvement in ulcer pain with mupirocin and prednisone"
+      },
+      {
+        "segment": "then transitioned to cyclosporine"
+      },
+      {
+        "segment": "cyclosporine was discontinued due to adverse effects"
+      },
+      {
+        "segment": "The ulcer progressed to a deep, violaceous lesion"
+      },
+      {
+        "segment": "The ulcer had undermined borders"
+      },
+      {
+        "segment": "The ulcer had yellow discharge"
+      },
+      {
+        "segment": "She was then treated with adalimumab"
+      },
+      {
+        "segment": "She was then treated with minocycline"
+      },
+      {
+        "segment": "She was then treated with dapsone"
+      },
+      {
+        "segment": "the ulcer increased in size despite adalimumab, minocycline, and dapsone"
+      },
+      {
+        "segment": "After reinitiating prednisone, she reported clinical improvement"
+      },
+      {
+        "segment": "symptoms again worsened after tapering prednisone"
+      },
+      {
+        "segment": "Radiology demonstrated soft tissue swelling"
+      },
+      {
+        "segment": "Radiology demonstrated no bony necrosis"
+      },
+      {
+        "segment": "Despite exhaustive PG-directed therapy, the wound continued to enlarge to 4.5 × 3.0 cm"
+      },
+      {
+        "segment": "the wound exposed tendon"
+      },
+      {
+        "segment": "the wound had increased drainage"
+      },
+      {
+        "segment": "the wound had increased pain"
+      },
+      {
+        "segment": "this prompted evaluation with point-of-care high-frequency ultrasonography (HFUS)"
+      },
+      {
+        "segment": "this prompted evaluation with repeat biopsy"
+      },
+      {
+        "segment": "Figure 1B"
+      },
+      {
+        "segment": "Figure 1A: Fifth digit ulceration with raised, erythematous borders and drainage on initial dermatology visit."
+      },
+      {
+        "segment": "Figure 1B: Poorly circumscribed infiltrate of atypical epithelioid cells within the dermis dissecting between collagen bundles with mixed inflammatory infiltrate."
+      },
+      {
+        "segment": "Figure 1B: Epithelioid cells have round to oval, enlarged nuclei with vesicular chromatin."
+      },
+      {
+        "segment": "Figure 1B: Some epithelioid cells are pleomorphic."
+      },
+      {
+        "segment": "Figure 1B: Epithelioid cells have abundant amphophilic cytoplasm."
+      }
+    ]
+  },
+  "2000": {
+    "case_id": "2000",
+    "specialty": "jama",
+    "n_shards": 42,
+    "initial_shard": "65-year-old farmer, previously healthy, came in after eating raw tuna sashimi, with 5 hours of fatigue, nausea, lightheadedness, headache, chest pain, abdominal pain, and diarrhea.",
+    "shards": [
+      {
+        "shard_id": 0,
+        "shard": "65-year-old farmer, previously healthy, came in after eating raw tuna sashimi, with 5 hours of fatigue, nausea, lightheadedness, headache, chest pain, abdominal pain, and diarrhea.",
+        "segment": "A previously healthy 65-year-old farmer presented to the emergency department with 5 hours of fatigue, nausea, lightheadedness, headache, chest pain, abdominal pain, and diarrhea that developed 1 hour after eating raw tuna sashimi"
+      },
+      {
+        "shard_id": 1,
+        "shard": "On presentation, his blood pressure was quite low at 67 over 42.",
+        "segment": "On presentation, his blood pressure was 67/42 mm Hg"
+      },
+      {
+        "shard_id": 2,
+        "shard": "He developed nonsustained ventricular tachycardia.",
+        "segment": "and developed nonsustained ventricular tachycardia"
+      },
+      {
+        "shard_id": 3,
+        "shard": "The ECG showed ST-segment elevation in lead aVR.",
+        "segment": "and ST-segment elevation in lead aVR"
+      },
+      {
+        "shard_id": 4,
+        "shard": "There were also ST-segment depressions in leads II, III, aVF, and V3 through V6.",
+        "segment": "and ST-segment depressions in leads II, III, aVF, and V3-6"
+      },
+      {
+        "shard_id": 5,
+        "shard": "The ECG figure shows ST elevation in aVR and depressions in the inferior and precordial leads.",
+        "segment": "Figure, right panel: Electrocardiogram with ST-segment elevation in lead aVR and ST-segment depressions in leads II, III, aVF, and V3-6"
+      },
+      {
+        "shard_id": 6,
+        "shard": "Despite fluids and antibiotics, his hypotension persisted.",
+        "segment": "but hypotension persisted"
+      },
+      {
+        "shard_id": 7,
+        "shard": "We had to start a norepinephrine infusion for blood pressure support.",
+        "segment": "so an infusion of norepinephrine was started"
+      },
+      {
+        "shard_id": 8,
+        "shard": "He was intubated for airway protection.",
+        "segment": "He was intubated for airway protection"
+      },
+      {
+        "shard_id": 9,
+        "shard": "He underwent emergent coronary angiography.",
+        "segment": "and underwent emergent coronary angiography"
+      },
+      {
+        "shard_id": 10,
+        "shard": "The coronary angiogram revealed normal coronary arteries.",
+        "segment": "which revealed normal coronary arteries"
+      },
+      {
+        "shard_id": 11,
+        "shard": "He was shivering.",
+        "segment": "He was shivering"
+      },
+      {
+        "shard_id": 12,
+        "shard": "He had an erythematous, nonpruritic rash on his upper torso.",
+        "segment": "had an erythematous nonpruritic rash on his upper torso"
+      },
+      {
+        "shard_id": 13,
+        "shard": "A figure shows the nonpruritic rash across his upper torso.",
+        "segment": "Figure, left panel: Nonpruritic rash across the patient’s upper torso"
+      },
+      {
+        "shard_id": 14,
+        "shard": "On exam, he had diffuse abdominal tenderness.",
+        "segment": "had diffuse abdominal tenderness"
+      },
+      {
+        "shard_id": 15,
+        "shard": "There was no rebound tenderness.",
+        "segment": "without rebound"
+      },
+      {
+        "shard_id": 16,
+        "shard": "There was no guarding.",
+        "segment": "without guarding"
+      },
+      {
+        "shard_id": 17,
+        "shard": "About an hour later, he vomited.",
+        "segment": "One hour later, he vomited"
+      },
+      {
+        "shard_id": 18,
+        "shard": "Labs showed a leukocytosis with a white count of 14,300.",
+        "segment": "Laboratory studies showed a white blood cell count of 14 300/µL (reference, 3900-9800/µL)"
+      },
+      {
+        "shard_id": 19,
+        "shard": "The differential showed 78% neutrophils.",
+        "segment": "with 78% (reference, 40%-70%) neutrophils"
+      },
+      {
+        "shard_id": 20,
+        "shard": "There were no eosinophils.",
+        "segment": "and no eosinophils"
+      },
+      {
+        "shard_id": 21,
+        "shard": "His troponin T remained normal on repeat testing.",
+        "segment": "Serum cardiac troponin T level was normal on repeat testing"
+      },
+      {
+        "shard_id": 22,
+        "shard": "The initial serum cardiac troponin T was normal.",
+        "segment": "serum cardiac troponin T was normal"
+      },
+      {
+        "shard_id": 23,
+        "shard": "Hemoglobin levels were normal.",
+        "segment": "Levels of hemoglobin were normal"
+      },
+      {
+        "shard_id": 24,
+        "shard": "Platelet count was normal.",
+        "segment": "platelets were normal"
+      },
+      {
+        "shard_id": 25,
+        "shard": "C-reactive protein was normal.",
+        "segment": "C-reactive protein was normal"
+      },
+      {
+        "shard_id": 26,
+        "shard": "Erythrocyte sedimentation rate was normal.",
+        "segment": "erythrocyte sedimentation rate was normal"
+      },
+      {
+        "shard_id": 27,
+        "shard": "The basic metabolic panel results were normal.",
+        "segment": "results of basic metabolic panel were normal"
+      },
+      {
+        "shard_id": 28,
+        "shard": "Liver function tests were normal.",
+        "segment": "liver function tests were normal"
+      },
+      {
+        "shard_id": 29,
+        "shard": "Chest radiograph was normal.",
+        "segment": "chest radiograph was normal"
+      },
+      {
+        "shard_id": 30,
+        "shard": "The initial electrocardiogram was normal.",
+        "segment": "electrocardiogram (ECG) was normal"
+      },
+      {
+        "shard_id": 31,
+        "shard": "His pulse was 87.",
+        "segment": "pulse, 87 beats/min"
+      },
+      {
+        "shard_id": 32,
+        "shard": "Respiratory rate was 20.",
+        "segment": "respiratory rate, 20 breaths/min"
+      },
+      {
+        "shard_id": 33,
+        "shard": "Temperature was 36.9, or 98.4 Fahrenheit.",
+        "segment": "temperature, 36.9 °C (98.4 °F)"
+      },
+      {
+        "shard_id": 34,
+        "shard": "Oxygen saturation was 96% on room air.",
+        "segment": "oxygen saturation, 96% on room air"
+      },
+      {
+        "shard_id": 35,
+        "shard": "He received 2 grams of intravenous ceftriaxone.",
+        "segment": "He received intravenous ceftriaxone (2 g)"
+      },
+      {
+        "shard_id": 36,
+        "shard": "And 1 gram of intravenous vancomycin.",
+        "segment": "and vancomycin (1 g)"
+      },
+      {
+        "shard_id": 37,
+        "shard": "He also got 3 liters of intravenous crystalloid fluid.",
+        "segment": "and 3 L of intravenous crystalloid"
+      },
+      {
+        "shard_id": 38,
+        "shard": "He takes no regular medications.",
+        "segment": "He took no medications"
+      },
+      {
+        "shard_id": 39,
+        "shard": "He has no known allergies.",
+        "segment": "had no known allergies"
+      },
+      {
+        "shard_id": 40,
+        "shard": "He does not smoke.",
+        "segment": "did not smoke"
+      },
+      {
+        "shard_id": 41,
+        "shard": "He does not drink alcohol.",
+        "segment": "did not drink alcohol"
+      }
+    ],
+    "_raw_segments": [
+      {
+        "segment": "A previously healthy 65-year-old farmer"
+      },
+      {
+        "segment": "presented to the emergency department"
+      },
+      {
+        "segment": "with 5 hours of fatigue"
+      },
+      {
+        "segment": "with 5 hours of nausea"
+      },
+      {
+        "segment": "with 5 hours of lightheadedness"
+      },
+      {
+        "segment": "with 5 hours of headache"
+      },
+      {
+        "segment": "with 5 hours of chest pain"
+      },
+      {
+        "segment": "with 5 hours of abdominal pain"
+      },
+      {
+        "segment": "with 5 hours of diarrhea"
+      },
+      {
+        "segment": "that developed 1 hour after eating raw tuna sashimi"
+      },
+      {
+        "segment": "He took no medications"
+      },
+      {
+        "segment": "had no known allergies"
+      },
+      {
+        "segment": "did not smoke"
+      },
+      {
+        "segment": "did not drink alcohol"
+      },
+      {
+        "segment": "On presentation, his blood pressure was 67/42 mm Hg"
+      },
+      {
+        "segment": "pulse, 87 beats/min"
+      },
+      {
+        "segment": "respiratory rate, 20 breaths/min"
+      },
+      {
+        "segment": "temperature, 36.9 °C (98.4 °F)"
+      },
+      {
+        "segment": "oxygen saturation, 96% on room air"
+      },
+      {
+        "segment": "He was shivering"
+      },
+      {
+        "segment": "had an erythematous nonpruritic rash on his upper torso"
+      },
+      {
+        "segment": "Figure, left panel: Nonpruritic rash across the patient’s upper torso"
+      },
+      {
+        "segment": "had diffuse abdominal tenderness"
+      },
+      {
+        "segment": "without rebound"
+      },
+      {
+        "segment": "without guarding"
+      },
+      {
+        "segment": "Laboratory studies showed a white blood cell count of 14 300/µL (reference, 3900-9800/µL)"
+      },
+      {
+        "segment": "with 78% (reference, 40%-70%) neutrophils"
+      },
+      {
+        "segment": "and no eosinophils"
+      },
+      {
+        "segment": "Levels of hemoglobin were normal"
+      },
+      {
+        "segment": "platelets were normal"
+      },
+      {
+        "segment": "serum cardiac troponin T was normal"
+      },
+      {
+        "segment": "C-reactive protein was normal"
+      },
+      {
+        "segment": "erythrocyte sedimentation rate was normal"
+      },
+      {
+        "segment": "results of basic metabolic panel were normal"
+      },
+      {
+        "segment": "liver function tests were normal"
+      },
+      {
+        "segment": "chest radiograph was normal"
+      },
+      {
+        "segment": "electrocardiogram (ECG) was normal"
+      },
+      {
+        "segment": "He received intravenous ceftriaxone (2 g)"
+      },
+      {
+        "segment": "and vancomycin (1 g)"
+      },
+      {
+        "segment": "and 3 L of intravenous crystalloid"
+      },
+      {
+        "segment": "but hypotension persisted"
+      },
+      {
+        "segment": "so an infusion of norepinephrine was started"
+      },
+      {
+        "segment": "One hour later, he vomited"
+      },
+      {
+        "segment": "and developed nonsustained ventricular tachycardia"
+      },
+      {
+        "segment": "and ST-segment elevation in lead aVR"
+      },
+      {
+        "segment": "and ST-segment depressions in leads II, III, aVF, and V3-6"
+      },
+      {
+        "segment": "Figure, right panel: Electrocardiogram with ST-segment elevation in lead aVR and ST-segment depressions in leads II, III, aVF, and V3-6"
+      },
+      {
+        "segment": "Serum cardiac troponin T level was normal on repeat testing"
+      },
+      {
+        "segment": "He was intubated for airway protection"
+      },
+      {
+        "segment": "and underwent emergent coronary angiography"
+      },
+      {
+        "segment": "which revealed normal coronary arteries"
+      }
+    ]
+  }
+}

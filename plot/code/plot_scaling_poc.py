@@ -4,6 +4,7 @@ Plot scaling-POC / termination-POC results.
 
   --mode compare  — 서로 다른 baseline 간 비교 (실험당 pooled 커브 1개씩)
   --mode persona  — 단일 baseline 내 persona별 비교 (condition별 커브 각각)
+  --mode quadrant — 2×2 knowledge quadrant (doctor knows/blind × AI knows/blind), run당 커브 1개씩
 
 scaling_poc / termination_poc 모두 동일한 포맷 (all_checkpoints, curve, trajectory_counts 등).
 Labels are always the folder name — no override option.
@@ -17,6 +18,11 @@ Examples:
         outputs/termination_poc \\
         outputs/termination_poc_medcobe_feedback
 
+    python plot/code/plot_scaling_poc.py --mode quadrant \\
+        outputs/poc_0630_naive \\
+        outputs/poc_0630_medcobe_feedback \\
+        outputs/poc_0630_deliberation_llm
+
 --output-dir overrides where PNGs land (default: plot/result/plot_scaling_poc/).
 """
 from __future__ import annotations
@@ -25,6 +31,7 @@ import argparse
 import json
 from pathlib import Path
 
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -67,15 +74,18 @@ def _inject_terminal_stats(scores: dict, data: dict) -> dict:
     records = data.get("records", [])
     if not records:
         return scores
-    burdens = [r["final_cumulative_burden"] for r in records if "final_cumulative_burden" in r]
+    valid = [(r["final_cumulative_burden"], 1.0 if r.get("is_correct") else 0.0)
+             for r in records if r.get("final_cumulative_burden") is not None]
     accs = [1.0 if r.get("is_correct") else 0.0 for r in records]
-    if not burdens:
+    if not valid:
         return scores
+    burdens, burden_accs = zip(*valid)
+    burdens, burden_accs = list(burdens), list(burden_accs)
     scores = dict(scores)
     scores["avg_terminal_burden"] = round(sum(burdens) / len(burdens), 4)
     scores["terminal_accuracy"] = round(sum(accs) / len(accs), 4)
     scores["_terminal_burden_per_ep"] = burdens
-    scores["_terminal_acc_per_ep"] = accs
+    scores["_terminal_acc_per_ep"] = burden_accs
     return scores
 
 
@@ -202,6 +212,19 @@ def _pool_scaling_poc(scores_list: list[dict]) -> dict:
     if avg_n_turns_overall_val is not None:
         pooled["avg_n_turns"] = avg_n_turns_overall_val
 
+    # pool natural_end_agreement (first-END agreement view; n-weighted like by_closed_by)
+    nea_sources = [s["natural_end_agreement"] for s in scores_list if s.get("natural_end_agreement")]
+    if nea_sources:
+        nea_total = sum(e["n"] for e in nea_sources)
+        nea_turns = [(e["avg_n_turns"], e["n"]) for e in nea_sources if e.get("avg_n_turns") is not None and e["n"] > 0]
+        nea_acc = [(e["accuracy"], e["n"]) for e in nea_sources if e.get("accuracy") is not None and e["n"] > 0]
+        pooled["natural_end_agreement"] = {
+            "n": nea_total,
+            "rate": round(nea_total / total_n_overall, 4) if total_n_overall else 0.0,
+            "avg_n_turns": round(sum(v * n for v, n in nea_turns) / sum(n for _, n in nea_turns), 2) if nea_turns else None,
+            "accuracy": round(sum(v * n for v, n in nea_acc) / sum(n for _, n in nea_acc), 4) if nea_acc else None,
+        }
+
     # pool terminal stats (injected by _inject_terminal_stats; absent in summary.json sources)
     all_ep_burden = [v for s in scores_list for v in s.get("_terminal_burden_per_ep", [])]
     all_ep_acc = [v for s in scores_list for v in s.get("_terminal_acc_per_ep", [])]
@@ -237,13 +260,39 @@ def _merged_burden(scores: dict, checkpoint: int) -> float:
 
 def plot_accuracy(ax, runs: list[tuple[str, dict]]) -> None:
     """Overall accuracy — one pooled curve per run (compare mode) or pooled across all personas (persona mode)."""
+    # Compute pooled baselines first so the 0th point on every curve can be unified.
+    all_scores = [s for _, s in runs]
+    total_n = sum(sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS) for s in all_scores)
+    pooled_doc_alone: float | None = None
+    pooled_ai_alone: float | None = None
+    if total_n:
+        pooled_doc_alone = sum(
+            s["doctor_alone_accuracy"] * sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS)
+            for s in all_scores
+        ) / total_n
+        ai_vals = [(s["ai_alone_accuracy"],
+                    sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS))
+                   for s in all_scores if s.get("ai_alone_accuracy") is not None]
+        if ai_vals:
+            pooled_ai_alone = sum(v * n for v, n in ai_vals) / sum(n for _, n in ai_vals)
+
     for i, (label, scores) in enumerate(runs):
         color = _COLORS[i % len(_COLORS)]
         cps = scores["all_checkpoints"]
         ys = [_merged_accuracy(scores, c) for c in cps]
+        # Unify the 0th point so all curves share the same doctor-alone starting value.
+        if pooled_doc_alone is not None and cps and cps[0] == 0:
+            ys[0] = pooled_doc_alone
         ax.plot(cps, ys, color=color, linestyle="-", marker="o", label=f"{label}")
-        ax.axhline(scores["doctor_alone_accuracy"], color=color, linestyle=":", alpha=0.6,
-                    label=f"{label} (doctor alone)")
+
+    # Draw unified solo baselines as single grey lines.
+    if pooled_doc_alone is not None:
+        ax.axhline(pooled_doc_alone, color="grey", linestyle=":", alpha=0.7,
+                   label=f"doctor alone ({pooled_doc_alone:.3f})")
+    if pooled_ai_alone is not None:
+        ax.axhline(pooled_ai_alone, color="grey", linestyle="-.", alpha=0.7,
+                   label=f"AI alone ({pooled_ai_alone:.3f})")
+
     ax.set_xlabel("checkpoint (turns)")
     ax.set_ylabel("accuracy")
     ax.set_ylim(-0.05, 1.05)
@@ -260,6 +309,8 @@ def plot_accuracy_per_persona(ax, runs: list[tuple[str, dict]]) -> None:
         ys = [_merged_accuracy(scores, c) for c in cps]
         ax.plot(cps, ys, color=color, linestyle="-", marker="o", label=label)
         ax.axhline(scores["doctor_alone_accuracy"], color=color, linestyle=":", alpha=0.6)
+        if scores.get("ai_alone_accuracy") is not None:
+            ax.axhline(scores["ai_alone_accuracy"], color=color, linestyle="-.", alpha=0.6)
     ax.set_xlabel("checkpoint (turns)")
     ax.set_ylabel("accuracy")
     ax.set_ylim(-0.05, 1.05)
@@ -269,16 +320,42 @@ def plot_accuracy_per_persona(ax, runs: list[tuple[str, dict]]) -> None:
 
 
 def plot_accuracy_delta(ax, runs: list[tuple[str, dict]]) -> None:
+    # Pooled doctor-alone baseline (same weight logic as plot_accuracy).
+    all_scores = [s for _, s in runs]
+    total_n = sum(sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS) for s in all_scores)
+    if total_n:
+        pooled_baseline = sum(
+            s["doctor_alone_accuracy"] * sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS)
+            for s in all_scores
+        ) / total_n
+    else:
+        pooled_baseline = 0.0
+
+    ai_vals = [(s["ai_alone_accuracy"],
+                sum(s["curve"][b][str(s["all_checkpoints"][0])]["n"] for b in _BUCKETS))
+               for s in all_scores if s.get("ai_alone_accuracy") is not None]
+    pooled_ai_alone = (
+        sum(v * n for v, n in ai_vals) / sum(n for _, n in ai_vals) if ai_vals else None
+    )
+
     for i, (label, scores) in enumerate(runs):
         color = _COLORS[i % len(_COLORS)]
         cps = scores["all_checkpoints"]
-        baseline = scores["doctor_alone_accuracy"]
-        ys = [_merged_accuracy(scores, c) - baseline for c in cps]
+        ys = [_merged_accuracy(scores, c) - pooled_baseline for c in cps]
+        # Unify the 0th point (doctor-alone starting point) to exactly 0.
+        if cps and cps[0] == 0:
+            ys[0] = 0.0
         ax.plot(cps, ys, color=color, linestyle="-", marker="o", label=label)
-    ax.axhline(0.0, color="black", linestyle="--", alpha=0.4)
+
+    ax.axhline(0.0, color="grey", linestyle=":", alpha=0.7,
+               label=f"doctor alone (baseline = {pooled_baseline:.3f})")
+    if pooled_ai_alone is not None:
+        ai_delta = pooled_ai_alone - pooled_baseline
+        ax.axhline(ai_delta, color="grey", linestyle="-.", alpha=0.7,
+                   label=f"AI alone (Δ = {ai_delta:+.3f})")
     ax.set_xlabel("checkpoint (turns)")
-    ax.set_ylabel("accuracy - doctor_alone_accuracy")
-    ax.set_title("Accuracy delta vs. doctor-alone baseline")
+    ax.set_ylabel("Δ accuracy vs. pooled doctor-alone")
+    ax.set_title("Accuracy gain over doctor-alone baseline")
     ax.legend(fontsize=7, loc="upper left", bbox_to_anchor=(1.02, 1), borderaxespad=0)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
 
@@ -483,10 +560,36 @@ def plot_trajectories(ax, runs: list[tuple[str, dict]]) -> None:
     ax.grid(axis="y", linestyle="--", alpha=0.3)
 
 
+def _termination_bars(scores: dict) -> dict[str, tuple[float, int]]:
+    """{reason: (avg_n_turns, n)} for the termination panel, as a TRUE partition.
+
+    When force_full_turns suppressed real agreement (closed_by 'agreement' empty) but a first-END
+    signal exists, reinterpret via natural_end: those cases ONLY landed in max_turns because the END
+    was forced-ignored, so move them out of max_turns into agreement. Otherwise the n's double-count
+    (e.g. agreement=211 AND max_turns=250). Non-forced runs are untouched (agreement bucket non-empty).
+    """
+    cb = scores.get("by_closed_by", {})
+    reasons = ["agreement", "burden_dropout", "max_turns"]
+    out = {r: ((cb.get(r, {}).get("avg_n_turns") or 0.0), cb.get(r, {}).get("n", 0)) for r in reasons}
+    nat = scores.get("natural_end_agreement")
+    if nat and not cb.get("agreement", {}).get("n"):
+        out["agreement"] = (nat["avg_n_turns"] or 0.0, nat["n"])
+        mt_v, mt_n = out["max_turns"]
+        out["max_turns"] = (mt_v, max(0, mt_n - nat["n"]))  # remove the naturally-agreed cases
+    return out
+
+
 def plot_end_turn(ax, runs: list[tuple[str, dict]]) -> None:
-    """avg n_turns at episode end, closed_by reason별 breakdown."""
+    """avg n_turns at episode end, termination reason별 breakdown (true partition).
+    'agreement' uses the first END token when force_full_turns suppressed real agreement,
+    and those cases are removed from max_turns so the n's sum to the case count -- see
+    _termination_bars."""
     _reasons = ["agreement", "burden_dropout", "max_turns"]
-    has_data = any("by_closed_by" in s and any(s["by_closed_by"][r]["avg_n_turns"] is not None for r in _reasons) for _, s in runs)
+    has_data = any(
+        ("by_closed_by" in s and any(s["by_closed_by"][r]["avg_n_turns"] is not None for r in _reasons))
+        or s.get("natural_end_agreement")
+        for _, s in runs
+    )
     if not has_data:
         ax.set_visible(False)
         return
@@ -496,8 +599,9 @@ def plot_end_turn(ax, runs: list[tuple[str, dict]]) -> None:
         if "by_closed_by" not in scores:
             continue
         color = _COLORS[i % len(_COLORS)]
-        values = [scores["by_closed_by"][r].get("avg_n_turns") or 0.0 for r in _reasons]
-        ns = [scores["by_closed_by"][r]["n"] for r in _reasons]
+        bars_data = _termination_bars(scores)
+        values = [bars_data[r][0] for r in _reasons]
+        ns = [bars_data[r][1] for r in _reasons]
         offset = (i - (len(runs) - 1) / 2) * width
         bars = ax.bar(x + offset, values, width, label=label, color=color)
         for bar, n in zip(bars, ns):
@@ -519,20 +623,23 @@ def plot_end_turn(ax, runs: list[tuple[str, dict]]) -> None:
 
 
 def plot_by_closed_by(ax, runs: list[tuple[str, dict]]) -> None:
-    """termination_poc 전용: by_closed_by breakdown. 해당 키 없으면 패널 비움."""
+    """termination_poc 전용: termination reason 분포. force_full_turns로 agreement가 억제된
+    경우 _termination_bars의 natural_end 재해석(agreement<-first END, max_turns에서 제외)을
+    그대로 써서 rate가 진짜 partition(합=1)이 되게 한다."""
     has_data = any("by_closed_by" in scores for _, scores in runs)
     if not has_data:
         ax.set_visible(False)
         return
-    reasons = list(next(s for _, s in runs if "by_closed_by" in s)["by_closed_by"].keys())
+    reasons = ["agreement", "burden_dropout", "max_turns"]
     x = np.arange(len(reasons))
     width = 0.8 / max(len(runs), 1)
     for i, (label, scores) in enumerate(runs):
         if "by_closed_by" not in scores:
             continue
         color = _COLORS[i % len(_COLORS)]
-        total = sum(scores["by_closed_by"][r]["n"] for r in reasons)
-        values = [scores["by_closed_by"][r]["n"] / total if total else 0.0 for r in reasons]
+        ns = {r: n for r, (_, n) in _termination_bars(scores).items()}
+        total = sum(ns[r] for r in reasons)
+        values = [ns[r] / total if total else 0.0 for r in reasons]
         offset = (i - (len(runs) - 1) / 2) * width
         bars = ax.bar(x + offset, values, width, label=label, color=color)
         ax.bar_label(bars, fmt="%.2f", padding=2, fontsize=7)
@@ -597,6 +704,177 @@ def render_persona(runs: list[tuple[str, dict]], out: Path) -> None:
     _save(fig, out, len(runs))
 
 
+# ── Panels: 2×2 knowledge quadrant (doctor knows/blind × AI knows/blind) ────────────────────
+#
+# Unlike every other mode above, this works directly off per-case `records` (each with its own
+# `alone_correct` + per-checkpoint `is_correct`), not the pooled `scores["curve"]` aggregate --
+# the quadrant partition is a per-case boolean AND across runs, which pooling would destroy.
+# Ported from scripts/plot_2x2_knowledge.py (generalized from a hardcoded 3-run dict to N runs).
+
+_DEFAULT_AI_BLIND_CACHE = "outputs/ai_blind_trials_cache.json"
+
+
+def _resolve_case_records_file(path: str) -> Path:
+    """Like _resolve_results_file, but quadrant mode needs a results.json with real per-case
+    `records` -- summary.json (condition-pooled, no per-case records) is NOT usable here, unlike
+    overall/compare/persona mode. poc_0630_* runs keep results.json one level down, under a
+    persona-named subdir (e.g. veteran_attending_full/results.json) alongside a top-level
+    summary.json -- passing the top-level dir used to silently resolve to summary.json and
+    produce near-empty/garbage quadrants (case_ids became condition-name strings). If the given
+    dir has no results.json but exactly one subdir does, auto-descend into it; if more than one
+    subdir qualifies, fail loudly instead of guessing which persona/condition was meant."""
+    p = Path(path)
+    if p.is_file():
+        return p
+    if not p.is_dir():
+        raise FileNotFoundError(f"{p} does not exist")
+    direct = p / "results.json"
+    if direct.exists():
+        return direct
+    candidates = sorted(
+        d for d in p.iterdir() if d.is_dir() and (d / "results.json").exists()
+    )
+    if len(candidates) == 1:
+        resolved = candidates[0] / "results.json"
+        print(f"[quadrant] {p} has no results.json (only summary.json) -- "
+              f"using {resolved} instead.")
+        return resolved
+    if len(candidates) > 1:
+        names = ", ".join(c.name for c in candidates)
+        raise FileNotFoundError(
+            f"{p} has no results.json and multiple persona/condition subdirs with one "
+            f"({names}) -- quadrant mode needs per-case records, not the pooled summary.json, "
+            f"so pass one explicitly, e.g. {candidates[0]}"
+        )
+    raise FileNotFoundError(
+        f"{p} has neither results.json nor a subdir containing one "
+        f"(only summary.json, which lacks per-case records -- unusable for quadrant mode)."
+    )
+
+
+def _load_case_records(path: str) -> dict[str, dict]:
+    """results.json (or a dir containing/leading to it) -> {case_id: record}."""
+    resolved = _resolve_case_records_file(path)
+    data = json.loads(resolved.read_text())
+    records = data.get("records", data)  # tolerate a bare list-of-records file too
+    if isinstance(records, dict):
+        return records
+    return {r["case_id"]: r for r in records}
+
+
+def _quadrant_curve(records_by_id: dict[str, dict], case_ids: set[str]) -> tuple[list[int], list[float], int]:
+    subset = [records_by_id[cid] for cid in case_ids if cid in records_by_id]
+    if not subset:
+        return [], [], 0
+    cps_ref = subset[0].get("checkpoints") or subset[0].get("checkpoint_results", {})
+    cps = sorted(int(k) for k in cps_ref)
+    accs = []
+    for c in cps:
+        corrects = [
+            bool((r.get("checkpoints") or r.get("checkpoint_results", {})).get(str(c), {}).get("is_correct"))
+            for r in subset
+        ]
+        accs.append(sum(corrects) / len(corrects))
+    return cps, accs, len(subset)
+
+
+def _draw_quadrant_panel(ax, title: str, data: dict[str, dict[str, dict]], case_ids: set[str]) -> None:
+    has_data = False
+    for i, (label, records_by_id) in enumerate(data.items()):
+        color = _COLORS[i % len(_COLORS)]
+        cps, accs, n = _quadrant_curve(records_by_id, case_ids)
+        if not cps:
+            continue
+        has_data = True
+        ax.plot(cps, accs, marker="o", color=color, label=f"{label} (n={n})", linewidth=1.5)
+    ax.set_title(title, fontsize=9, fontweight="bold")
+    ax.set_xlabel("checkpoint (turns)", fontsize=8)
+    ax.set_ylabel("accuracy", fontsize=8)
+    ax.set_ylim(-0.05, 1.05)
+    ax.legend(fontsize=7)
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.tick_params(labelsize=7)
+    if not has_data:
+        ax.text(0.5, 0.5, "no cases", ha="center", va="center", transform=ax.transAxes, color="grey")
+
+
+def _dedupe_labels(paths: list[str]) -> list[str]:
+    """Path(p).name, qualified with the parent dir when leaf names collide -- e.g. every
+    poc_0630_* run's results.json lives under a persona-named leaf like
+    'veteran_attending_full', so plain .name would silently collapse distinct runs into one
+    dict key (mixed-doctor detection would then compare a run against itself)."""
+    labels = [Path(p).name for p in paths]
+    if len(set(labels)) == len(labels):
+        return labels
+    return [f"{Path(p).parent.name}/{Path(p).name}" for p in paths]
+
+
+def render_quadrant(run_paths: list[str], ai_blind_cache: str, out: Path) -> None:
+    """2×2 figure: rows = doctor knows/blind, cols = AI knows/blind. One curve per run per panel.
+
+    doctor knows/blind = alone_correct True/False in ALL provided runs (mixed-agreement cases,
+    i.e. runs disagree on whether the doctor started out correct, are excluded -- they aren't a
+    property of the doctor alone). AI knows/blind = majority (>=2/3) over the ai_blind trials
+    cache, keyed by case_id, independent of which runs are being compared.
+    """
+    cache = json.loads(Path(ai_blind_cache).read_text())
+    ai_knows_ids = {cid for cid, t in cache.items() if len(t) >= 3 and any(t[:3])}
+    ai_blind_ids = {cid for cid, t in cache.items() if len(t) >= 3 and not any(t[:3])}
+
+    labels = _dedupe_labels(run_paths)
+    data: dict[str, dict[str, dict]] = {
+        label: _load_case_records(p) for label, p in zip(labels, run_paths)
+    }
+    shared = set.intersection(*(set(d.keys()) for d in data.values()))
+
+    doctor_knows_ids: set[str] = set()
+    doctor_blind_ids: set[str] = set()
+    for cid in shared:
+        trials = [data[label][cid].get("alone_correct", False) for label in data]
+        if all(trials):
+            doctor_knows_ids.add(cid)
+        elif not any(trials):
+            doctor_blind_ids.add(cid)
+    # mixed-doctor cases (runs disagree) are excluded from the quadrant analysis
+
+    quadrants = {
+        ("Doctor knows", "AI knows"): doctor_knows_ids & ai_knows_ids & shared,
+        ("Doctor knows", "AI blind"): doctor_knows_ids & ai_blind_ids & shared,
+        ("Doctor blind", "AI knows"): doctor_blind_ids & ai_knows_ids & shared,
+        ("Doctor blind", "AI blind"): doctor_blind_ids & ai_blind_ids & shared,
+    }
+
+    print("Quadrant sizes:")
+    for (dr, ai), ids in quadrants.items():
+        print(f"  {dr} × {ai}: n={len(ids)}")
+    print(f"  (mixed-doctor excluded: {len(shared) - len(doctor_knows_ids) - len(doctor_blind_ids)} cases)")
+
+    fig = plt.figure(figsize=(14, 10))
+    gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.45, wspace=0.35)
+    positions = [
+        (0, 0, ("Doctor knows", "AI knows")),
+        (0, 1, ("Doctor knows", "AI blind")),
+        (1, 0, ("Doctor blind", "AI knows")),
+        (1, 1, ("Doctor blind", "AI blind")),
+    ]
+    for row, col, key in positions:
+        ax = fig.add_subplot(gs[row, col])
+        dr_label, ai_label = key
+        ids = quadrants[key]
+        _draw_quadrant_panel(ax, f"{dr_label}  ×  {ai_label}  (n={len(ids)})", data, ids)
+
+    fig.suptitle(
+        f"2×2 knowledge quadrants  (shared n={len(shared)}, "
+        f"doctor_knows={len(doctor_knows_ids)}, doctor_blind={len(doctor_blind_ids)}, "
+        f"ai_knows={len(ai_knows_ids & shared)}, ai_blind={len(ai_blind_ids & shared)})",
+        fontsize=10,
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved {out}")
+
+
 # ── Subcommand handlers ───────────────────────────────────────────────────────────────────
 
 def cmd_overall(args: argparse.Namespace) -> None:
@@ -629,14 +907,25 @@ def cmd_persona(args: argparse.Namespace) -> None:
     render_persona(runs, out_dir / f"persona_{Path(path).name}.png")
 
 
+def cmd_quadrant(args: argparse.Namespace) -> None:
+    out_dir = Path(args.output_dir) if args.output_dir else _RESULT_DIR
+    labels = [lbl.replace("/", "-") for lbl in _dedupe_labels(args.results)]
+    out_name = "quadrant_" + "_vs_".join(labels)
+    render_quadrant(args.results, args.ai_blind_cache, out_dir / f"{out_name}.png")
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--mode", choices=["overall", "compare", "persona"], default="overall",
-                        help="overall(기본): 전체 pool → 단일 커브 | compare: baseline 간 비교 | persona: persona별 커브")
+    parser.add_argument("--mode", choices=["overall", "compare", "persona", "quadrant"], default="overall",
+                        help="overall(기본): 전체 pool → 단일 커브 | compare: baseline 간 비교 | "
+                             "persona: persona별 커브 | quadrant: 2×2 knowledge quadrant")
     parser.add_argument("results", nargs="+", help="실험 폴더 또는 summary.json/results.json 경로")
     parser.add_argument("--output-dir", default=None, help="출력 디렉터리 (기본: plot/result/plot_scaling_poc/)")
+    parser.add_argument("--ai-blind-cache", default=_DEFAULT_AI_BLIND_CACHE,
+                        help="--mode quadrant 전용: ai_blind trials cache 경로 "
+                             f"(기본: {_DEFAULT_AI_BLIND_CACHE})")
     args = parser.parse_args()
 
     if args.mode == "compare":
@@ -645,6 +934,10 @@ if __name__ == "__main__":
         if len(args.results) != 1:
             parser.error("--mode persona 는 경로를 정확히 1개만 받습니다")
         cmd_persona(args)
+    elif args.mode == "quadrant":
+        if len(args.results) < 2:
+            parser.error("--mode quadrant 는 경로를 2개 이상 받습니다")
+        cmd_quadrant(args)
     else:  # overall (default)
         if len(args.results) != 1:
             parser.error("--mode overall 은 경로를 정확히 1개만 받습니다")

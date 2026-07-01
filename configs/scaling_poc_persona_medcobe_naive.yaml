@@ -48,13 +48,6 @@ plugins:
     max_tokens: 512
     temperature: 0.7
 
-  fact_validator_llm:
-    type: vllm
-    base_url: https://openrouter.ai/api/v1
-    model: deepseek/deepseek-v3.2
-    max_tokens: 256
-    temperature: 0.0
-
   final_judge:
     enabled: true
     type: vllm

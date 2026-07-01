@@ -13,9 +13,6 @@ plugins:
   medical_llm:
     type: mock             # mock | vllm
 
-  fact_validator_llm:
-    type: mock             # mock | vllm
-
   policy:
     type: naive            # naive | prompt | rule | baseline_policy | sft_policy | full_policy | medcobe_naive | react | medcobe_feedback
 

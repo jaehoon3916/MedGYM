@@ -5,7 +5,7 @@ from typing import Any
 
 from plugins.vllm_base import VLLMBasePlugin
 from plugins.policy.base import PolicyPlugin
-from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, PolicyOutput
 from core.prompt_builder import _load
 
 _VALID_ACTIONS = {"ARGUE", "ACCEPT", "DEFER"}
@@ -35,12 +35,13 @@ class ReactPolicy(VLLMBasePlugin, PolicyPlugin):
     def name(self) -> str:
         return f"react-policy-{self._model}"
 
-    def select_action(
+    needs_verification = False
+
+    def select_action(  # type: ignore[override]
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         current_user_utterance: str,
-        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         tmpl = _load("react_policy")
         messages = [

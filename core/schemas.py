@@ -63,6 +63,27 @@ class VerificationTemplate(BaseModel):
     optional_claim_checks: list[str] = Field(default_factory=list)
 
 
+class AgendaItem(BaseModel):
+    """One issue where the clinician's opinion and the AI-alone opinion diverge.
+
+    Built by the Disagreement Analyzer (plugins/agenda_planner) at turn 0. NOTE the analyzer
+    must NOT label either side correct -- it only names WHERE they differ. `status` is advanced
+    to "resolved" by the Resolution Tracker (plugins/resolution_tracker) during the dialogue."""
+    id: int
+    issue: str                       # the point of divergence, phrased neutrally
+    human_position: str = ""         # what the clinician holds on this issue
+    ai_position: str = ""            # what the AI-alone opinion holds on this issue
+    status: Literal["unresolved", "resolved"] = "unresolved"
+
+
+class Agenda(BaseModel):
+    items: list[AgendaItem] = Field(default_factory=list)
+
+    @property
+    def unresolved(self) -> list[AgendaItem]:
+        return [it for it in self.items if it.status == "unresolved"]
+
+
 class DialogueTurn(BaseModel):
     speaker: Literal["medical", "user"]
     text: str
@@ -100,6 +121,23 @@ class DialogueHistory(BaseModel):
             lines.append(f"{prefix}: {turn.text}")
         return "\n".join(lines)
 
+    def to_prompt_with_actions(self) -> str:
+        """Like to_prompt(), but annotates each medical turn with the deliberation action that
+        produced it (e.g. 'Medical [INFORM.ask_justify]: ...'). For planning/deliberation
+        policies so the policy LLM can see its OWN past tactics and avoid repeating an
+        ineffective move -- to_prompt() drops turn.action, hiding the tactic sequence (this is
+        why a policy can loop on the same ask_justify turn after turn). Deliberately NOT used in
+        medical_llm / fact_validator / final_judge prompts -- those must not see internal
+        action labels."""
+        lines = []
+        for turn in self.turns:
+            if turn.speaker == "medical":
+                tag = f" [{turn.action}]" if turn.action else ""
+                lines.append(f"Medical{tag}: {turn.text}")
+            else:
+                lines.append(f"User: {turn.text}")
+        return "\n".join(lines)
+
     def to_messages(self) -> list[dict[str, str]]:
         role_map = {"medical": "assistant", "user": "user"}
         return [
@@ -135,9 +173,12 @@ class Observation(BaseModel):
     """Agent-external env observation: exactly the context the policy consumes each turn."""
     case_info: CaseInfo
     dialogue_history: DialogueHistory
-    verification: VerificationTemplate
+    verification: VerificationTemplate = Field(default_factory=VerificationTemplate)
     current_user_utterance: str
     user_state: UserState | None = None
     last_action: str | None = None
     turn_id: int = 0
     done: bool = False
+    # Agenda arm (D) extensions — None in base env; populated by AgendaEnvironment.
+    agenda: Agenda | None = None
+    current_item: AgendaItem | None = None

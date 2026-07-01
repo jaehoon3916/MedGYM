@@ -1,0 +1,292 @@
+{
+  "0000": {
+    "case_id": "0000",
+    "specialty": "cardiology",
+    "n_shards": 35,
+    "initial_shard": "55-year-old man, previously healthy, woke up with a buzzing sensation in his chest.",
+    "shards": [
+      {
+        "shard_id": 0,
+        "shard": "55-year-old man, previously healthy, woke up with a buzzing sensation in his chest.",
+        "segment": "A previously healthy 55-year-old man presented to his local family medicine clinic after waking up with a buzzing sensation in his chest."
+      },
+      {
+        "shard_id": 1,
+        "shard": "On auscultation, there's a grade 6 out of 6, decrescendo diastolic murmur at the right upper sternal border.",
+        "segment": "A buzzing, decrescendo, grade 6/6 diastolic murmur (DM) was heard at the right upper sternal border (Figure 1;Video 1)."
+      },
+      {
+        "shard_id": 2,
+        "shard": "Palpation of the chest reveals a thrill along the sternal border.",
+        "segment": "Chest palpation demonstrated a thrill along the sternal border."
+      },
+      {
+        "shard_id": 3,
+        "shard": "The point of maximal impulse is laterally displaced.",
+        "segment": "The point of maximal impulse was laterally displaced."
+      },
+      {
+        "shard_id": 4,
+        "shard": "The ECG shows moderate voltage criteria for left ventricular hypertrophy.",
+        "segment": "Electrocardiogram showed moderate voltage criteria for left ventricular (LV) hypertrophy."
+      },
+      {
+        "shard_id": 5,
+        "shard": "The ECG also shows ST and T wave abnormalities in the lateral leads.",
+        "segment": "Electrocardiogram showed ST and T abnormalities in the lateral leads."
+      },
+      {
+        "shard_id": 6,
+        "shard": "The murmur radiates throughout the precordium.",
+        "segment": "The murmur radiated throughout the precordium."
+      },
+      {
+        "shard_id": 7,
+        "shard": "The murmur radiates into the abdomen.",
+        "segment": "The murmur radiated into the abdomen."
+      },
+      {
+        "shard_id": 8,
+        "shard": "The murmur radiates to both carotid arteries.",
+        "segment": "The murmur radiated to the bilateral carotids."
+      },
+      {
+        "shard_id": 9,
+        "shard": "The murmur is even audible in the posterior thorax.",
+        "segment": "The murmur was audible in the posterior thorax."
+      },
+      {
+        "shard_id": 10,
+        "shard": "Given the findings, he was directed to the local emergency department.",
+        "segment": "He was directed to the local emergency department."
+      },
+      {
+        "shard_id": 11,
+        "shard": "He reports lifting televisions in the days before this.",
+        "segment": "He had been lifting televisions in the preceding days."
+      },
+      {
+        "shard_id": 12,
+        "shard": "His initial pulse was 100 beats per minute.",
+        "segment": "His initial vital signs included pulse of 100 beats/min."
+      },
+      {
+        "shard_id": 13,
+        "shard": "Auscultation reveals a regular rate and rhythm.",
+        "segment": "Auscultation revealed regular rate and rhythm."
+      },
+      {
+        "shard_id": 14,
+        "shard": "The second heart sounds (S2) are soft.",
+        "segment": "Auscultation revealed soft second (S2) heart sounds."
+      },
+      {
+        "shard_id": 15,
+        "shard": "The ECG shows a normal sinus rhythm.",
+        "segment": "Electrocardiogram showed normal sinus rhythm."
+      },
+      {
+        "shard_id": 16,
+        "shard": "His initial blood pressure was 124 over 71.",
+        "segment": "His initial vital signs included blood pressure of 124/71 mm Hg."
+      },
+      {
+        "shard_id": 17,
+        "shard": "His oxygen saturation was 98% on room air.",
+        "segment": "His initial vital signs included oxygen saturation of 98% as measured by pulse oximetry."
+      },
+      {
+        "shard_id": 18,
+        "shard": "His respiratory rate was 18 breaths per minute.",
+        "segment": "His initial vital signs included respiratory rate of 18 breaths/min."
+      },
+      {
+        "shard_id": 19,
+        "shard": "His body mass index is 25.",
+        "segment": "His initial vital signs included body mass index (calculated as weight in kilograms divided by height in meters squared) of 25."
+      },
+      {
+        "shard_id": 20,
+        "shard": "His temperature was 36.6 degrees Celsius.",
+        "segment": "His initial vital signs included temperature of 36.6 °C."
+      },
+      {
+        "shard_id": 21,
+        "shard": "The first heart sounds (S1) are normal.",
+        "segment": "Auscultation revealed normal first (S1) heart sounds."
+      },
+      {
+        "shard_id": 22,
+        "shard": "On exam, he is alert.",
+        "segment": "On physical examination, he was alert."
+      },
+      {
+        "shard_id": 23,
+        "shard": "He is oriented.",
+        "segment": "On physical examination, he was oriented."
+      },
+      {
+        "shard_id": 24,
+        "shard": "He is in no acute distress.",
+        "segment": "On physical examination, he was in no acute distress."
+      },
+      {
+        "shard_id": 25,
+        "shard": "He works in retail sales.",
+        "segment": "He worked in retail sales."
+      },
+      {
+        "shard_id": 26,
+        "shard": "He denies any chest pain.",
+        "segment": "He denied chest pain."
+      },
+      {
+        "shard_id": 27,
+        "shard": "He denies shortness of breath.",
+        "segment": "He denied dyspnea."
+      },
+      {
+        "shard_id": 28,
+        "shard": "He denies palpitations.",
+        "segment": "He denied palpitations."
+      },
+      {
+        "shard_id": 29,
+        "shard": "He denies feeling lightheaded.",
+        "segment": "He denied lightheadedness."
+      },
+      {
+        "shard_id": 30,
+        "shard": "He denies diaphoresis or sweating.",
+        "segment": "He denied diaphoresis."
+      },
+      {
+        "shard_id": 31,
+        "shard": "He denies having a fever.",
+        "segment": "He denied fever."
+      },
+      {
+        "shard_id": 32,
+        "shard": "He denies any lower extremity edema.",
+        "segment": "He denied lower-extremity edema."
+      },
+      {
+        "shard_id": 33,
+        "shard": "He denies fatigue.",
+        "segment": "He denied fatigue."
+      },
+      {
+        "shard_id": 34,
+        "shard": "A phonocardiogram was obtained, consistent with a grade 6 diastolic murmur.",
+        "segment": "Phonocardiogram in a patient with a grade 6 diastolic murmur."
+      }
+    ],
+    "_raw_segments": [
+      {
+        "segment": "A previously healthy 55-year-old man presented to his local family medicine clinic after waking up with a buzzing sensation in his chest."
+      },
+      {
+        "segment": "He denied chest pain."
+      },
+      {
+        "segment": "He denied dyspnea."
+      },
+      {
+        "segment": "He denied palpitations."
+      },
+      {
+        "segment": "He denied lightheadedness."
+      },
+      {
+        "segment": "He denied diaphoresis."
+      },
+      {
+        "segment": "He denied fever."
+      },
+      {
+        "segment": "He denied lower-extremity edema."
+      },
+      {
+        "segment": "He denied fatigue."
+      },
+      {
+        "segment": "He worked in retail sales."
+      },
+      {
+        "segment": "He had been lifting televisions in the preceding days."
+      },
+      {
+        "segment": "His initial vital signs included blood pressure of 124/71 mm Hg."
+      },
+      {
+        "segment": "His initial vital signs included pulse of 100 beats/min."
+      },
+      {
+        "segment": "His initial vital signs included temperature of 36.6 °C."
+      },
+      {
+        "segment": "His initial vital signs included respiratory rate of 18 breaths/min."
+      },
+      {
+        "segment": "His initial vital signs included oxygen saturation of 98% as measured by pulse oximetry."
+      },
+      {
+        "segment": "His initial vital signs included body mass index (calculated as weight in kilograms divided by height in meters squared) of 25."
+      },
+      {
+        "segment": "He was directed to the local emergency department."
+      },
+      {
+        "segment": "On physical examination, he was alert."
+      },
+      {
+        "segment": "On physical examination, he was oriented."
+      },
+      {
+        "segment": "On physical examination, he was in no acute distress."
+      },
+      {
+        "segment": "Chest palpation demonstrated a thrill along the sternal border."
+      },
+      {
+        "segment": "The point of maximal impulse was laterally displaced."
+      },
+      {
+        "segment": "Auscultation revealed regular rate and rhythm."
+      },
+      {
+        "segment": "Auscultation revealed normal first (S1) heart sounds."
+      },
+      {
+        "segment": "Auscultation revealed soft second (S2) heart sounds."
+      },
+      {
+        "segment": "A buzzing, decrescendo, grade 6/6 diastolic murmur (DM) was heard at the right upper sternal border (Figure 1;Video 1)."
+      },
+      {
+        "segment": "The murmur radiated throughout the precordium."
+      },
+      {
+        "segment": "The murmur radiated into the abdomen."
+      },
+      {
+        "segment": "The murmur radiated to the bilateral carotids."
+      },
+      {
+        "segment": "The murmur was audible in the posterior thorax."
+      },
+      {
+        "segment": "Electrocardiogram showed normal sinus rhythm."
+      },
+      {
+        "segment": "Electrocardiogram showed moderate voltage criteria for left ventricular (LV) hypertrophy."
+      },
+      {
+        "segment": "Electrocardiogram showed ST and T abnormalities in the lateral leads."
+      },
+      {
+        "segment": "Phonocardiogram in a patient with a grade 6 diastolic murmur."
+      }
+    ]
+  }
+}

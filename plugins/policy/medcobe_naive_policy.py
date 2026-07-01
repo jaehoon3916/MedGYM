@@ -1,7 +1,7 @@
 from typing import Any
 
 from plugins.policy.base import PolicyPlugin
-from core.schemas import CaseInfo, DialogueHistory, VerificationTemplate, PolicyOutput
+from core.schemas import CaseInfo, DialogueHistory, PolicyOutput
 from core.prompt_builder import _load
 
 
@@ -21,12 +21,13 @@ class MedCobeNaivePolicy(PolicyPlugin):
     def load(self) -> None:
         pass
 
-    def select_action(
+    needs_verification = False
+
+    def select_action(  # type: ignore[override]
         self,
         case_info: CaseInfo,
         dialogue_history: DialogueHistory,
         current_user_utterance: str,
-        verification_template: VerificationTemplate,
     ) -> PolicyOutput:
         return PolicyOutput(
             stage="INFORM",

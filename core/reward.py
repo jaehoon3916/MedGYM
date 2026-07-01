@@ -1,7 +1,12 @@
 """GRPO trajectory reward aggregation (reward.txt formula).
 
-R(τ) = λ_align·Σ_t r_align + λ_final·r_final − λ_len·max(0, |τ|−τ*) + λ_fmt·Σ_t r_fmt
+R(τ) = λ_align·Σ_t r_align + λ_final·r_final − λ_burden·Σ_t burden_t + λ_fmt·Σ_t r_fmt
 A_i  = (R_i − μ_G) / (σ_G + ε)
+
+The interaction cost is the clinician's cumulative cognitive_burden (per-turn NASA-TLX
+overall_workload, 1-5), NOT raw turn count: turns are not equally expensive. Per-step burden
+also gives turn-level credit assignment and subsumes the old length penalty (more turns =>
+more accumulated burden), so λ_len / τ* are removed.
 """
 from __future__ import annotations
 
@@ -11,21 +16,24 @@ from typing import Any
 
 
 DEFAULT_WEIGHTS = {
-    # Lowered from 1.0 to match configs/config_grpo.yaml: r_align's BASE table is hand-crafted
-    # shaping, not validated ground truth -- it should nudge r_final, not rival it.
+    # Lowered from 1.0: r_align is hand-crafted shaping, not validated ground truth.
     "lambda_align": 0.3,
     "lambda_final": 1.0,
-    "lambda_len": 0.05,
+    # Per-burden-unit cost. burden_t is 1-5/turn => Σ burden_t ~ 5-25 over an episode.
+    # 0.02 keeps the penalty in the ~0.1-0.5 range (nudge vs r_final=1.0, not a rival).
+    # CALIBRATION PLACEHOLDER — tune against observed cumulative-burden distributions.
+    "lambda_burden": 0.02,
     "lambda_fmt": 0.1,
-    "tau_star": 6,
 }
 
 
 @dataclass
 class Trajectory:
-    """One sampled rollout: per-step align/format rewards + terminal outcome + recorded action tokens."""
+    """One sampled rollout: per-step align/format/burden signals + terminal outcome + action tokens."""
     step_align: list[float] = field(default_factory=list)
     step_fmt: list[float] = field(default_factory=list)
+    # per-turn cognitive_burden (NASA-TLX overall_workload, 1-5) induced by each AI turn
+    step_burden: list[float] = field(default_factory=list)
     # per step: (prompt_ids, action_ids) for logprob recompute in the update phase
     steps: list[tuple[Any, Any]] = field(default_factory=list)
     is_correct: bool = False
@@ -41,12 +49,12 @@ def trajectory_return(traj: Trajectory, weights: dict[str, Any]) -> float:
     r_align = sum(traj.step_align)
     r_fmt = sum(traj.step_fmt)
     r_final = 1.0 if traj.is_correct else 0.0
-    length_pen = max(0, traj.num_turns - int(w["tau_star"]))
+    burden_cost = sum(traj.step_burden)
     return (
         w["lambda_align"] * r_align
         + w["lambda_final"] * r_final
         + w["lambda_fmt"] * r_fmt
-        - w["lambda_len"] * length_pen
+        - w["lambda_burden"] * burden_cost
     )
 
 

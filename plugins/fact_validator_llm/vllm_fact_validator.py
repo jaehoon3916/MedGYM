@@ -19,6 +19,10 @@ def _as_list(v: Any) -> list:
 class VLLMFactValidatorLLM(VLLMBasePlugin, FactValidatorLLMPlugin):
     def __init__(self, config: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
+        # see_case_info=false => blind validator (judges from dialogue + general medicine only,
+        # no case file), so it is blind to exactly what the AI is blind to under
+        # info_condition dense/sparse. Default True preserves the oracle-style ground-truth check.
+        self._see_case_info: bool = bool(config.get("see_case_info", True))
 
     def name(self) -> str:
         return f"vllm-fact-validator-{self._model}"
@@ -29,7 +33,10 @@ class VLLMFactValidatorLLM(VLLMBasePlugin, FactValidatorLLMPlugin):
         dialogue_history: DialogueHistory,
         current_user_utterance: str,
     ) -> VerificationTemplate:
-        messages = build_fact_validator_prompt(case_info, dialogue_history, current_user_utterance)
+        messages = build_fact_validator_prompt(
+            case_info, dialogue_history, current_user_utterance,
+            see_case_info=self._see_case_info,
+        )
         raw = self._chat(
             messages,
             temperature=0.0,

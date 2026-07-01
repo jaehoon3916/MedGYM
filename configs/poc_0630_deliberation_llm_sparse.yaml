@@ -1,0 +1,78 @@
+# poc_0630_deliberation_llm_sparse — same setup as poc_0630_deliberation_llm (blind, no oracle/
+# meta signal at all) but info_condition: sparse instead of full. Flips two flags at once (see
+# scripts/run_scaling_poc.py:_resolve_info_condition):
+#   - medical_llm.show_case_info -> False    (AI no longer gets case_info.scenario directly)
+#   - user_llm.information_sparsity -> sparse (doctor answers narrowly, doesn't volunteer info)
+#
+# Caveat: fact_validator_llm's prompt (core/prompt_builder.build_fact_validator_prompt) passes
+# case_info.scenario UNCONDITIONALLY regardless of show_case_info -- so the policy's
+# verification_template signal still has full case knowledge even here. Only medical_llm's own
+# utterance generation and the doctor's info-sharing are genuinely sparse.
+#
+# Why this run: (1) re-tests two hypotheses that failed under full/dense info -- ask_justify/
+# elicit was decorative there (medical_llm already had the full case, nothing to elicit) and
+# turn-0 competence-detection (AUC=0.712) didn't improve with more turns (everything was visible
+# at turn 0). Sparse is the condition where both could plausibly change.
+# (2) produces turn-by-turn (verification_template, doctor confidence, ground-truth outcome)
+# data under sparse conditions to fit the doctor-side confidence-calibration mapping next.
+
+experiment:
+  name: poc_0630_deliberation_llm_sparse
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 100
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: true
+    persona: [veteran_attending]
+    info_condition: sparse
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 528
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 512
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: deliberation_llm
+    use_fact_validator: true
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 512
+    temperature: 0.0
+    reveal_correct_option: false
+    reveal_quadrant_meta: false
+    reveal_quadrant_meta_raw: false
+
+action_space_path: configs/action_space.yaml
+concurrency: 100

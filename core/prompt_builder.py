@@ -160,16 +160,30 @@ def build_fact_validator_prompt(
     case_info: CaseInfo,
     dialogue_history: DialogueHistory,
     current_user_utterance: str,
+    see_case_info: bool = True,
 ) -> list[dict[str, str]]:
+    """see_case_info=False denies the validator the case file (system_blind/user_blind
+    templates), mirroring medical_llm.show_case_info=False so the validator is blind to exactly
+    what the AI is blind to. It then judges the claim against general medicine + only what's been
+    disclosed in dialogue -- a blind second opinion, not a ground-truth check. Default True keeps
+    the original oracle-style behavior for every existing caller/config."""
     tmpl = _load("fact_validator_llm")
-    user_content = tmpl["user"].format(
-        scenario=case_info.scenario,
-        options=_format_options(case_info.options),
-        correct_answer=case_info.correct_answer,
-        dialogue=dialogue_history.to_prompt(),
-        current_user_utterance=current_user_utterance,
-    )
+    if see_case_info:
+        user_content = tmpl["user"].format(
+            scenario=case_info.scenario,
+            options=_format_options(case_info.options),
+            dialogue=dialogue_history.to_prompt(),
+            current_user_utterance=current_user_utterance,
+        )
+        system_content = tmpl["system"]
+    else:
+        user_content = tmpl["user_blind"].format(
+            options=_format_options(case_info.options),
+            dialogue=dialogue_history.to_prompt(),
+            current_user_utterance=current_user_utterance,
+        )
+        system_content = tmpl["system_blind"]
     return [
-        {"role": "system", "content": tmpl["system"]},
+        {"role": "system", "content": system_content},
         {"role": "user", "content": user_content},
     ]

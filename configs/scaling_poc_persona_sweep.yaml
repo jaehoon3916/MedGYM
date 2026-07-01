@@ -79,13 +79,6 @@ plugins:
     # show_case_info is derived from plugins.user_llm.info_condition above -- don't set it
     # directly here, it gets overwritten by _resolve_info_condition().
 
-  fact_validator_llm:
-    type: vllm
-    base_url: https://openrouter.ai/api/v1
-    model: deepseek/deepseek-v3.2
-    max_tokens: 256
-    temperature: 0.0
-
   final_judge:
     enabled: true
     type: vllm

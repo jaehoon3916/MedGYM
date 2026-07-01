@@ -26,7 +26,7 @@ class RolloutLogger:
             "verification_template": step_result.verification_template.model_dump(),
             "selected_action": step_result.selected_action,
             "action_prompt": step_result.action_prompt,
-            "policy_raw_output": step_result.metadata.get("policy", {}).get("raw_output", ""),
+            "policy_raw_output": step_result.metadata.get("policy", {}).get("raw", "") or step_result.metadata.get("policy", {}).get("raw_output", ""),
             "turn_prompts": step_result.metadata.get("turn_prompts", []),
             "medical_response": step_result.medical_response,
             "user_utterance": step_result.user_utterance,

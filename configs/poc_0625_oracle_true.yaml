@@ -1,0 +1,64 @@
+# poc_0625 — true oracle (gpt-5 deliberation + correct_option 정답 주입)
+# 핵심 condition: "완벽한 planner가 있다면 긴 턴 동안 정확도가 오르는가"의 상한선(ceiling).
+# policy가 매 턴 정답 방향으로 유도하는 action_guidance를 작성하지만,
+# 정답 글자(option letter)를 의사에게 직접 누설하지는 않음 (oracle_hint 참조).
+# ⚠️  비용 주의: gpt-5 × 8턴/episode × (n_cases × n_personas) 호출 발생.
+#     스모크 테스트 시 n_cases를 작게 줄이거나 persona를 1개로 제한 권장.
+
+experiment:
+  name: poc_0625_oracle_true
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 20
+  token_ledger: token_usage_ledger.json
+  initial_user_state: null
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+
+plugins:
+  user_llm:
+    type: v3
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 256
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: false
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    info_condition: full
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 512
+    temperature: 0.0
+
+  final_judge:
+    enabled: true
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  policy:
+    type: deliberation_llm
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-5
+    max_tokens: 512
+    temperature: 0.0
+    reveal_correct_option: true      # 정답 방향으로 유도 (글자 직접 누설 X)
+
+action_space_path: configs/action_space.yaml
+concurrency: 10

@@ -51,7 +51,7 @@ plugins:
     # model: anthropic/claude-sonnet-4-5
     # model: meta-llama/llama-3.3-70b-instruct
     # model: qwen/qwen3-235b-a22b
-    max_tokens: 256
+    max_tokens: 512
     temperature: 0.0
 
   final_judge:                                  # end-of-episode judge → final_judgement{concluded_option, is_correct} for accuracy

@@ -11,6 +11,17 @@ def _clean_str(value: Any) -> str | None:
     return value.strip() if isinstance(value, str) and value.strip() else None
 
 
+def _confidence(value: Any) -> float | None:
+    """Parse the AI's self-reported confidence, clamped to [0,1] (LLMs occasionally drift just
+    outside the range rather than refusing). None if unparseable/missing -- the estimate-mode
+    policy treats a missing AI confidence as UNKNOWN (e.g. on turn 0, no AI turn exists yet)."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    return min(1.0, max(0.0, v))
+
+
 class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
     """The AI assistant never sees the multiple-choice options/question -- only the free-text
     scenario. This was always the case and is not configurable here; the option-visibility
@@ -43,7 +54,7 @@ class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
         dialogue_history: DialogueHistory,
         action_prompt: str,
         current_user_utterance: str,
-    ) -> tuple[str, str | None, str | None]:
+    ) -> tuple[str, str | None, str | None, float | None]:
         messages = build_medical_prompt(
             case_info, dialogue_history, frame_directive(action_prompt, self._frame_style),
             current_user_utterance, show_case_info=self._show_case_info,
@@ -51,4 +62,5 @@ class VLLMMedicalLLM(VLLMBasePlugin, MedicalLLMPlugin):
         raw = self._chat(messages, response_format={"type": "json_object"})
         data = safe_json_load(raw)
         text = _clean_str(data.get("response")) or raw.strip()
-        return text, _clean_str(data.get("belief")), _clean_str(data.get("reasoning"))
+        return (text, _clean_str(data.get("belief")), _clean_str(data.get("reasoning")),
+                _confidence(data.get("confidence")))

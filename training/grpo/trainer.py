@@ -74,6 +74,13 @@ class GRPOTrainer:
             traj.step_align.append(float(res.metadata.get("r_align", 0.0)))
             traj.step_fmt.append(float(res.metadata.get("r_fmt", 0.0)))
             traj.steps.append((po.metadata.get("prompt_ids", []), po.metadata.get("action_ids", [])))
+            # Burden from the user's response to this AI turn (NASA-TLX overall_workload, 1-5).
+            # Zero when no user turn follows (max_turns terminal: _advance_user_turn skipped).
+            _next_us = self.env.observation.user_state if self.env.observation else None
+            _burden = float(_next_us.model_dump().get("cognitive_burden", 0.0)) if _next_us else 0.0
+            if res.done and res.metadata.get("closed_by") == "max_turns":
+                _burden = 0.0
+            traj.step_burden.append(_burden)
             if res.done:
                 fj = res.metadata.get("final_judgement")
                 traj.is_correct = bool(fj and fj.get("is_correct"))

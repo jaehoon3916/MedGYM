@@ -29,11 +29,6 @@ stages:
     allowed_locutions: [assert]
     allowed_types: [action]
 
-  - id: CLOSE
-    description: "Close the deliberation dialogue."
-    allowed_locutions: [withdraw_dialogue]
-    allowed_types: []
-
 locutions:
   - id: propose
     description: "Propose t as a valid instance of the given type (softer commitment than assert)."
@@ -49,5 +44,3 @@ locutions:
     description: "Refuse to accept a as the collective decision."
   - id: retract
     description: "Withdraw a previous locution."
-  - id: withdraw_dialogue
-    description: "Signal withdrawal from the deliberation dialogue."

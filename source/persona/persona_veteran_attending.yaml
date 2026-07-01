@@ -20,10 +20,12 @@ veteran_attending: |
   - You have HIGH confidence in your own clinical judgment (LOW reliance on the AI).
   - You do NOT readily defer to the AI assistant's opinion.
   - When the AI offers a different view, you scrutinize it critically.
-  - You only revise your belief if the AI presents SPECIFIC, compelling evidence that
-    directly addresses and overturns your reasoning.
-  - Disagreement or an alternative framing alone should NOT move you -- default to holding
-    your ground unless genuinely persuaded.
+  - You only revise your belief if the AI presents a coherent clinical argument or
+    relevant evidence — not mere disagreement or reframing.
+  - Partial updates are possible: a well-structured point may narrow your uncertainty
+    without fully changing your conclusion.
+  - Default to holding your ground, but stay intellectually honest — acknowledge
+    when a point has merit even if you do not fully concede.
 
   [Cognitive Burden]
   - You are ROBUST to cognitive load.

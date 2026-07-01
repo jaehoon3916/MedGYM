@@ -6,14 +6,14 @@ from typing import Any
 from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig, StepResult, Observation, UserState
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
-from core.reward_align import align_reward_from_objs, ctx_from_history
+from core.reward_align import align_reward_from_objs, ctx_from_history, allowed_stages, best_action
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from plugins.policy.base import PolicyPlugin
 from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
 
-_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM", "CLOSE"}
+_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM"}
 
 
 class MedicalHACEnvironment:
@@ -90,20 +90,34 @@ class MedicalHACEnvironment:
         cur_user_state = self._cur_user_state
         ctx = ctx_from_history(self._history)   # pre-action trajectory context
 
-        # If the policy closes, force the user sim to close on the next turn.
-        if policy_output.action_id == "CLOSE.withdraw_dialogue" or policy_output.stage.upper() == "CLOSE":
-            self.user_llm.force_close()
+        # Stage gate: enforce McBurney-Hitchcock-Parsons transition rules.
+        # Overrides illegal stage selections (e.g. LLM policy jumps to CONFIRM before RECOMMEND)
+        # by replacing with the best valid action.  Oracle policy is unaffected since it already
+        # uses valid_actions(ctx) internally; this is a safety net for LLM / other policies.
+        _valid = allowed_stages(ctx)
+        if policy_output.stage.upper() not in _valid:
+            relation = cur_verif.overall_relation if cur_verif else "insufficient"
+            user_loc = getattr(cur_user_state, "locution", None) if cur_user_state else None
+            (fb_stage, fb_loc), _ = best_action(relation, user_loc, self.policy.action_space, ctx)
+            policy_output = policy_output.model_copy(update={
+                "stage": fb_stage,
+                "locution": fb_loc,
+                "action_id": f"{fb_stage}.{fb_loc}",
+                "metadata": {**policy_output.metadata, "stage_gate_override": policy_output.stage},
+            })
 
         # Apply the action: medical LLM responds using the selected action prompt.
-        medical_response, medical_belief, medical_reasoning = self.medical_llm.generate_medical_response(
-            case_info=self._case_info,
-            dialogue_history=self._history,
-            action_prompt=policy_output.action_prompt,
-            current_user_utterance=cur_utt,
+        medical_response, medical_belief, medical_reasoning, medical_confidence = (
+            self.medical_llm.generate_medical_response(
+                case_info=self._case_info,
+                dialogue_history=self._history,
+                action_prompt=policy_output.action_prompt,
+                current_user_utterance=cur_utt,
+            )
         )
         self._history.add_turn(
             "medical", medical_response, action=policy_output.action_id,
-            belief=medical_belief, reasoning=medical_reasoning,
+            belief=medical_belief, reasoning=medical_reasoning, confidence=medical_confidence,
         )
 
         # Per-step reward: r_align scores this action against the observation it responded to.
@@ -223,11 +237,12 @@ class MedicalHACEnvironment:
         obs = self.reset(case_info, eff_cfg, max_turns=max_turns)
         results: list[StepResult] = []
         while not obs.done:
+            kw = {"verification_template": obs.verification} if self.policy.needs_verification else {}
             policy_output = self.policy.select_action(
                 case_info=obs.case_info,
                 dialogue_history=obs.dialogue_history,
                 current_user_utterance=obs.current_user_utterance,
-                verification_template=obs.verification,
+                **kw,
             )
             result = self.step(policy_output)
             results.append(result)

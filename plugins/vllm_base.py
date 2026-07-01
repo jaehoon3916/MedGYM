@@ -23,6 +23,7 @@ class VLLMBasePlugin(BasePlugin):
         self._model: str = config.get("model", "")
         self._max_tokens: int = config.get("max_tokens", 512)
         self._temperature: float = config.get("temperature", 0.7)
+        self._extra_body: dict[str, Any] | None = config.get("extra_body") or None
 
     def load(self) -> None:
         pass
@@ -41,11 +42,18 @@ class VLLMBasePlugin(BasePlugin):
             temperature=temperature if temperature is not None else self._temperature,
             max_tokens=max_tokens if max_tokens is not None else self._max_tokens,
         )
-        if extra_body:
-            kwargs["extra_body"] = extra_body
+        merged_extra = {**(self._extra_body or {}), **(extra_body or {})} or None
+        if merged_extra:
+            kwargs["extra_body"] = merged_extra
         if response_format:
             kwargs["response_format"] = response_format
         response = self._client.chat.completions.create(**kwargs)
+        if not response.choices:
+            raise RuntimeError(
+                f"API returned no choices for model {self._model!r}. "
+                f"Possible cause: rate limit, context overflow, or provider error. "
+                f"Response: {response}"
+            )
         content = response.choices[0].message.content or ""
         _tracker.record(self._model, messages, content, response.usage)
         return content

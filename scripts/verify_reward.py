@@ -306,16 +306,19 @@ def check_trajectory_return() -> dict[str, Any]:
     w = DEFAULT_WEIGHTS
     cases = [
         {
-            "name": "short correct trajectory (no length penalty)",
-            "step_align": [0.5, 0.7, 1.0], "step_fmt": [1.0, 1.0, 1.0], "is_correct": True, "num_turns": 3,
+            "name": "short correct trajectory (low burden)",
+            "step_align": [0.5, 0.7, 1.0], "step_fmt": [1.0, 1.0, 1.0],
+            "step_burden": [1.5, 2.0, 1.0], "is_correct": True, "num_turns": 3,
         },
         {
-            "name": "long correct trajectory (length penalty kicks in)",
-            "step_align": [0.2] * 9, "step_fmt": [1.0] * 9, "is_correct": True, "num_turns": 9,
+            "name": "long correct trajectory (high burden accumulates)",
+            "step_align": [0.2] * 9, "step_fmt": [1.0] * 9,
+            "step_burden": [3.5] * 9, "is_correct": True, "num_turns": 9,
         },
         {
             "name": "incorrect trajectory, all negative align",
-            "step_align": [-1.0, -0.7], "step_fmt": [0.0, 1.0], "is_correct": False, "num_turns": 2,
+            "step_align": [-1.0, -0.7], "step_fmt": [0.0, 1.0],
+            "step_burden": [4.0, 4.5], "is_correct": False, "num_turns": 2,
         },
     ]
     rows = []
@@ -323,30 +326,32 @@ def check_trajectory_return() -> dict[str, Any]:
     returns = []
     for c in cases:
         traj = Trajectory(step_align=c["step_align"], step_fmt=c["step_fmt"],
+                           step_burden=c["step_burden"],
                            is_correct=c["is_correct"], num_turns=c["num_turns"])
         actual = trajectory_return(traj, {})
         r_align = sum(c["step_align"]); r_fmt = sum(c["step_fmt"])
         r_final = 1.0 if c["is_correct"] else 0.0
-        length_pen = max(0, c["num_turns"] - int(w["tau_star"]))
+        burden_cost = sum(c["step_burden"])
         expected = (w["lambda_align"] * r_align + w["lambda_final"] * r_final
-                    + w["lambda_fmt"] * r_fmt - w["lambda_len"] * length_pen)
+                    + w["lambda_fmt"] * r_fmt - w["lambda_burden"] * burden_cost)
         ok = abs(actual - expected) < 1e-9
         if not ok:
             n_fail += 1
         returns.append(actual)
         rows.append({"name": c["name"], "expected": round(expected, 4), "actual": round(actual, 4),
-                      "length_penalty": length_pen, "pass": ok})
+                      "burden_cost": round(burden_cost, 4), "pass": ok})
 
     # weights override
-    traj = Trajectory(step_align=[1.0, 1.0], step_fmt=[0.0, 0.0], is_correct=True, num_turns=2)
-    custom = {"lambda_align": 2.0, "lambda_final": 0.0, "lambda_fmt": 0.0, "lambda_len": 0.0, "tau_star": 6}
+    traj = Trajectory(step_align=[1.0, 1.0], step_fmt=[0.0, 0.0],
+                      step_burden=[0.0, 0.0], is_correct=True, num_turns=2)
+    custom = {"lambda_align": 2.0, "lambda_final": 0.0, "lambda_fmt": 0.0, "lambda_burden": 0.0}
     actual = trajectory_return(traj, custom)
     expected = 2.0 * 2.0
     ok = abs(actual - expected) < 1e-9
     if not ok:
         n_fail += 1
     rows.append({"name": "weights override (lambda_align=2.0, others 0)", "expected": expected,
-                 "actual": actual, "length_penalty": 0, "pass": ok})
+                 "actual": actual, "burden_cost": 0.0, "pass": ok})
 
     # group_advantages: mean ~0, pstdev ~1
     adv = group_advantages(returns)

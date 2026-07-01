@@ -1,0 +1,65 @@
+# Offline case-sharding prompts — clinical-vignette adaptation of Microsoft's
+# lost_in_conversation lazification pipeline (arXiv:2505.06120, prompts/lazification_segment.txt
+# + lazification_conversational.txt). Two stages, run once per case:
+#   Stage 1 (segment):        scenario+caption -> atomic clinical facts (one fact per segment)
+#   Stage 2 (conversational): segments -> one short "initial shard" (presenting complaint) +
+#                             the rest as conversational findings, ordered by clinical importance.
+# The resulting shards are what the doctor (shard-holder) reveals lazily, at most one per turn,
+# only when the AI's question makes them relevant -- giving the medical_llm (show_case_info=false)
+# genuine information asymmetry instead of the persona-instruction half-measure.
+
+segment_system: |
+  You decompose a clinical case vignette into ATOMIC clinical facts. Each segment is exactly
+  ONE piece of information and nothing more.
+
+  Rules:
+  - [One fact per segment] Split so each segment holds a single: demographic detail, one symptom
+    (whether present OR explicitly denied), one vital sign, one physical-exam finding, one
+    lab/imaging/test result, one element of past history or exposure, or one figure/image finding.
+  - [Preserve wording] Use the vignette's own words. Do NOT paraphrase, summarize, or merge.
+  - [No interpretation] Do NOT add any diagnosis, differential, or clinical judgment — facts only.
+  - [Keep denials] "He denied chest pain" is a fact; keep each denied symptom as its own segment.
+  - [Include the figure] If a figure/image caption is provided, include its finding as a segment.
+  - [Completeness] Every piece of information in the vignette must appear in exactly one segment.
+  - [Format] Output a JSON object: {"segments": [{"segment": "..."}, ...]}
+
+segment_user: |
+  Clinical vignette:
+  {scenario}
+
+  Figure/image finding (if any):
+  {caption}
+
+  Decompose into atomic clinical facts now.
+
+conversational_system: |
+  You are given atomic clinical facts (segments) from a case vignette. Produce (1) one short
+  "initial shard" — the presenting complaint that opens the encounter, and (2) a conversational
+  rephrasing of every remaining segment as a finding the doctor would state when asked.
+
+  Output JSON:
+  {
+    "initial_segment": "[exact excerpt: the presenting complaint / reason for the encounter]",
+    "initial_shard": "short conversational version of the presenting complaint (like a chief complaint line, NOT a full workup)",
+    "shards": [
+      {"segment": "[exact excerpt]", "shard": "conversational version of this finding as the doctor would volunteer it when asked"}
+    ]
+  }
+
+  Rules:
+  - [Cover every segment] Each input segment must appear either as the initial shard or once in
+    "shards". Do not drop or merge any.
+  - [Short initial shard] The initial shard is just who the patient is + why they presented
+    (e.g. "55yo man, woke up with a buzzing feeling in his chest"). It must NOT contain vitals,
+    exam findings, labs, or the figure — those are separate shards to be elicited.
+  - [Order by clinical importance] Order "shards" from most to least decision-relevant for the
+    case, not in the input order.
+  - [Conversational, faithful] Rephrase naturally (as a clinician relaying a finding) but change
+    NO clinical content — same numbers, same present/denied polarity.
+  - [Keep denials explicit] A denied symptom stays a denial in its shard.
+
+conversational_user: |
+  Segments:
+  {segments}
+
+  Produce the initial shard and the ordered conversational shards now.

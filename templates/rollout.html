@@ -71,6 +71,16 @@
     .bubble-medical .bubble-text { background: #f0f7ff; border-color: #5b9bd5; }
     .bubble-user    .bubble-text { background: #f5faf0; border-color: #6bbf6b; }
 
+    /* ── End-token badge ────────────────────────── */
+    .badge-end-token { font-size: 0.68rem; font-weight: 700; padding: 2px 8px;
+                       border-radius: 999px; white-space: nowrap;
+                       background: #fff3cd; color: #856404;
+                       border: 1px solid #ffc107; }
+    .badge-end-suppressed { font-size: 0.68rem; font-weight: 700; padding: 2px 8px;
+                            border-radius: 999px; white-space: nowrap;
+                            background: #fde8e8; color: #922;
+                            border: 1px dashed #e88; }
+
     /* ── Action badge ────────────────────────────── */
     .action-tag { font-size: 0.68rem; font-weight: 700; padding: 2px 9px;
                   border-radius: 999px; letter-spacing: .3px; white-space: nowrap; }
@@ -218,11 +228,27 @@
       {% for t in turns %}
       {% set action_parts = t.selected_action.split('.') %}
       {% set stage = action_parts[0] if action_parts|length > 0 else '' %}
+      {% set ns2 = namespace(last_decision=None, last_reason=None) %}
+      {% for dlg in t.dialogue_history %}
+        {% if dlg.speaker == 'user' and dlg.user_state %}
+          {% set ns2.last_decision = dlg.user_state.get('decision') %}
+          {% set ns2.last_reason   = dlg.user_state.get('termination_reason') %}
+        {% endif %}
+      {% endfor %}
       <div class="turn" id="turn-{{ t.turn_id }}" onclick="selectTurn({{ t.turn_id }})">
         <div class="turn-header">
           <div class="turn-header-left">
             <span>Turn {{ t.turn_id + 1 }}</span>
             <span class="action-tag stage-{{ stage }}">{{ t.selected_action }}</span>
+            {% if ns2.last_decision == 'END' %}
+              {% set closed = t.get('closed_by') %}
+              {% if closed == 'max_turns' or closed is none %}
+                {# END was suppressed (force_full_turns or subsequent turn) #}
+                <span class="badge-end-suppressed" title="END token fired ({{ ns2.last_reason or 'agreement' }}) but suppressed by force_full_turns">END↯</span>
+              {% else %}
+                <span class="badge-end-token" title="Episode ended: {{ ns2.last_reason or 'agreement' }}">END ✓</span>
+              {% endif %}
+            {% endif %}
           </div>
           {% set vt = t.get('verification_template', {}) %}
           {% if vt %}

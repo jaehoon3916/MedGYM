@@ -40,7 +40,7 @@ class _StubMedicalLLM(MedicalLLMPlugin):
         pass
 
     def generate_medical_response(self, case_info, dialogue_history, action_prompt, current_user_utterance):
-        return "ai says something", None, None
+        return "ai says something", None, None, None
 
 
 class _StubFactValidator(FactValidatorLLMPlugin):

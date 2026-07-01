@@ -50,7 +50,8 @@ utterance_turn0_system: |
   {{
     "response": "your opening message stating your initial decision and reasoning -- this is
       the only field the AI partner sees",
-    "belief": "the clinical decision you have independently made",
+    "belief": "the single option letter (A, B, C, or D) representing the clinical decision
+      you have independently made",
     "confidence": "a number between 0 and 1 for how confident you are in that belief (0 = no
       confidence at all, 1 = completely certain) -- your own internal state, not shown to the AI",
     "reasoning": "a single short sentence stating why (your terse internal justification,
@@ -71,7 +72,8 @@ utterance_turn0_user: |
   {options_text}
 
   [Instruction]
-  State your independent clinical decision and reasoning. Start the conversation.
+  State your independent clinical decision and reasoning. Start the conversation. In the
+  JSON "belief" field, write only the single option letter A, B, C, or D.
 
 utterance_followup_system: |
   [Role]

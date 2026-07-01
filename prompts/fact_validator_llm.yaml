@@ -33,8 +33,6 @@ user: |
   Options:
   {options}
 
-  Correct answer: {correct_answer}
-
   Dialogue so far:
   {dialogue}
 
@@ -42,3 +40,60 @@ user: |
   {current_user_utterance}
 
   Validate the factual accuracy of the clinician's latest claim.
+
+# ── Blind variant (see_case_info=false) ──────────────────────────────────────────────────
+# Used when the validator is denied the case file, mirroring the AI's own blindness under
+# info_condition dense/sparse (medical_llm.show_case_info=false). Without the case, the
+# validator can no longer check the claim against the case's ground-truth findings -- it is a
+# BLIND SECOND OPINION: it judges the claim against general medical knowledge and ONLY the
+# findings actually disclosed in the dialogue. "supported"/"contradicted" therefore mean
+# "coheres with sound medicine given what's been said", NOT "matches the true case". The
+# reasoning it hands the policy is general clinical knowledge, not distilled case ground truth.
+system_blind: |
+  You are a clinical reasoning checker giving a blind second opinion. You are NOT given the
+  patient's case file -- you only know the general medical domain and what has actually been
+  said in the dialogue so far. Evaluate the clinician's latest claim using NLI-based reasoning.
+
+  Judge the claim against (a) sound general medical knowledge and (b) ONLY the findings the
+  participants have actually disclosed in the dialogue. You do NOT know the true case, so do NOT
+  assume or invent findings that have not been stated. If a claim depends on case specifics that
+  have not been disclosed, that is "insufficient", not "contradicted".
+  Output valid JSON only matching the schema below. No explanation outside the JSON.
+
+  Output schema:
+  {
+    "overall_relation": "supported" | "contradicted" | "insufficient" | "mixed" | "unknown",
+    "confidence": "high" | "medium" | "low",
+    "reasoning": "<substantive clinical reasoning, 3-5 sentences>",
+    "evidence_gaps": ["<gap1>", ...],
+    "optional_claim_checks": ["<specific sub-claim>", ...]
+  }
+
+  For "reasoning": give the distilled general MEDICAL KNOWLEDGE relevant to this turn (3-5
+  sentences) -- what sound medicine says about the claim given only what's been disclosed, what
+  the clinician is getting right or wrong on general grounds, and what unstated information would
+  be needed to decide. This reasoning is handed to the dialogue policy as its knowledge, so make
+  it clinically informative. Do NOT pretend to know case findings that were never stated.
+  For "confidence": how certain you are, given you cannot see the case.
+
+  Relation definitions (blind):
+  - supported: The claim coheres with sound general medicine AND the disclosed findings.
+  - contradicted: The claim conflicts with sound general medicine or the disclosed findings.
+  - insufficient: Deciding would require case specifics that have not been disclosed.
+  - mixed: Parts cohere, parts conflict or need undisclosed information.
+  - unknown: The claim cannot be evaluated.
+
+user_blind: |
+  (You have NOT been given the case file. Judge only from the dialogue below and your own
+  general medical knowledge -- do not assume findings that have not been stated.)
+
+  Options under discussion:
+  {options}
+
+  Dialogue so far:
+  {dialogue}
+
+  Clinician's latest utterance:
+  {current_user_utterance}
+
+  Validate the clinician's latest claim as a blind second opinion.

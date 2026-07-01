@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+import re
 
 import yaml
 
@@ -100,8 +101,32 @@ def _clean_str(value: Any) -> str | None:
 
 
 def _letter(value: Any) -> str | None:
-    v = str(value).strip().upper() if value is not None else ""
-    return v if v in _VALID_LETTERS else None
+    if value is None:
+        return None
+    v = str(value).strip().upper()
+    if v in _VALID_LETTERS:
+        return v
+    match = re.match(r"^(?:OPTION\s*)?([A-D])(?:[.)\s:;-]|$)", v)
+    if match:
+        return match.group(1)
+    match = re.search(r"\bOPTION\s*([A-D])\b", v)
+    return match.group(1) if match else None
+
+
+def _norm_for_match(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
+
+
+def _letter_from_option_text(value: Any, options: dict[str, str]) -> str | None:
+    text = _norm_for_match(value)
+    if not text:
+        return None
+    for letter, option in options.items():
+        opt = _norm_for_match(option)
+        if opt and (opt in text or text in opt):
+            normalized_letter = str(letter).strip().upper()
+            return normalized_letter if normalized_letter in _VALID_LETTERS else None
+    return None
 
 
 def _confidence(value: Any) -> float | None:
@@ -130,7 +155,10 @@ def _parse_opening(raw: str, lettered: bool = True) -> tuple[str, str | None, st
     never matched A/B/C/D)."""
     data = safe_json_load(raw)
     response = _clean_str(data.get("response")) or raw.strip()
-    belief = _letter(data.get("belief")) if lettered else _clean_str(data.get("belief"))
+    if lettered:
+        belief = _letter(data.get("belief")) or _letter(response)
+    else:
+        belief = _clean_str(data.get("belief"))
     return (
         response, belief, _clean_str(data.get("reasoning")),
         _confidence(data.get("confidence")),
@@ -186,7 +214,6 @@ class UserSimulatorV3(VLLMBasePlugin, UserLLMPlugin):
     def __init__(self, config: dict[str, Any]):
         VLLMBasePlugin.__init__(self, config)
         self._episode_cfg: EpisodeConfig = EpisodeConfig()
-        self._force_close: bool = False
         self._last_belief: str | None = None
         self._burden_samples: int = int(config.get("burden_samples_per_item", 3))
         self._force_full_turns: bool = bool(config.get("force_full_turns", False))
@@ -220,12 +247,8 @@ class UserSimulatorV3(VLLMBasePlugin, UserLLMPlugin):
 
     def reset_episode(self, episode_config: EpisodeConfig) -> None:
         self._episode_cfg = episode_config
-        self._force_close = False
         self._last_belief = None
         self._burden_cumulative = 0.0
-
-    def force_close(self) -> None:
-        self._force_close = True
 
     def name(self) -> str:
         return f"user-simulator-v3-{self._model}"
@@ -237,10 +260,6 @@ class UserSimulatorV3(VLLMBasePlugin, UserLLMPlugin):
         turn_id: int = 0,
         user_profile: dict[str, Any] | None = None,
     ) -> tuple[str, bool, dict[str, Any] | None]:
-        if self._force_close:
-            self._force_close = False
-            return "I understand. Let's close the discussion here.", True, None
-
         if not dialogue_history.turns:
             return self._opening_turn(case_info)
         return self._followup_turn(case_info, dialogue_history)
@@ -267,6 +286,12 @@ class UserSimulatorV3(VLLMBasePlugin, UserLLMPlugin):
         ]
         raw = self._chat(messages, response_format={"type": "json_object"})
         utterance, belief, reasoning, confidence = _parse_opening(raw, lettered=self._show_options)
+        if self._show_options and belief is None:
+            data = safe_json_load(raw)
+            belief = (
+                _letter_from_option_text(data.get("belief"), case_info.options)
+                or _letter_from_option_text(utterance, case_info.options)
+            )
         self._last_belief = belief or self._last_belief
         return utterance, False, {
             "belief": self._last_belief, "confidence": confidence,

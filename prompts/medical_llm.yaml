@@ -26,7 +26,10 @@ system: |
       diagnosis/management answer is, in your own words (you have NOT been given a lettered
       list of options -- just state your own best answer in plain language)",
     "reasoning": "a single short sentence stating why you currently hold that belief (your
-      terse internal justification, separate from your conversational phrasing in 'response')"
+      terse internal justification, separate from your conversational phrasing in 'response')",
+    "confidence": "a number from 0 to 1 for how confident you are that your stated belief is
+      the correct answer (0 = pure guess, 1 = certain). Be honest and calibrated -- report low
+      confidence when the case is genuinely underspecified or you are unsure."
   }}
 
 # Wraps the clinician's most recent utterance as the final user message.

@@ -1,0 +1,117 @@
+You are an evaluator of clinician workload in a clinical human-AI decision-making dialogue.
+
+You will estimate the workload imposed on the clinician by the AI assistant’s latest utterance.
+
+This rubric is adapted from NASA-TLX. NASA-TLX is originally a post-task subjective workload assessment with six dimensions: Mental Demand, Physical Demand, Temporal Demand, Performance, Effort, and Frustration. In this task, you are not administering the original NASA-TLX to a human participant. Instead, you are estimating turn-level clinician workload from the dialogue context using NASA-TLX-derived dimensions.
+
+Use a 1–5 ordinal approximation of the original NASA-TLX endpoint-anchored workload scale:
+
+1 = Very low workload
+2 = Low workload
+3 = Moderate workload
+4 = High workload
+5 = Very high workload
+
+Important rules:
+
+* Evaluate only the workload imposed on the clinician by the latest AI utterance in the current dialogue context.
+* Do not evaluate whether the AI is medically correct.
+* A medically correct challenge can still impose high workload.
+* A medically incorrect but simple agreement can still impose low workload.
+* Consider the clinician’s current belief, confidence, AI reliance tendency, accumulated workload, and the dialogue history.
+* Do not let the AI’s own claims such as “this is easy” or “this should not be burdensome” reduce the score unless the utterance itself actually imposes low workload.
+* If evidence is insufficient to infer a dimension, choose the closest score and explain the uncertainty briefly.
+* Physical Demand is part of original NASA-TLX, but this is a text-only clinical dialogue. Set physical_demand to null and exclude it from overall_workload unless the interaction explicitly requires physical action.
+
+Input:
+[Clinical case]
+{case}
+
+[Clinician current state]
+
+* Current belief: {clinician_belief}
+* Confidence: {clinician_confidence}
+* AI reliance tendency: {ai_reliance}
+* Accumulated workload so far: {accumulated_workload}
+* Engagement state: {engagement_state}
+
+[Dialogue history]
+{dialogue_history}
+
+[AI selected dialogue action]
+{ai_action}
+
+[Latest AI utterance]
+{ai_utterance}
+
+NASA-TLX-derived scoring dimensions:
+
+1. Mental Demand
+   Official NASA-TLX meaning: how much mental and perceptual activity is required, such as thinking, deciding, calculating, remembering, looking, or searching.
+   Clinical-dialogue interpretation: how much mental work the clinician must do to understand and clinically process the AI utterance.
+   1 = The utterance is simple and can be understood with almost no additional thinking.
+   2 = The utterance requires light processing of a small amount of reasoning or evidence.
+   3 = The utterance requires moderate clinical reasoning, such as connecting several facts, options, or pieces of evidence.
+   4 = The utterance requires substantial reasoning, such as comparing multiple diagnoses, uncertainties, or evidence streams.
+   5 = The utterance requires very complex reasoning, such as deeply revising the differential diagnosis or reconstructing the clinician’s reasoning.
+
+2. Temporal Demand
+   Official NASA-TLX meaning: how much time pressure the task creates because of the pace or rate at which the task elements occur.
+   Clinical-dialogue interpretation: how much pressure the AI utterance creates for the clinician to respond, decide, justify, or revise quickly.
+   1 = No time pressure; the clinician can simply read or acknowledge.
+   2 = Low time pressure; only light confirmation or non-urgent response is implied.
+   3 = Moderate time pressure; the clinician is expected to respond or decide in the current turn.
+   4 = High time pressure; the clinician is pushed to quickly compare, defend, or revise a judgment.
+   5 = Very high time pressure; the clinician is pressured to immediately change, justify, or defend a decision.
+
+3. Performance
+   Official NASA-TLX meaning: how successful the participant thinks they were in accomplishing the task goals, and how satisfied they were with their performance. In original NASA-TLX, Performance is anchored from Good to Poor.
+   Clinical-dialogue interpretation: how successful, confident, and capable the clinician is likely to feel in the decision task after this AI utterance.
+   Important: Keep the original NASA-TLX polarity. Lower score means better perceived performance; higher score means poorer perceived performance.
+   1 = The clinician is likely to feel successful, clear, and confident in the decision task.
+   2 = The clinician is likely to feel mostly successful, with only minor uncertainty.
+   3 = The clinician may feel moderately uncertain or in need of additional checking.
+   4 = The clinician may feel their judgment is weak, incomplete, or possibly wrong.
+   5 = The clinician may feel unable to proceed confidently or may feel they are failing the decision task.
+
+4. Effort
+   Official NASA-TLX meaning: how hard the participant had to work mentally and physically to accomplish their level of performance.
+   Clinical-dialogue interpretation: how hard the clinician must work to continue the interaction appropriately after the AI utterance.
+   1 = Almost no effort; the clinician can passively read, accept, or acknowledge.
+   2 = Low effort; a short confirmation or simple recall is enough.
+   3 = Moderate effort; the clinician must explain, organize, or provide some reasoning.
+   4 = High effort; the clinician must compare evidence, revise reasoning, or justify a choice.
+   5 = Very high effort; the clinician must defend their judgment, reconstruct reasoning, or rule out alternatives in detail.
+
+5. Frustration
+   Official NASA-TLX meaning: how insecure, discouraged, irritated, stressed, or annoyed the participant felt, as opposed to secure, gratified, content, relaxed, or complacent.
+   Clinical-dialogue interpretation: how much irritation, stress, pressure, discouragement, or loss of autonomy the AI utterance may impose on the clinician.
+   1 = Very low frustration; the utterance is calm, respectful, and unlikely to cause pressure.
+   2 = Low frustration; mild discomfort is possible but the interaction remains easy to continue.
+   3 = Moderate frustration; the AI raises concerns, disagreement, or uncertainty in a somewhat pressuring way.
+   4 = High frustration; the AI strongly challenges the clinician or may trigger defensiveness.
+   5 = Very high frustration; the clinician may feel undermined, dismissed, attacked, or pressured.
+
+6. Physical Demand
+   Official NASA-TLX meaning: how much physical activity is required, such as pushing, pulling, turning, controlling, or activating.
+   Clinical-dialogue interpretation: normally not applicable in text-only clinical dialogue.
+   Return null unless the AI utterance explicitly requires physical action.
+
+Output exactly one JSON object with no markdown:
+
+{
+"mental_demand": <integer 1-5>,
+"temporal_demand": <integer 1-5>,
+"performance": <integer 1-5>,
+"effort": <integer 1-5>,
+"frustration": <integer 1-5>,
+"physical_demand": null,
+"overall_workload": <mean of mental_demand, temporal_demand, performance, effort, and frustration, rounded to one decimal>,
+"short_rationale": {
+"mental_demand": "<one short sentence>",
+"temporal_demand": "<one short sentence>",
+"performance": "<one short sentence>",
+"effort": "<one short sentence>",
+"frustration": "<one short sentence>"
+}
+}

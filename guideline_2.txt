@@ -1,0 +1,968 @@
+아래 그대로 Claude Code에 던지면 되는 **기술 명세서 초안**임.
+
+---
+
+# 기술 명세서: Dialogue-based Medical HAC Policy Training Framework
+
+## 1. 목표
+
+이 프로젝트는 **User LLM, Medical LLM, Extractor LLM, Plug-in Policy**를 각각 교체 가능한 플러그인 모듈로 구성하여, 의료 Human-AI Collaboration 대화 환경에서 **사용자 상태를 추출하고, 그 상태에 따라 Medical LLM의 행동 전략을 선택하는 정책 모델**을 학습·평가하는 프레임워크를 구현한다.
+
+전체 구조는 다음 흐름을 따른다.
+
+```text
+Case Info
+   ↓
+Medical LLM ── System Utterance ──> User LLM
+   ↑                                  ↓
+Action Prompt                    User Utterance
+   ↑                                  ↓
+Plug-in Policy ← User State ← Extractor LLM ← Dialogue History
+```
+
+Plug-in Policy는 초기에는 SFT로 학습하고, 이후 GRPO 기반 강화학습으로 개선될 수 있어야 한다.
+
+---
+
+# 2. 핵심 요구사항
+
+## 2.1 모든 주요 모델은 플러그인 구조여야 한다
+
+다음 네 컴포넌트는 모두 교체 가능해야 한다.
+
+```text
+UserLLM
+MedicalLLM
+ExtractorLLM
+PolicyModel
+```
+
+각 컴포넌트는 공통 인터페이스를 가져야 하며, OpenAI API, Anthropic API, vLLM, HuggingFace local model, rule-based mock model 등을 쉽게 갈아끼울 수 있어야 한다.
+
+---
+
+# 3. 디렉토리 구조
+
+```text
+medical_hac_policy/
+│
+├── main.py
+├── configs/
+│   ├── default.yaml
+│   ├── models.yaml
+│   └── training.yaml
+│
+├── core/
+│   ├── schemas.py
+│   ├── conversation.py
+│   ├── environment.py
+│   ├── prompt_builder.py
+│   └── logger.py
+│
+├── plugins/
+│   ├── base.py
+│   ├── user_llm/
+│   │   ├── base.py
+│   │   ├── openai_user.py
+│   │   ├── anthropic_user.py
+│   │   └── mock_user.py
+│   │
+│   ├── medical_llm/
+│   │   ├── base.py
+│   │   ├── openai_medical.py
+│   │   ├── local_medical.py
+│   │   └── mock_medical.py
+│   │
+│   ├── extractor_llm/
+│   │   ├── base.py
+│   │   ├── openai_extractor.py
+│   │   ├── rule_extractor.py
+│   │   └── mock_extractor.py
+│   │
+│   └── policy/
+│       ├── base.py
+│       ├── rule_policy.py
+│       ├── sft_policy.py
+│       └── grpo_policy.py
+│
+├── training/
+│   ├── sft/
+│   │   ├── dataset.py
+│   │   ├── trainer.py
+│   │   └── collator.py
+│   │
+│   ├── grpo/
+│   │   ├── rollout.py
+│   │   ├── reward.py
+│   │   ├── trainer.py
+│   │   └── advantage.py
+│   │
+│   └── common/
+│       ├── checkpoint.py
+│       └── metrics.py
+│
+├── data/
+│   ├── raw/
+│   ├── sft/
+│   ├── rollouts/
+│   └── processed/
+│
+├── scripts/
+│   ├── run_dialogue.py
+│   ├── build_sft_data.py
+│   ├── train_sft.py
+│   ├── train_grpo.py
+│   └── evaluate.py
+│
+└── tests/
+    ├── test_environment.py
+    ├── test_plugins.py
+    ├── test_extractor.py
+    └── test_policy.py
+```
+
+---
+
+# 4. 데이터 스키마
+
+## 4.1 CaseInfo
+
+```python
+@dataclass
+class CaseInfo:
+    case_id: str
+    scenario: str
+    question: str
+    options: dict[str, str]
+    correct_answer: str | None = None
+    expert_explanation: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+```
+
+---
+
+## 4.2 DialogueTurn
+
+```python
+@dataclass
+class DialogueTurn:
+    speaker: Literal["system", "user", "medical"]
+    text: str
+    action: str | None = None
+    user_state: dict[str, Any] | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+```
+
+---
+
+## 4.3 DialogueHistory
+
+```python
+@dataclass
+class DialogueHistory:
+    case_id: str
+    turns: list[DialogueTurn]
+
+    def add_turn(self, speaker: str, text: str, **kwargs) -> None:
+        ...
+
+    def to_prompt(self) -> str:
+        ...
+
+    def to_messages(self) -> list[dict[str, str]]:
+        ...
+```
+
+---
+
+## 4.4 UserState
+
+Extractor LLM은 dialogue history를 받아 다음과 같은 JSON을 출력한다.
+
+```json
+{
+  "intent": "accept | challenge | ask_question | express_uncertainty | provide_evidence | other",
+  "certainty": "certain | uncertain | neutral",
+  "stance_toward_medical_llm": "agree | disagree | skeptical | confused | unknown",
+  "medical_claims": [
+    {
+      "claim": "string",
+      "confidence": "high | medium | low | unknown"
+    }
+  ],
+  "user_noise": {
+    "irrelevant_info": false,
+    "contradiction": false,
+    "emotional_expression": false
+  },
+  "key_facts": [
+    "string"
+  ],
+  "missing_information": [
+    "string"
+  ],
+  "summary": "short natural language summary"
+}
+```
+
+주의점:
+
+Extractor 출력은 반드시 JSON parse 가능해야 한다.
+파싱 실패 시 retry 로직을 둔다.
+retry 후에도 실패하면 fallback extractor를 사용한다.
+
+---
+
+# 5. 플러그인 인터페이스
+
+## 5.1 BasePlugin
+
+```python
+class BasePlugin(ABC):
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abstractmethod
+    def load(self) -> None:
+        pass
+```
+
+---
+
+## 5.2 UserLLMPlugin
+
+```python
+class UserLLMPlugin(BasePlugin):
+    @abstractmethod
+    def generate_user_utterance(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+        system_utterance: str,
+        user_profile: dict[str, Any] | None = None,
+    ) -> str:
+        pass
+```
+
+역할:
+
+Medical LLM의 system utterance를 보고 사용자 발화를 생성한다.
+
+예시 구현:
+
+```text
+OpenAIUserLLM
+AnthropicUserLLM
+LocalUserLLM
+MockUserLLM
+```
+
+---
+
+## 5.3 MedicalLLMPlugin
+
+```python
+class MedicalLLMPlugin(BasePlugin):
+    @abstractmethod
+    def generate_medical_response(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+        action_prompt: str,
+    ) -> str:
+        pass
+```
+
+역할:
+
+Plug-in Policy가 고른 action prompt를 조건으로 받아 실제 의료 응답을 생성한다.
+
+예시 action prompt:
+
+```text
+Accept the user's hypothesis and explain why it is clinically plausible.
+Challenge the user's hypothesis and provide evidence-based reasoning.
+Ask for missing clinical evidence before making a judgment.
+Defer final judgment and summarize uncertainty.
+```
+
+---
+
+## 5.4 ExtractorLLMPlugin
+
+```python
+class ExtractorLLMPlugin(BasePlugin):
+    @abstractmethod
+    def extract_user_state(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+    ) -> dict[str, Any]:
+        pass
+```
+
+역할:
+
+대화 기록에서 user state를 JSON으로 추출한다.
+
+필수 기능:
+
+```text
+1. JSON-only 출력
+2. schema validation
+3. retry on invalid JSON
+4. fallback extraction
+```
+
+---
+
+## 5.5 PolicyPlugin
+
+```python
+class PolicyPlugin(BasePlugin):
+    @abstractmethod
+    def select_action(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+        user_state: dict[str, Any],
+    ) -> dict[str, Any]:
+        pass
+```
+
+반환값:
+
+```json
+{
+  "action_id": "ACCEPT | CHALLENGE | ASK_EVIDENCE | DEFER | SUMMARIZE",
+  "action_prompt": "natural language instruction for Medical LLM",
+  "confidence": 0.72,
+  "metadata": {}
+}
+```
+
+---
+
+# 6. Action Space
+
+초기 action space는 discrete action으로 둔다.
+
+```python
+ACTION_SPACE = {
+    "ACCEPT": {
+        "description": "Support the user's clinical hypothesis or decision.",
+        "prompt": "Accept the user's hypothesis if clinically justified and explain the supporting reasoning."
+    },
+    "CHALLENGE": {
+        "description": "Challenge the user's hypothesis or decision.",
+        "prompt": "Challenge the user's hypothesis if it is clinically questionable and provide evidence-based reasoning."
+    },
+    "ASK_EVIDENCE": {
+        "description": "Ask for additional evidence before agreeing or disagreeing.",
+        "prompt": "Ask for missing clinical information needed to evaluate the user's hypothesis."
+    },
+    "DEFER": {
+        "description": "Avoid premature judgment due to insufficient evidence.",
+        "prompt": "Defer final judgment and explain what remains uncertain."
+    },
+    "SUMMARIZE": {
+        "description": "Summarize the current clinical reasoning state.",
+        "prompt": "Summarize the current clinical facts, uncertainty, and possible next steps."
+    }
+}
+```
+
+향후 확장을 위해 action space는 YAML로 정의 가능해야 한다.
+
+```yaml
+action_space:
+  - id: ACCEPT
+    prompt: "Accept the user's hypothesis..."
+  - id: CHALLENGE
+    prompt: "Challenge the user's hypothesis..."
+  - id: ASK_EVIDENCE
+    prompt: "Ask for missing clinical information..."
+```
+
+---
+
+# 7. Environment 설계
+
+## 7.1 MedicalHACEnvironment
+
+```python
+class MedicalHACEnvironment:
+    def __init__(
+        self,
+        user_llm: UserLLMPlugin,
+        medical_llm: MedicalLLMPlugin,
+        extractor_llm: ExtractorLLMPlugin,
+        policy: PolicyPlugin,
+        config: dict[str, Any],
+    ):
+        ...
+
+    def reset(self, case_info: CaseInfo) -> DialogueHistory:
+        ...
+
+    def step(self) -> dict[str, Any]:
+        ...
+```
+
+---
+
+## 7.2 1-step 흐름
+
+```text
+1. User LLM이 case info(답 알고 잇음), dialog history(1턴에서는 x) 보고 user utterance 생성
+2. Dialogue History 업데이트
+3. Extractor LLM이 dialogue history에서 user state 추출
+4. Plug-in Policy가 user state를 보고 다음 action 선택
+5. action prompt 생성
+6. Medical LLM이 현재 action prompt에 따라 case info(답 모름), dialog history, user utterance 보고 system utterance 생성
+7. 다음 turn으로 진행
+```
+
+---
+
+## 7.3 Rollout Output
+
+각 rollout은 JSONL로 저장한다.
+
+```json
+{
+  "case_id": "case_001",
+  "turn_id": 0,
+  "case_info": {},
+  "dialogue_history": [],
+  "user_state": {},
+  "selected_action": "CHALLENGE",
+  "action_prompt": "Challenge the user's hypothesis...",
+  "medical_response": "...",
+  "user_utterance": "...",
+  "reward": null,
+  "metadata": {}
+}
+```
+
+---
+
+# 8. SFT 학습
+
+## 8.1 목적
+
+SFT는 user state와 dialogue history를 보고 적절한 action을 예측하는 policy model을 학습한다.
+
+입력:
+
+```json
+{
+  "case_info": "...",
+  "dialogue_history": "...",
+  "user_state": {...}
+}
+```
+
+출력:
+
+```json
+{
+  "action_id": "CHALLENGE",
+  "action_prompt": "Challenge the user's hypothesis and explain why..."
+}
+```
+
+---
+
+## 8.2 SFT 데이터 포맷
+
+```json
+{
+  "id": "sft_001",
+  "input": {
+    "case_info": "...",
+    "dialogue_history": [
+      {
+        "speaker": "medical",
+        "text": "..."
+      },
+      {
+        "speaker": "user",
+        "text": "..."
+      }
+    ],
+    "user_state": {
+      "intent": "express_uncertainty",
+      "certainty": "uncertain",
+      "stance_toward_medical_llm": "agree"
+    }
+  },
+  "target": {
+    "action_id": "ASK_EVIDENCE",
+    "action_prompt": "Ask for additional clinical evidence before accepting or challenging the user's hypothesis."
+  }
+}
+```
+
+---
+
+## 8.3 Rule-based SFT Data Builder
+
+초기에는 rule-based heuristic으로 SFT 데이터를 만들 수 있어야 한다.
+
+예시:
+
+```python
+def label_action(user_state, case_info):
+    if user_state["certainty"] == "uncertain":
+        return "ASK_EVIDENCE"
+
+    if user_state["stance_toward_medical_llm"] == "skeptical":
+        return "SUMMARIZE"
+
+    if has_wrong_claim(user_state, case_info):
+        return "CHALLENGE"
+
+    if has_correct_claim(user_state, case_info):
+        return "ACCEPT"
+
+    return "DEFER"
+```
+
+단, 이 rule policy는 baseline이자 bootstrapping 용도다. 최종 정책 성능을 보장하는 로직으로 간주하지 않는다.
+
+---
+
+# 9. GRPO 학습
+
+## 9.1 목적
+
+GRPO는 같은 상태에서 여러 action 후보를 샘플링하고, reward에 따라 상대적으로 좋은 action을 강화한다.
+
+입력 상태:
+
+```text
+case_info + dialogue_history + user_state
+```
+
+출력 action:
+
+```text
+ACCEPT / CHALLENGE / ASK_EVIDENCE / DEFER / SUMMARIZE
+```
+
+---
+
+## 9.2 GRPO rollout 구조
+
+```text
+For each case:
+    reset environment
+    for t in max_turns:
+        extract user_state
+        sample K actions from policy
+        for each action:
+            generate medical response
+            generate user response
+            compute reward
+        compute group-relative advantage
+        update policy
+```
+
+---
+
+## 9.3 Reward 설계
+
+Reward는 별도 모듈로 분리한다.
+
+```python
+class RewardModel:
+    def score(
+        self,
+        case_info: CaseInfo,
+        dialogue_history: DialogueHistory,
+        user_state: dict[str, Any],
+        selected_action: str,
+        medical_response: str,
+    ) -> float:
+        ...
+```
+
+초기 reward 예시:
+
+```text
++1.0  correct clinician decision을 적절히 수용함
++1.0  incorrect clinician decision을 적절히 반박함
++0.5  불충분한 정보 상황에서 근거 요청
++0.3  불확실성을 명확히 표현
+-1.0  incorrect decision을 수용함, sycophancy
+-1.0  correct decision을 부당하게 반박함, obstruction
+-0.5  근거 없는 단정
+-0.5  hallucinated medical claim
+-0.1  unnecessary extra turn
+```
+
+Reward backend도 플러그인 가능하게 둔다.
+
+```text
+RuleReward
+LLMJudgeReward
+HybridReward
+```
+
+---
+
+# 10. Config 설계
+
+## 10.1 default.yaml
+
+```yaml
+experiment:
+  name: medical_hac_policy_exp
+  seed: 42
+  max_turns: 2
+  output_dir: outputs/
+
+plugins:
+  user_llm:
+    type: openai
+    model: gpt-4.1-mini
+
+  medical_llm:
+    type: openai
+    model: o3
+
+  extractor_llm:
+    type: openai
+    model: gpt-4.1-mini
+
+  policy:
+    type: rule
+    checkpoint: null
+
+training:
+  mode: sft
+  batch_size: 8
+  learning_rate: 2.0e-5
+  epochs: 3
+
+grpo:
+  group_size: 4
+  temperature: 0.8
+  max_new_tokens: 256
+  kl_coef: 0.01
+```
+
+---
+
+# 11. CLI 명령어
+
+## 11.1 단일 대화 실행
+
+```bash
+python scripts/run_dialogue.py \
+  --config configs/default.yaml \
+  --case data/raw/sample_case.json
+```
+
+---
+
+## 11.2 SFT 데이터 생성
+
+```bash
+python scripts/build_sft_data.py \
+  --input data/raw/cases.jsonl \
+  --output data/sft/train.jsonl \
+  --policy rule
+```
+
+---
+
+## 11.3 SFT 학습
+
+```bash
+python scripts/train_sft.py \
+  --config configs/training.yaml \
+  --train data/sft/train.jsonl \
+  --valid data/sft/valid.jsonl
+```
+
+---
+
+## 11.4 GRPO 학습
+
+```bash
+python scripts/train_grpo.py \
+  --config configs/trpo.yaml \
+  --cases data/raw/cases.jsonl \
+  --sft_checkpoint checkpoints/sft_policy
+```
+
+파일명은 `trpo.yaml`이 아니라 `grpo.yaml`로 두는 게 맞다.
+
+```bash
+python scripts/train_grpo.py \
+  --config configs/grpo.yaml \
+  --cases data/raw/cases.jsonl \
+  --sft_checkpoint checkpoints/sft_policy
+```
+
+---
+
+## 11.5 평가
+
+```bash
+python scripts/evaluate.py \
+  --config configs/default.yaml \
+  --cases data/raw/test_cases.jsonl \
+  --policy_checkpoint checkpoints/grpo_policy
+```
+
+---
+
+# 12. 평가 지표
+
+최소한 다음 지표를 계산한다.
+
+```text
+1. Acceptance Rate
+2. Challenge Rate
+3. Appropriate Acceptance Rate
+4. Appropriate Challenge Rate
+5. Sycophancy Rate
+6. Obstruction Rate
+7. Invalid Reasoning Rate
+8. Hallucination Rate
+9. Average Reward
+10. Action Distribution
+```
+
+출력 예시:
+
+```json
+{
+  "acceptance_rate": 0.48,
+  "challenge_rate": 0.41,
+  "appropriate_acceptance_rate": 0.55,
+  "appropriate_challenge_rate": 0.50,
+  "sycophancy_rate": 0.16,
+  "obstruction_rate": 0.25,
+  "invalid_reasoning_rate": 0.33,
+  "action_distribution": {
+    "ACCEPT": 0.31,
+    "CHALLENGE": 0.29,
+    "ASK_EVIDENCE": 0.21,
+    "DEFER": 0.11,
+    "SUMMARIZE": 0.08
+  }
+}
+```
+
+---
+
+# 13. 구현 우선순위
+
+## Phase 1: Skeleton
+
+```text
+1. 데이터 스키마 구현
+2. 플러그인 base class 구현
+3. MockUserLLM, MockMedicalLLM, MockExtractor, RulePolicy 구현
+4. MedicalHACEnvironment 구현
+5. 단일 case rollout 실행
+```
+
+---
+
+## Phase 2: Real LLM 연결
+
+```text
+1. OpenAIUserLLM 구현
+2. OpenAIMedicalLLM 구현
+3. OpenAIExtractorLLM 구현
+4. JSON schema validation 구현
+5. rollout 저장 구현
+```
+
+---
+
+## Phase 3: SFT
+
+```text
+1. SFT dataset builder 구현
+2. rule-based labeler 구현
+3. SFTPolicyModel 구현
+4. train_sft.py 구현
+5. checkpoint 저장/로드 구현
+```
+
+---
+
+## Phase 4: GRPO
+
+```text
+1. rollout sampler 구현
+2. reward model 구현
+3. group-relative advantage 계산
+4. policy update loop 구현
+5. KL penalty 옵션 구현
+```
+
+---
+
+## Phase 5: Evaluation
+
+```text
+1. metric 계산기 구현
+2. action distribution 분석
+3. reward distribution 분석
+4. CSV/JSON 결과 저장
+5. 간단한 report 생성
+```
+
+---
+
+# 14. 중요한 설계 원칙
+
+## 14.1 Policy는 Medical LLM을 직접 대체하지 않는다
+
+Policy는 최종 의료 응답을 생성하지 않는다.
+
+ㅡ```text
+현재 user state에서 Medical LLM이 어떤 태도로 응답해야 하는지 action prompt를 선택한다.
+```
+
+즉,
+
+```text
+Policy → action prompt
+Medical LLM → final medical response
+```
+
+구조를 유지해야 한다.
+
+---
+
+## 14.2 Extractor와 Policy를 분리한다
+
+Extractor는 대화에서 상태를 추출한다.
+
+Policy는 그 상태를 보고 행동을 선택한다.
+
+```text
+Dialogue History → Extractor → User State → Policy → Action
+```
+
+Extractor 내부에서 action을 결정하지 않게 한다.
+
+---
+
+## 14.3 Rule-based mapping은 baseline일 뿐이다
+
+초기에는 rule로 action을 만들 수 있지만, 최종 구조에서는 policy model이 학습을 통해 action을 선택해야 한다.
+
+```text
+RulePolicy = debugging / bootstrap baseline
+SFTPolicy = supervised initialized policy
+GRPOPolicy = reinforcement-learned policy
+```
+
+---
+
+## 14.4 모든 중간 결과를 저장한다
+
+디버깅과 논문 분석을 위해 다음 값은 반드시 저장한다.
+
+```text
+case_info
+dialogue_history
+system_utterance
+user_utterance
+user_state
+selected_action
+action_prompt
+medical_response
+reward
+judge_output
+model_name
+timestamp
+```
+
+---
+
+# 15. Claude Code에게 줄 최종 구현 지시
+
+다음 요구사항을 만족하는 Python 프로젝트를 구현해라.
+
+```text
+Implement a modular dialogue-based Medical Human-AI Collaboration policy training framework.
+
+The system must contain four pluggable components:
+
+1. UserLLMPlugin
+2. MedicalLLMPlugin
+3. ExtractorLLMPlugin
+4. PolicyPlugin
+
+Each plugin must inherit from an abstract base class and be swappable through YAML config.
+
+The environment should simulate the following loop:
+
+CaseInfo
+→ MedicalLLM generates a system/medical utterance conditioned on an action prompt
+→ UserLLM generates a user utterance
+→ DialogueHistory is updated
+→ ExtractorLLM extracts structured UserState JSON from DialogueHistory
+→ Plug-in Policy selects the next discrete action
+→ The selected action is converted into an action prompt for MedicalLLM
+→ repeat until max_turns
+
+Implement the following first:
+
+- dataclass schemas for CaseInfo, DialogueTurn, DialogueHistory
+- base plugin interfaces
+- mock implementations for UserLLM, MedicalLLM, ExtractorLLM, Policy
+- rule-based PolicyPlugin
+- MedicalHACEnvironment
+- JSONL rollout logger
+- YAML config loader
+- scripts/run_dialogue.py
+- scripts/build_sft_data.py skeleton
+- scripts/train_sft.py skeleton
+- scripts/train_grpo.py skeleton
+- scripts/evaluate.py skeleton
+
+The initial action space should be:
+
+ACCEPT
+CHALLENGE
+ASK_EVIDENCE
+DEFER
+SUMMARIZE
+
+The policy output must contain:
+
+{
+  "action_id": "...",
+  "action_prompt": "...",
+  "confidence": float,
+  "metadata": {}
+}
+
+The extractor output must be valid JSON and conform to a UserState schema.
+
+Make the code clean, typed, testable, and easy to extend.
+
+Do not hard-code specific LLM providers into the core environment. Provider-specific logic must stay inside plugins.
+
+Use Python 3.11+.
+Use pydantic or dataclasses for schemas.
+Use PyYAML for config loading.
+Use JSONL for rollout logs.
+```
+
+---
+
+핵심은 이거임.
+**Medical LLM은 “말하는 놈”, Plug-in Policy는 “어떤 태도로 말할지 고르는 놈”, Extractor는 “유저 상태를 정리하는 놈”, User LLM은 “환경 역할”**로 분리해야 함. 이 분리 안 하면 나중에 SFT/GRPO 붙일 때 구조가 바로 꼬인다.

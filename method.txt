@@ -1,0 +1,164 @@
+# Method 정리 (B 방향 확정: complementarity / scaling)
+
+## 0. 한 줄 요약
+구조화된 deliberation(agenda 분해)이 "언제" human–AI 상보성을 만드는지를,
+capability gap에 따른 곡선으로 시뮬레이션에서 측정한다.
+→ 더 나은 deliberation 시스템을 만드는 게 목표가 아니다(그건 A, 우리는 B).
+
+
+## 1. 문제 재정의 (validator → disagreement structurer)
+기존 validator의 병신성은 "누가 맞는가"를 판정시킨 데서 옴.
+test time에는 항상:
+  - human correct?  unknown
+  - AI correct?     unknown
+  - gold answer?    unavailable
+따라서 truth 판정에 의존하는 설계는 구조적으로 풀 수 없는 문제였다.
+
+전환: planner가 "무엇이 쟁점인가"를 구조화한다.
+  - 인간이 맞다/틀리다 판정 X
+  - AI가 맞다/틀리다 판정 X
+  - 정답 쪽으로 설득 X
+  - human opinion vs AI-alone opinion이 "어디서 갈라지는가"만 관측 → agenda로 구조화
+근거: deliberation dialogue(structured moves) / IBIS(issue-position-argument 분해) /
+      cognitive load theory(issue 단위 분해로 extraneous load 감소).
+※ 이론 근거는 후순위. 핵심은 성능/상보성 신호가 나오느냐다.
+
+
+## 2. 선행연구 위치 (AACT, Ming Yin 그룹)
+arXiv 2602.10222 AACT = 우리 reframe과 매우 유사:
+  - 인간 맞다/틀리다 판정 안 함, "잠재적 문제 영역"만 식별
+  - disagreement를 incompleteness / unreliability / conflict 로 구조화
+  - agreement → incompleteness → unreliability → conflict 순차 진행
+  - counterfactual(feature 추가/제거 시 confidence 변화), house price 예측, human user study
+
+→ "truth판정 대신 disagreement구조화"는 더 이상 우리 novelty가 아님. AACT가 점령.
+   반드시 related work에서 인용·차별화할 것.
+
+AACT가 구조적으로 못 하는 것 = 우리 빈 땅:
+  - agenda가 hand-designed 3칸 고정 → 우리는 그게 핵심 비판점이지 경쟁점이 아님(B라서)
+  - tabular feature-ablation에 묶임 → 우리는 NL 대화 issue 분해
+  - planner/policy 없음(고정 스크립트) → 우리는 action planner
+  - 단일 점 human study → 우리는 persona 시뮬레이션 + scaling 곡선
+
+B 프레임에서 AACT의 새 위치: 경쟁자 아님.
+  "한 점에서 critical-thinking이 over-reliance를 줄인다는 걸 human study로 검증한 선행연구"
+  → 우리는 그 효과가 capability gap에 따라 어떻게 scaling되는지를 곡선화.
+    (human study로는 구조적으로 불가능한 영역)
+
+
+## 3. B로 가면 바뀌는 것
+(1) agenda/action planner = 기여 아님, treatment(조작 변수)다.
+    → "동적 agenda > 고정 agenda" 증명 불필요. AACT식 고정 agenda를 한 arm으로 써도 됨.
+       planner를 과대포장하지 말 것.
+
+(2) y축 = accuracy 아님, complementarity:
+       complementarity = joint(human+AI) − max(human_alone, AI_alone)
+    AACT는 단일 점, 우리는 곡선.
+
+(3) scaling 축을 명시적으로 고정해야 함. (논문 전체를 결정)
+    후보: AI capability / persona competence / 둘 사이 gap
+    → 추천: gap(human vs AI). 상보성은 본질적으로 "둘이 얼마나 다르냐"의 함수.
+       persona×scaling 작업이 이미 이 gap을 조작 중이라 자연 연결.
+    ※ 미확정: 기존 persona×scaling 4런이 실제로 어떤 축으로 그려져 있는지 확인 후 확정.
+
+
+## 4. B의 진짜 위험 (제1 주의)
+상보성이 양수로 나오는 regime을 *먼저 만들어야* 한다.
+human-AI 연구 대다수가 human+AI < AI-alone(over-reliance)로 끝남(AACT 핵심 문제도 이것).
+AI-alone이 이미 강하면 agenda로 human과 섞는 순간 음수 상보성만 측정됨.
+
+→ 빌드 전 step-0 (우선순위 변경):
+   1순위: 어느 한쪽도 혼자선 부족한 regime 존재 확인
+          (human_alone < 1, AI_alone < 1, 그리고 둘이 *다른* 곳에서 틀림 = 보완 가능)
+   2순위: issue-count 분포 (대부분 단일 쟁점이면 agenda는 과한 구조)
+※ complementarity POC에서 oracle 교체 / λ_align 조정이 결국 이 regime 만드는 작업이었음. 직결.
+
+
+## 5. 최소 PoC (4-arm)
+A. No interaction
+B. Free-form multi-turn discussion   ← "구조 없는 deliberation". "deliberation만으로 충분한가" 직접 테스트
+C. Action-only planner               ← 매 턴 바로 ASK_EVIDENCE / CHALLENGE / RECOMMEND
+D. Agenda + Action planner           ← 쟁점 목록 먼저, 각 턴은 한 쟁점만
+
+가설(B 프레임): 같은 burden 예산에서 D의 complementarity가 B/C보다 높다.
+핵심 ablation: C vs D (agenda 자체의 효과). 차이 안 나면 agenda는 과한 구조 → 버리고 action planner로 축소.
+
+파이프라인(PoC):
+  Human initial opinion + AI-alone opinion + case info
+    → Disagreement Analyzer : 쟁점 2~3개 추출
+    → Action Planner        : 현재 milestone에서 행동 선택
+    → Assistant response → User(persona) response
+    → Agenda Tracker        : 해결? 다음 쟁점 / stop
+    → final answer (객관식)
+
+
+## 6. 측정 (judge는 metric 밖에 둔다 — 하드 룰)
+주 지표:
+  - complementarity = joint − max(solo)
+  - burden = turn count / burden judge
+  - (보조) Pareto: x=cumulative burden/turns, y=complementarity. D가 좌상단(저부담·고상보)에 가까워야.
+보조 지표:
+  - # repeated points
+  - # resolved agenda items
+  - # unresolved conflicts at termination
+
+judge 3개(진단·planner 구동용으로만, main score에 절대 X):
+  1. Disagreement extraction : 두 의견 사이 쟁점 추출
+  2. Agenda adherence        : 이번 턴이 현재 쟁점에 집중했나
+  3. Resolution tracking     : 해당 쟁점 해결/미해결
+※ 최종 성능은 객관식 정답으로만. fact validator는 guardrail만. (측정기 문제에 잡아먹히지 말 것)
+
+
+## 7. 차별화 문장(초안)
+"Since correctness is hidden at test time, our planner does not classify either party as
+ correct or incorrect. It structures observable disagreement into agenda milestones and
+ guides deliberation over them. Unlike prior single-point human studies of AI-assisted
+ critical thinking, we characterize how the resulting human–AI complementarity scales with
+ the capability gap, in large-scale persona simulation."
+
+
+## 8. Action space 설계 (이산 vs 자유)
+현 상태: deliberation_llm_policy.yaml은 순수 이산도 순수 자유도 아닌 *하이브리드*.
+  - 이산 뼈대 : (stage, locution, type) triple
+                stage   = INFORM/PROPOSE/CONSIDER/REVISE/RECOMMEND/CONFIRM/CLOSE
+                locution= propose/assert/prefer/ask_justify/move/reject/retract/withdraw
+                type    = goal/constraint/perspective/fact/action/evaluation
+  - 자유 살   : action_guidance 2~4문장 (실제 발화는 medical LLM이 생성)
+
+질문은 "이산이냐 자유냐"가 아니라 셋 중 어디냐:
+  (1) 완전 이산  : move id만 출력
+  (2) 하이브리드 : 이산 핸들 + 자유 guidance        ← 현재
+  (3) 완전 자유  : 알아서 말하기                     ← 곧 arm B(free-form)
+
+### 결정 원리 (B 프레임)
+planner는 연구 대상이 아니라 *측정 장치(treatment)*다.
+측정 장치는 비교 조건(gap 레벨, arm) 사이에서 고정·통제돼야 한다.
+
+완전 자유(3)가 B를 망치는 이유:
+  - scaling confound: capability 올리면 자유 정책 행동이 질적으로 변함
+    → complementarity 변화가 gap 때문인지 정책이 똑똑해져서인지 분리 불가 → x축 못 읽음
+  - 측정 불가: #resolved agenda / #repeated / agenda adherence 찍을 구조가 없음
+  - 학습 불가: GRPO에 자유 텍스트 action은 policy gradient 안 얹힘
+
+이산/하이브리드가 맞는 이유:
+  - gap만 움직이고 treatment 고정 → 곡선이 읽힘
+  - move 통계로 메커니즘 진단 가능
+  - GRPO 학습 가능(미래 확장)
+
+"이산=표현력 병목" 걱정은 하이브리드가 이미 해소:
+  이산은 전략(무슨 종류의 수)만 통제, 실제 단어는 action_guidance→medical LLM이 자유 생성.
+  표현력은 자유 텍스트에, 이산은 strategy에만.
+
+### 결정
+  1. 하이브리드 유지. 자유로 풀지 말 것(B 깨짐).
+  2. PoC용으로 이산 부분 축소. 현 7-stage는 "agenda 값어치" 보기엔 과함.
+     → C(action-only) vs D(agenda+action) ablation이 흐려짐
+       (이득이 agenda 덕인지 풍부한 act 분류체계 덕인지 안 갈림)
+     → 작은 셋으로: ASK_EVIDENCE / CHALLENGE(perspective) / RECOMMEND / CLOSE
+  3. "완전 자유"는 버리지 말고 arm B로 박을 것.
+     이산이냐 자유냐를 직감으로 정하지 않는다. free-form = arm B니까
+     "자유가 구조를 이기는지"를 *측정*한다. scaling하는 planner는 하이브리드,
+     그걸 정당화하는 통제군이 자유.
+
+한 줄: scaling하는 planner는 하이브리드(이산 핸들 고정), 자유는 arm B로 옆에 두고
+       "구조가 필요한가"를 데이터가 답하게 한다.

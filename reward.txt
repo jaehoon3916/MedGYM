@@ -1,0 +1,37 @@
+# Reward Setting
+
+Key Rewards 
+
+1. (중요) Final answer: 최종 답변이 정답에 이르렀는가?
+2. 조합 Rule: 추론한 user state에 잘 대응했는가?
+3. Format Rule: 토큰 배치가 잘 되었는가? 즉, 추론을 잘 하였는가?
+4. Turn Length: 너무 늘어지지 않고 단기간에 잘 끝냈는가?
+
+GPT 링크: https://chatgpt.com/s/t_6a286817c26881918b0e20a472aa3c71
+
+핵심 철학
+
+- 기본 골자: 현재 주어진 맥락 안에서 유저 state를 추론하고, 주어진 행동을 잘 조합하여 (interaction dynamics) 최종 정답에 이를 수 있도록 action을 선택해라.
+- 각 reward의 필요성
+    - Final answer: 매우 중요. 핵심 목표라고 할 수 있음. 폴리시는 자신이 통제할 수 있는 수단(협업 행동)을 최대한 활용하여 , 환경(유저 스테이트, 지식, 턴 수) 내에서 Final answer를 달성해내야 함.
+    - 조합 Rule(Interaction dynamics): 모델이 취해야 하는 바람직한/바람직하지 않은 행동. 특정 조합(e.g. 적절한 반박/적절한 동조)은 선호되며, 특정 조합(아첨/과잉반박)은 지양되어야 한다.
+    - Format Rule: 안정성 강화. 형식을 잘 지켜 답하였는가?
+    - Turn Length: 부가적 가치. 너무 늘어지지 않고 적은 턴 내에 정답으로 갈 수 있게끔 유도.
+- 수식
+    
+    $R(\tau)=\lambda_{final}r_{final}+\sum_{t}\big[\lambda_{align}r_{align}(s_t,a_t)+\lambda_{fmt}r_{fmt}(a_t)\big]-\lambda_{len}\max(0,|\tau|-\tau^*)$
+    
+    $A_i =\frac{R(\tau_i)-\mu_G}{\sigma_G+\epsilon}$
+    
+- 추가적으로 필요할 수 있는 가치
+    
+    
+    - Environment(State)
+        - {dialog history, current user utterance, clicnial knowledge}
+            - Dialog history는 user state를 함의한다:
+                - user’s current intend (발화 전략)
+                - user’s human noise
+                    - uncertainty
+                    - authority
+                    - information sparsity
+            - action을 취하는데 필요한 clinical knowledge(유저 발화 검증) 또한 환경 state 요소이다.

@@ -1,0 +1,186 @@
+============================================================
+r_align — 조합 Rule (Interaction Dynamics) reward 설계
+============================================================
+
+역할: R(τ)에서 process-shaping 항.
+  R(τ) = λ_final·r_final(τ; 유저가 gold 도달)         # outcome (핵심 목표)
+       + Σ_t [ λ_align·r_align(s_t,a_t)               # ← 이 문서
+               + λ_fmt·r_fmt(a_t) ]                   # format/stability
+       - λ_len·max(0, |τ|-τ*)                          # efficiency
+  A_i = (R(τ_i)-μ_G)/(σ_G+ε)                            # GRPO
+
+r_align의 한 줄 정의:
+  "방금 임상의(user-sim)가 한 말의 검증 결과(v)와 그 발화의 의도(user locution/stage)에 비추어,
+   policy가 고른 다음 행동 a_t = (stage.locution)이 협업적으로 적절했는가?"
+  → 핵심 목표(정답)는 r_final이 담당. r_align은 "어떻게 그 정답으로 가느냐"의 dense 신호.
+  (이전 reward.txt의 DDF + validation alignment를 process 항으로 정리한 것)
+
+
+------------------------------------------------------------
+1. 입력 (전부 현재 코드에서 나옴)
+------------------------------------------------------------
+- v = verification_template.overall_relation
+     ∈ {supported, contradicted, insufficient, mixed, unknown}
+     ▷ fact_validator가 "임상의의 직전 발화"를 gold 대비 채점 (core/environment.py:step, validate_facts)
+     ▷ gold-grounded 신호. unknown은 insufficient와 동일 취급.
+- user_action = (user_state.dialogue_stage, user_state.locution)   # SimulatedUserState
+- a_t = (policy_output.stage, policy_output.locution)              # PolicyOutput
+- context (turn 간 누적, 아래 8번)
+
+행동 공간(12개, configs/action_space.yaml):
+  INFORM.{propose,assert,retract,ask_justify} | PROPOSE.propose |
+  CONSIDER.{assert,prefer,ask_justify} | REVISE.propose |
+  RECOMMEND.move | CONFIRM.assert | CLOSE.withdraw_dialogue
+
+
+------------------------------------------------------------
+2. 산출 구조
+------------------------------------------------------------
+r_align(s_t,a_t) = clip(
+       BASE_v[v][a_t]                       # (3) 검증-정합성 표  : 주력, [-1,+1]
+     + 0.3 * USERRESP(user_action, a_t)     # (4) 사용자 발화 대응: 보조, [-1,+1]
+     , -1, +1 )
+  단, (5) PRECONDITION 위반 시 BASE를 -1.0으로 override (hard).
+  (6) 실패-모드 penalty는 BASE 표에 이미 반영됨(표가 곧 그 인코딩). 중복 합산 금지.
+
+legality(불법 stage-locution)는 action_space에서 애초에 안 나오므로 별도 mask.
+혹시 나오면 즉시 -1.0 + 샘플 무효 처리.
+
+
+------------------------------------------------------------
+3. BASE_v : 검증-정합성 표  (핵심)
+------------------------------------------------------------
+점수: +1.0 매우 적절 / +0.5 적절 / 0 중립·약함 / -0.5 부적절 / -1.0 해로움
+
+[v = contradicted]  (임상의 주장이 gold와 충돌 → "교정해야 하는" 상황)
+  +1.0  CONSIDER.assert            (모순 근거를 평가로 assert)
+  +1.0  REVISE.propose             (대안/수정 제안)
+  +0.7  CONSIDER.ask_justify       (근거 캐묻기)
+  +0.7  INFORM.ask_justify
+  +0.5  INFORM.retract             (자신의 이전 잘못된 commitment 철회 시)
+  +0.3  PROPOSE.propose            (대안 진단/처치 제안)
+   0.0  INFORM.propose / INFORM.assert
+  -0.7  CONSIDER.prefer            (충돌 옵션을 선호)
+  -1.0  RECOMMEND.move             ← 아첨(sycophancy)
+  -1.0  CONFIRM.assert             ← 아첨
+  -0.7  CLOSE.withdraw_dialogue    (교정 없이 종료)
+
+[v = supported]  (임상의 주장이 gold와 일치 → "지지/확정으로" 가야 하는 상황)
+  +1.0  RECOMMEND.move             (단, has_proposal=true & 근거 충분)
+  +1.0  CONFIRM.assert             (단, prev_stage에 RECOMMEND 있음)
+  +0.7  INFORM.assert / CONSIDER.assert
+  +0.5  CONSIDER.prefer            (단, 평가된 옵션 ≥2)
+  +0.3  PROPOSE.propose
+   0.0  INFORM.propose / 1회 ask_justify
+  -0.5  CONSIDER.ask_justify·INFORM.ask_justify (반복 시) ← 과잉질문
+  -0.7  INFORM.retract             ← obstruction(맞는데 철회)
+  -0.7  REVISE.propose             (불필요한 수정) ← obstruction
+  -0.3  CLOSE                      (합의 전 조기종료)
+
+[v = insufficient | unknown]  (근거 부족·판정 불가 → "정보 수집" 상황)
+  +0.7  INFORM.ask_justify / CONSIDER.ask_justify
+  +0.5  INFORM.assert              (빠진 사실/불확실성 명시)
+  +0.5  REVISE.propose             (조건부 제안으로 수정)
+  +0.3  PROPOSE.propose / INFORM.propose (명시적 잠정 제안)
+   0.0  CONSIDER.assert
+  -0.7  CONSIDER.prefer
+  -1.0  RECOMMEND.move             ← 성급한 종결(premature closure)
+  -1.0  CONFIRM.assert             ← 성급한 종결
+  -1.0  CLOSE.withdraw_dialogue    ← 성급한 종결
+
+[v = mixed]  (일부 지지·일부 충돌)
+  +0.7  CONSIDER.assert / CONSIDER.ask_justify
+  +0.7  REVISE.propose
+  +0.3  INFORM.assert / PROPOSE.propose
+  -0.5  RECOMMEND.move / CONFIRM.assert (뭉뚱그린 확정)
+  -0.5  CLOSE
+
+
+------------------------------------------------------------
+4. USERRESP : 사용자 발화 대응 (보조, ×0.3)
+------------------------------------------------------------
+"임상의의 직전 locution에 대화적으로 잘 반응했는가" (검증과 별개의 협업 매너).
+  user.locution = ask_justify  → a가 assert/propose(근거 제시)면 +1, 무시/회피면 -1
+  user.locution = reject       → a가 REVISE/CONSIDER면 +1, 같은 주장 고집(RECOMMEND/CONFIRM)이면 -1
+  user.locution = prefer       → a가 CONSIDER(비교)·RECOMMEND면 +0.5
+  user.locution = assert/propose → a가 CONSIDER(평가)·PROPOSE면 +0.5, 동문서답이면 -0.5
+  그 외/대응 무난 → 0
+
+
+------------------------------------------------------------
+5. PRECONDITION override (hard, BASE를 -1.0으로 덮음)
+------------------------------------------------------------
+DDF 전제조건 위반은 BASE 점수와 무관하게 -1.0:
+  - CONFIRM.assert 인데 이전에 RECOMMEND.move 없음        → invalid confirmation
+  - CONSIDER.prefer 인데 평가된 옵션 < 2                  → unjustified preference
+  - RECOMMEND.move / CONFIRM.assert 인데 has_proposal=false → 제안도 없이 권고/확정
+(REVISE 전 consideration 없음, 같은 stage 과다반복 등은 -0.3 soft penalty로만)
+
+
+------------------------------------------------------------
+6. 실패-모드 (이미 표에 인코딩됨 — 참조용, 중복합산 금지)
+------------------------------------------------------------
+  sycophancy        = contradicted + {RECOMMEND.move, CONFIRM.assert}      (-1.0)
+  over-rebuttal     = supported    + {retract, 불필요 REVISE, 반복 ask_justify}(-0.7)
+  premature closure = insuff/unknown + {RECOMMEND.move, CONFIRM.assert, CLOSE}(-1.0)
+  invalid confirm   = CONFIRM 인데 prior RECOMMEND 없음                     (-1.0, §5)
+  unjustified prefer= prefer 인데 평가옵션<2                                (-1.0, §5)
+
+
+------------------------------------------------------------
+7. context (turn 간 누적해서 추적할 것)
+------------------------------------------------------------
+  has_proposal            : PROPOSE.propose 또는 임상의의 명시적 옵션 제안이 한 번이라도 있었나
+  has_recommend           : RECOMMEND.move가 이전에 있었나
+  num_evaluated_options   : CONSIDER 단계에서 평가된 옵션 수
+  prev_model_stage        : 직전 policy stage
+  prev_user_locution      : 직전 user_state.locution
+  turns_in_current_stage  : 같은 stage 연속 횟수 (정체 감지)
+  pending_ask_justify     : 직전에 ask_justify가 걸려 응답 대기 중인가
+→ env.step에서 PolicyOutput/user_state를 보고 갱신. reward 함수에 dict로 전달.
+
+
+------------------------------------------------------------
+8. 의사코드
+------------------------------------------------------------
+def r_align(v, user_action, a, ctx):
+    v = "insufficient" if v in ("insufficient","unknown") else v
+
+    # (5) hard precondition override
+    if a==("CONFIRM","assert") and not ctx["has_recommend"]:          return -1.0
+    if a==("CONSIDER","prefer") and ctx["num_evaluated_options"]<2:    return -1.0
+    if a in [("RECOMMEND","move"),("CONFIRM","assert")] and not ctx["has_proposal"]:
+        return -1.0
+
+    base = BASE[v].get(a, 0.0)                       # §3 표
+
+    # supported에서 반복 ask_justify면 과잉질문 가중
+    if v=="supported" and a[1]=="ask_justify" and ctx["turns_in_current_stage"]>=1:
+        base = min(base, -0.5)
+
+    ur = userresp(user_action, a)                    # §4, ∈[-1,1]
+    return clip(base + 0.3*ur, -1.0, 1.0)
+
+
+------------------------------------------------------------
+9. 구현 메모
+------------------------------------------------------------
+- 새 모듈: core/reward_align.py
+    align_reward(verification: VerificationTemplate,
+                 user_state:  SimulatedUserState/UserState,
+                 policy_out:  PolicyOutput,
+                 ctx:         dict) -> float
+- BASE 표는 dict[v][(STAGE,locution)] = score 로 하드코딩 (감사·튜닝 쉽게).
+- context는 env가 step마다 갱신해 StepResult.metadata 또는 별도 RewardTracker에 보관.
+- v는 "임상의 발화" 기준이라 policy가 직접 통제 못 하는 부분이 섞임 → r_align은 어디까지나
+  shaping. 정답 도달(r_final)이 목적함수, r_align은 그 경로 품질.
+- GRPO는 trajectory당 advantage 1개라 per-step r_align이 희석됨 → λ_align로 비중 확보하고,
+  같은 (case,persona)로 G개 뽑을 때 행동 다양성이 분산을 만들게 (안 그러면 신호 死).
+
+------------------------------------------------------------
+10. 미정/튜닝 포인트
+------------------------------------------------------------
+- λ_align vs λ_final 비율 (process가 outcome을 압도하면 "정답보다 매너" 학습 위험).
+- USERRESP 가중치 0.3, supported-과잉질문 임계 등은 실측 후 조정.
+- "근거 충분/평가된 옵션 수"를 무엇으로 판정할지: fact_validator의 evidence_gaps/optional_claim_checks
+  또는 별도 추적. (지금은 휴리스틱 카운트로 시작 권장)

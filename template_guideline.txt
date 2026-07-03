@@ -1,0 +1,119 @@
+# user state 고도화
+
+1. user state 고도화는 user simulator 고도화와 병행. 
+2. 기본 세팅: Dialogue Game 세팅에 기반한 conversation locution 위주의 user state
+3. 구조
+    1. User state builder
+        1. 메디컬 LLM의 발화를 듣고 주어진 템플릿에 맞추어 동적으로 유저 state(페르소나)를 변경하는 component
+        2. input: {case info, system utterance, dialog history}
+        3. output: templated user state
+    2. Utterance Generator
+        1. 유저 state(페르소나)를 참고하여 다음 발화를 생성하는 component
+        2. input: {case info, system utternace, dialog history, current user state}
+        3. output: user utterance
+4. User state(persona)
+    1. 구성요소:
+        1. conversation locutions
+        2. human interaction cue(noise)
+        3. initial fact
+    2. Conversation Locutions
+        - 임상의 시뮬레이터가 현재 취하려는 conversation stage & locutions
+        - action policy가 대응해야 하는 주요한 축.
+    3. Human interaction Cues (Noise)
+        - 협업을 방해하는 interactional cues. 이러한 상호작용에도 강건하게 대응하도록 스트레스테스트하는 변인.
+        - 종류
+            - Certainty: [certainty, uncertainty, neutral]
+            - Authority push: [high, low]
+            - Information sparcity: [dense, sparse]
+            - Safety push: [true, false]
+    4. Initial Fact
+        - 주장하는 임상 진단의 사실 여부.
+        - output: correct/incorrect
+        
+5. Factual Validation LLM
+    - medical LLM의 원래 성능에 기반한 fact checker. 정해진 템플릿대로 fact 체크, policy의 행동 결정에 필요한 **사실관계 여부 파악**에 참조.
+    - 의도:
+        - ‘policy의 관할은 철저히 행동(how) 차원으로 국한시켜 ‘의학적 지식(what)’과 분리’한다는 철칙 하에, 그럼에도 불구하고 policy 선택에 필요한 what 정보를 확보하기 위해 도입.
+        - 단순히 what 정보를 확보할 뿐만 아니라, ‘medical LLM’에게 what을 맡기고 이를 ‘참조’하게 함으로서, medical LLM의 낮은 메디컬 지식 혹은 협업 능력으로 인해 validated fact에서 hallucination이 발생하더라도 policy를 통해 개선될 수 있는 여지를 마련. (?)
+    - 단순 true/false가 아닌 NLI기반 template에 맞추어 정리된 field 생성. (→ policy의 학습 난이도 완화)
+    
+    **NLI 기반 validation**
+    verification_template:
+        overall_relation: supported | contradicted | insufficient | mixed | unknown
+        confidence: high | medium | low
+        evidence_gaps: [...]
+        short_rationale: ...
+        optional_claim_checks: [...]
+
+
+# Action space 고도화
+
+참조논문
+
+**제목: The eightfold way of deliberation dialogue**
+
+**링크**: https://onlinelibrary.wiley.com/doi/abs/10.1002/int.20191
+
+**선정이유**: 해당 논문에서는 숙의 대화에서의 8가지 단계 및 행동 locutation을 정의하였는데, 이를 활용하여 우리의 연구에서도 임상의와 LLM 간의 협진을 shared decision-making을 위한 숙의(delibration) 상황으로 설정하고 policy 모델의 action space를 정의하는 이론적 근거가 될 수 있음.
+
+**TL;DR**
+
+- 숙의 대화를 formal하게 모델링하기 위한 Deliberation Dialogue Framework를 제안.
+- **핵심 구조는 8개 stage와 stage별 locution/action protocol.**
+- Stage는 `Open`, `Inform`, `Propose`, `Consider`, `Revise`, `Recommend`, `Confirm`, `Close`이고, 각 stage는 `propose`, `assert`, `ask_justify`, `prefer`, `reject`, `retract`, `move` 같은 발화 move로 구현됨. 단, stage 순서는 고정 pipeline이 아니라 일부 제약만 있는 유연한 구조.
+
+우리 연구 적용
+
+- policy의 action space 정의
+    - **hierarchical dialogue policy**: 다음 발화에 대한 상위 계층 대화 관리 전략인 stage를 선택하고, 그에 따른 하위 레벨의 세부 전략인 발화 move를 선택.
+    - action space 정의
+        
+        
+        | Stage | Allowed / corresponding locutions |
+        | --- | --- |
+        | **Inform** | `propose`, `assert`, `retract`, `ask_justify` over `goal`, `constraint`, `perspective`, `fact` |
+        | **Propose** | `propose(action)` |
+        | **Consider** | `assert(evaluation)`, `prefer(a,b)`, `ask_justify` |
+        | **Revise** | revised `propose(action)` or revised `propose(type)` |
+        | **Recommend** | `move(action)` followed by `assert(action)` or `reject(action)` |
+        | **Confirm** | `assert(action)` by participants |
+        | **Close** | `withdraw_dialogue` |
+    - stage 세부 설명
+        
+        
+        | Stage | 의미 |
+        | --- | --- |
+        | **Open** | 숙의 대화 개시, “무엇을 해야 하는가”에 대한 governing question 제기 |
+        | **Inform** | 목표, 제약, 평가 관점, 관련 사실/전제 논의 |
+        | **Propose** | governing question에 적절한 possible action-option 제안 |
+        | **Consider** | 여러 관점에서 proposal에 대해 논평 |
+        | **Revise** | 논평에 비추어 목표, 제약, 관점, action-option 수정 / 필요한 정보수집·사실확인 |
+        | **Recommend** | 특정 action-option을 권고하고, 각 참여자가 수용/비수용 표시 |
+        | **Confirm** | 권고된 option에 대해 각 참여자의 수용 확인 |
+        | **Close** | 숙의 대화 종료 |
+    - locutions 세부 설명
+        
+        
+        | Locution | 의미 |
+        | --- | --- |
+        | **open_dialogue(Pi, q?)** | Pi가 governing question q?를 고려하기 위한 숙의 대화 개시를 제안 |
+        | **enter_dialogue(Pj, q?)** | Pj가 q?에 대한 숙의 대화에 참여할 의사를 표시 |
+        | **propose(Pi, type, t)** | Pi가 t를 특정 type의 유효한 사례로 제안 |
+        | **assert(Pi, type, t)** | Pi가 t를 특정 type의 유효한 사례로 주장. `propose`보다 강함 |
+        | **prefer(Pi, a, b)** | Pi가 action-option a를 b보다 선호한다고 표시 |
+        | **ask_justify(Pj, Pi, type, t)** | Pj가 Pi에게 type t에 대한 정당화/근거를 요구 |
+        | **move(Pi, action, a)** | Pi가 action a를 집단 결정으로 삼을지 각 참여자가 표명하자고 제안 |
+        | **reject(Pj, action, a)** | Pj가 action a를 집단 결정으로 삼는 것을 거부 |
+        | **retract(Pj, locution)** | Pj가 이전 발화를 철회 |
+        | **withdraw_dialogue(Pi, q?)** | Pi가 q?에 대한 숙의 대화에서 철수함을 알림 |
+    - type 세부설명
+        
+        
+        | Type | 의미 |
+        | --- | --- |
+        | **goal** | 행동을 고려하는 목적 / 바람직한 미래 상태 |
+        | **constraint** | 가능한 행동 공간에 대한 제약 |
+        | **perspective** | 행동을 평가하는 기준 |
+        | **fact** | 대화 외부 세계의 가능한 사실/사태 |
+        | **action** | 수행되거나 권고될 수 있는 행동 또는 행동 방침 |
+        | **evaluation** | 특정 행동을 goal, constraint, perspective에 비추어 평가한 것 |

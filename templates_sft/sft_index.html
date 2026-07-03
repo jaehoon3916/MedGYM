@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SFT Data Viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
+  header { background: #1a3c5e; color: #fff; padding: 18px 32px; }
+  header h1 { font-size: 1.4rem; font-weight: 600; }
+  header p { font-size: 0.85rem; opacity: 0.7; margin-top: 2px; }
+  main { max-width: 1080px; margin: 32px auto; padding: 0 24px 48px; }
+  .empty { color: #888; padding: 24px 0; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px;
+          overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  th { background: #eef1f5; text-align: left; padding: 10px 14px; font-size: 0.75rem;
+       text-transform: uppercase; color: #555; letter-spacing: 0.5px; }
+  td { padding: 10px 14px; border-top: 1px solid #eee; font-size: 0.85rem; vertical-align: top; }
+  tr:hover td { background: #f8fafc; }
+  a { color: #1a6fa8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .stage-bar { display: flex; gap: 2px; height: 14px; border-radius: 3px; overflow: hidden; margin-top: 4px; width: 220px; }
+  .stage-seg { height: 100%; }
+  .seg-EXPAND    { background: #a8c8e8; }
+  .seg-CHALLENGE { background: #e8a8a8; }
+  .seg-CONVERGE  { background: #a8e8b8; }
+  .seg-other     { background: #ccc; }
+  .legend { font-size: 0.72rem; color: #666; margin-top: 3px; }
+  .legend span { margin-right: 10px; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+  .tok { font-variant-numeric: tabular-nums; color: #555; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SFT Golden-Data Viewer</h1>
+  <p>outputs/**/sft_data*.jsonl — teacher-demonstration quality check before training</p>
+</header>
+<main>
+  {% if not datasets %}
+  <p class="empty">No sft_data*.jsonl found under outputs/.</p>
+  {% else %}
+  <table>
+    <tr>
+      <th>Dataset</th><th>Pairs</th><th>Episodes</th><th>Personas</th><th>Turns/episode</th><th>Stage mix</th>
+    </tr>
+    {% for d in datasets %}
+    <tr>
+      <td><a href="/dataset/{{ d.path }}">{{ d.path }}</a></td>
+      <td class="tok">{{ d.n_pairs }}</td>
+      <td class="tok">{{ d.n_episodes }}</td>
+      <td style="font-size:0.78rem; color:#444;">{{ d.personas | join(', ') }}</td>
+      <td class="tok">{{ d.min_turns }}–{{ d.max_turns }} (avg {{ d.avg_turns }})</td>
+      <td>
+        {% set total = d.stage_counts.values() | sum %}
+        <div class="stage-bar">
+          {% for stage, cnt in d.stage_counts.items() %}
+          <div class="stage-seg seg-{{ stage if stage in ['EXPAND','CHALLENGE','CONVERGE'] else 'other' }}"
+               style="width: {{ (cnt / total * 100) if total else 0 }}%"></div>
+          {% endfor %}
+        </div>
+        <div class="legend">
+          {% for stage, cnt in d.stage_counts.items() %}
+          <span><span class="dot seg-{{ stage if stage in ['EXPAND','CHALLENGE','CONVERGE'] else 'other' }}"></span>{{ stage }} {{ cnt }}</span>
+          {% endfor %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</main>
+</body>
+</html>

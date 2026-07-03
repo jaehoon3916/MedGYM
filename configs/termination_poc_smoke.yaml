@@ -9,7 +9,6 @@ experiment:
   data_dir: data/sample_data
   n_cases: 2
   token_ledger: token_usage_ledger.json
-  initial_user_state: null   # see configs/termination_poc.yaml's comment
   checkpoints: [1, 2, 4]
 
 plugins:

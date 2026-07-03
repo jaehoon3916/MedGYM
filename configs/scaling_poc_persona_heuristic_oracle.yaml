@@ -29,7 +29,6 @@ experiment:
   data_dir: data/sample_data
   n_cases: 25                       # 7 specialties x 3 each (21 % 7 == 0, no remainder) -- 4 conditions x 21 = 84 episodes total
   token_ledger: token_usage_ledger.json
-  initial_user_state: null         # v1 ignores EpisodeConfig entirely
 
   checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
 

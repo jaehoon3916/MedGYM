@@ -4,7 +4,6 @@ experiment:
   data_path: data/sample_data/sample_data.json
   max_turns: 3
   token_ledger: token_usage_ledger.json
-  initial_user_state: [user_state_25]   # personas to train over (incorrect+correct mix)
                                     # null → default EpisodeConfig (single persona) | all → 48 presets
 
 plugins:

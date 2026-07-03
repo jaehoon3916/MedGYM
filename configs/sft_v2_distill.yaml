@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# v2 SFT distillation — 원격 티처(deepseek-v4)를 v2 action space에서 굴려 골든 데모 생성 → 학생(Qwen) SFT.
+# 2-step:
+#   1) python scripts/build_sft_data_v2.py --config configs/sft_v2_distill.yaml --limit 15   # 파일럿(유료). --limit 빼면 풀
+#   2) python scripts/train_sft.py         --config configs/sft_v2_distill.yaml               # 로컬 Qwen+LoRA imitation
+#
+# 모델 배정 (2026-07-02 확정):
+#   - user_llm(페르소나·최종결정자)  = openai/gpt-4o   (EMNLP simulator 역할과 일치)
+#   - policy(티처, distill 소스)      = deepseek/deepseek-v4-pro   (deepseek 계열 → A1과 비교가능)
+#   - medical_llm / fact_validator    = deepseek (유지)
+# 주의: 오라클(argmax r_align) 티처는 v2서 고장(항상 EXPAND)이라 안 씀. 티처는 gold 없이 추론(reveal 없음).
+# ─────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: sft_v2_distill
+  output_dir: outputs/sft_v2
+  data_path: data/sample_data/balanced_100.json # 골든 데모 뽑을 케이스(list 또는 단일 obj)
+  max_turns: 8                                    # 티처를 몇 턴까지 굴릴지
+  token_ledger: token_usage_ledger.json
+  # 케이스 프레이밍 조건(EpisodeConfig 프리셋). ⚠ v4는 이 값을 belief에 안 씀(v1과 같은 설계 —
+  # belief는 자기결정, 주입 안 함) — v4에선 이게 그냥 "같은 행동 profile을 N번 도는 것"일 뿐,
+  # 진짜 다양성 축이 아님(build_sft_data_v2.py가 이 조합이면 경고 출력). 진짜 다양성 축은
+  # 아래 plugins.user_llm.persona.
+  #   null → 기본 단일 | all → 48개 프리셋(비용 급증)
+
+plugins:
+  # ── 유저 시뮬레이터 = 페르소나(최종 결정자) = v4 베이지안 (belief는 수식, LLM은 태거+렌더러만). ──
+  # 검증 완료(verify_bayes_user.py Part A/B/C 전부 PASS, 2026-07-02). 태거가 gpt-4o-mini에서 검증돼
+  # user_llm을 저비용 모델로. is_correct 소스 = 페르소나 belief 레터(environment._finalize).
+  user_llm:
+    type: v4                        # v4 = biased-Bayes belief core + narrow LLM surface
+    model: openai/gpt-4o-mini       # 태거+렌더러+turn0 (검증에서 이 모델로 통과)
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512
+    temperature: 0.8
+    show_options: true              # v4는 true 필수 (lettered belief simplex; false는 NotImplementedError)
+    persona: [exhausted_attending]  # veteran_attending | exhausted_attending | eager_resident | burned_out_resident
+    #   리스트 → build_sft_data_v2.py/run_poc.py가 전부 스윕(cross-product). 단일 문자열 → 그 하나만.
+    information_sparsity: dense      # dense | sparse
+    # true: SFT 데이터 수집 목적 — 종료 타이밍(agreement/dropout) 무시하고 max_turns까지 채워 티처의
+    # EXPAND/CHALLENGE/CONVERGE 시퀀스를 최대한 뽑음(veteran c0=0.85 vs q_close=0.90 간격이 좁아
+    # 실제로는 1턴 조기종료가 남발됨 — SFT 관점에선 손해). "진짜" 종료 리얼리즘이 필요한
+    # GRPO/평가 실행에선 false로.
+    force_full_turns: false
+    # q_close: 0.90                  # END(agreement) 임계 confidence (기본 bayes_params.yaml defaults)
+    # bayes: {c0: , lambda: , w: , rho: , kappa: }   # 페르소나 기본값(bayes_params.yaml) 개별 오버라이드
+    # evidence_use_doctor_reasoning: false   # true=태거에 의사 turn0 reasoning 제공(지식-의존 갱신 ablation)
+    # end_requires_converge: false   # true=END에 직전 정책 control==CONVERGE 추가 요구
+    # burden_samples_per_item: 3
+    # burden_dropout_threshold: <persona 기본값(source/persona/burden_dropout_thresholds.yaml)>
+    #
+    # v3 롤백(LLM 페르소나): type: v3 / model: openai/gpt-4o / (bayes·q_close 등 제거)
+
+  # ── medical AI (티처의 guidance를 실제 발화로 실행) — deepseek 유지 ──
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    max_tokens: 512
+    temperature: 0.7
+
+  # ── fact validator (v_t = 티처 상태 s_t의 일부) — deepseek 유지 ──
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    max_tokens: 384
+    temperature: 0.0
+
+  # final_judge 불필요 — 최종결정은 페르소나 자가보고(environment._finalize). build_sft_data_v2가 자동 비활성화.
+
+  # ── 티처 폴리시 (골든 데모 생성) = API-backed v2 ──
+  policy:
+    type: ours_v2_teacher           # plugins/policy/ours_v2_api_teacher.py
+    model: deepseek/deepseek-v4-pro # 티처 모델 (품질용 pro; 저렴하게 하려면 deepseek/deepseek-v4-flash)
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512                 # {stage, action_guidance} JSON 담을 만큼
+    temperature: 0.7                # 데모 다양성(너무 0이면 단조로운 golden)
+    use_fact_validator: true        # v_t를 프롬프트에 포함(fact validation block)
+
+  # 학생(Qwen) 학습은 이 config가 아니라 configs/config_sft_v2_train.yaml 로 (plugins.policy 의미가 충돌하므로 분리).
+
+action_space_path: configs/action_space_v2.yaml   # v2 필수 (티처·학생 동일 action space)
+
+# 병렬 episode 수 (ThreadPoolExecutor, build_sft_data_v2.py). --concurrency CLI 인자로 덮어쓰기 가능.
+# episode당 medical/validator/티처 콜 + v4 유저(태거+렌더러+burden 3샘플)라 turn당 API 콜이 많음 —
+# rate limit 안 걸리는 선에서 올릴 것. 순차 실행(이전 버전)은 300 episode에 ~4시간 걸림(교훈).
+concurrency: 100
+
+sft:
+  data_out: outputs/sft_v2/sft_data.jsonl   # build_sft_data_v2 출력 = 학습 config의 입력

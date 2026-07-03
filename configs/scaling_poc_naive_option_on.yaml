@@ -7,7 +7,6 @@
 # cost ~1x an episode, not 4x.
 #
 # v1's initial belief is NOT injected (unlike v2/EpisodeConfig.initial_fact) -- the doctor
-# independently judges the case on turn 0 (no hint), so initial_user_state is irrelevant
 # here and left null (single run per case, default EpisodeConfig -- ignored by v1 anyway).
 # Whether the doctor started right or wrong emerges per-case from that self-judgment, and
 # is read back from each episode's turn-0 `belief` (scripts/run_scaling_poc.py labels
@@ -27,7 +26,6 @@ experiment:
   data_path: data/sample_data/jama_raw_cardiology.json
   n_cases: 20                       # slice of the cases list to use (cost control for the POC; not a generic field — train_grpo.py/run_dialogue.py use the full file)
   token_ledger: token_usage_ledger.json   # persistent cumulative token total across ALL runs (read-add-write, never overwritten)
-  initial_user_state: null         # v1 ignores EpisodeConfig entirely — null = single run per case, no persona cross-product
 
   # Turn counts at which to snapshot "if the conversation stopped here, what's the verdict".
   checkpoints: [1, 2, 4, 8]

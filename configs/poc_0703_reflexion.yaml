@@ -1,0 +1,60 @@
+# Reflexion baseline (prompt planner, reflect->act, on the 3 control stages) — the
+# prompt-vs-learned contrast for ours_v2. Environment (user_llm v4 + 4 personas, medical_llm,
+# fact_validator, action_space_v2, max_turns) is IDENTICAL to poc_0703_grpo_phase1/2 and to the
+# reflexion baseline, so the ONLY thing that differs across react_control / reflexion / ours_v2 is
+# the planner. Reflexion spends 2 policy calls/turn (reflect, then act) -- inherent to the method. Keep these three configs' plugin+experiment blocks in lock-step; swap only `policy`.
+#
+# Run:  python scripts/run_poc.py --config configs/poc_0703_reflexion.yaml
+
+experiment:
+  name: poc_0703_reflexion
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 100
+  token_ledger: token_usage_ledger.json
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+  ai_alone_cache: outputs/_cache/ai_alone_deepseek_v3_2.json
+
+plugins:
+  user_llm:
+    type: v4
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 512
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: false
+    show_options: true
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+
+  policy:
+    type: reflexion
+    use_fact_validator: true         # same state signal v_t as ours_v2; false -> no-validator ablation
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    max_tokens: 512
+    temperature: 0.0
+
+action_space_path: configs/action_space_v2.yaml
+concurrency: 100

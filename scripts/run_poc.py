@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Termination POC: runs v3 (the two-stage burden-judge + utterance-generator doctor simulator,
-see plugins/user_llm/user_simulator/v3.py) as the REAL multi-turn harness, instead of
+Termination POC: runs v3/v4 as the REAL multi-turn harness, instead of
 scripts/run_scaling_poc.py's "always run to max_turns, then re-judge truncated history at
-fixed checkpoints" design. Here the episode actually ends for one of three real reasons:
+fixed checkpoints" design. This script now selects UserSimulatorV3 or UserSimulatorV4 based on
+plugins.user_llm.type. Here the episode actually ends for one of three real reasons:
 
   1. "agreement"      -- the doctor judges consensus reached (decision == "END").
   2. "burden_dropout"  -- the doctor's accumulated cognitive burden (raw 1-5 sum, see
@@ -37,6 +37,7 @@ no separate sweep script needed.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import statistics
 import sys
@@ -50,13 +51,14 @@ from tqdm import tqdm
 _ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(_ROOT))
 
-from core.config import build_plugins, load_episode_configs, load_yaml
+from core.config import build_plugins, load_yaml
 from core.environment import MedicalHACEnvironment
 from core.json_utils import safe_json_load
 from core.schemas import CaseInfo, DialogueHistory, DialogueTurn, UserState
 from core.token_tracker import tracker
 from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
 from plugins.user_llm.user_simulator.v3 import UserSimulatorV3
+from plugins.user_llm.user_simulator.v4 import UserSimulatorV4
 
 from scripts.run_dialogue import load_dotenv  # avoids needing `source .env` before running
 from scripts.run_scaling_poc import _load_balanced_cases, _resolve_info_condition, _confirm
@@ -89,7 +91,6 @@ def _burden_to_close(
 def _record_from_rollout(
     rollout_path: Path,
     case_info: CaseInfo,
-    episode_config_name: str | None,
     checkpoints: list[int],
     final_judge: FinalJudgeLLMPlugin | None,
 ) -> dict | None:
@@ -171,7 +172,6 @@ def _record_from_rollout(
 
     record: dict = {
         "case_id": case_info.case_id,
-        "initial_user_state": episode_config_name,
         "specialty": case_info.metadata.get("specialty"),
         "alone_correct": alone_correct,
         "n_turns_actual": n_turns_actual,
@@ -261,6 +261,17 @@ def _resolve_belief(
 
 # ── Episode (real termination, belief-based checkpoints) ───────────────────────────────────
 
+def _build_user_simulator(user_llm_cfg: dict):
+    user_type = str(user_llm_cfg.get("type", "v3")).strip().lower()
+    if user_type == "v4":
+        return UserSimulatorV4(user_llm_cfg)
+    if user_type == "v3":
+        return UserSimulatorV3(user_llm_cfg)
+    raise ValueError(
+        f"Unsupported plugins.user_llm.type={user_type!r} in run_poc.py; expected 'v3' or 'v4'."
+    )
+
+
 def run_episode_with_termination(
     case_info: CaseInfo,
     user_llm_cfg: dict,
@@ -271,16 +282,13 @@ def run_episode_with_termination(
     config: dict,
     max_turns: int,
     output_dir: Path,
-    episode_config_name: str | None,
-    episode_config,
     checkpoints: list[int],
     agenda_planner=None,
     resolution_tracker=None,
 ) -> dict:
-    # Fresh instance per case (not build_plugins's shared one) -- v3 carries per-episode
-    # mutable state (_burden_cumulative, _last_belief), so a shared instance would race across
-    # ThreadPoolExecutor workers. Mirrors how run_scaling_poc.py does the same for v1.
-    user_llm = UserSimulatorV3(user_llm_cfg)
+    # Fresh instance per case (not build_plugins's shared one) -- v3/v4 carry per-episode
+    # mutable state, so a shared instance would race across ThreadPoolExecutor workers.
+    user_llm = _build_user_simulator(user_llm_cfg)
     # final_judge=None here on purpose -- the environment's own _finalize() is unused; THIS
     # script calls final_judge.judge() itself, only as a belief fallback (see _resolve_belief).
     if agenda_planner is not None:
@@ -294,18 +302,15 @@ def run_episode_with_termination(
     else:
         ai_alone_result = None
         env = MedicalHACEnvironment(user_llm, medical_llm, fact_validator_llm, policy, config, final_judge=None)
-    # Disambiguate the rollout filename when sweeping multiple initial_user_state presets
-    # over the same cases (cross product) -- otherwise they'd collide on one path.
-    rollout_name = f"{case_info.case_id}_{episode_config_name}" if episode_config_name else case_info.case_id
-    rollout_path = output_dir / "rollouts" / f"{rollout_name}.jsonl"
+    rollout_path = output_dir / "rollouts" / f"{case_info.case_id}.jsonl"
 
     # Fast path: rollout already saved → reconstruct record without re-running the episode.
     if rollout_path.exists():
-        rec = _record_from_rollout(rollout_path, case_info, episode_config_name, checkpoints, final_judge)
+        rec = _record_from_rollout(rollout_path, case_info, checkpoints, final_judge)
         if rec is not None:
             return rec
 
-    steps = env.run_episode(case_info, max_turns=max_turns, output_path=rollout_path, episode_config=episode_config)
+    steps = env.run_episode(case_info, max_turns=max_turns, output_path=rollout_path, episode_config=None)
 
     history = env.history
     turns = history.turns if history is not None else []
@@ -373,7 +378,6 @@ def run_episode_with_termination(
     )
     record: dict = {
         "case_id": case_info.case_id,
-        "initial_user_state": episode_config_name,
         "specialty": case_info.metadata.get("specialty"),
         "alone_correct": alone_correct,
         "n_turns_actual": n_turns_actual,
@@ -504,6 +508,147 @@ def _simulate_ai_alone(case_info: CaseInfo, medical_llm_cfg: dict) -> bool:
     if selected not in _VALID_LETTERS:
         selected = ""
     return selected == str(case_info.correct_option).strip().upper()
+
+
+def _case_cache_hash(case_info: CaseInfo) -> str:
+    payload = {
+        "case_id": case_info.case_id,
+        "scenario": case_info.scenario,
+        "caption": case_info.caption,
+        "question": case_info.question,
+        "options": case_info.options,
+        "correct_option": case_info.correct_option,
+    }
+    raw = json.dumps(payload, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _ai_alone_cache_key(case_info: CaseInfo, medical_llm_cfg: dict) -> str:
+    model = str(medical_llm_cfg["model"])
+    return f"{model}::oneshot_mcq_v1::{case_info.case_id}::{_case_cache_hash(case_info)}"
+
+
+def _default_ai_alone_cache_path(medical_llm_cfg: dict) -> Path:
+    model_slug = "".join(
+        ch if ch.isalnum() or ch in ("-", "_", ".") else "_"
+        for ch in str(medical_llm_cfg["model"])
+    )
+    return _ROOT / "outputs" / "_cache" / f"ai_alone_{model_slug}.json"
+
+
+def _load_ai_alone_cache(cache_path: Path) -> dict:
+    if not cache_path.exists():
+        return {"version": 1, "entries": {}}
+    try:
+        data = json.loads(cache_path.read_text())
+    except json.JSONDecodeError:
+        print(f"  WARNING: ai_alone cache is invalid JSON, ignoring: {cache_path}")
+        return {"version": 1, "entries": {}}
+    if "entries" not in data or not isinstance(data["entries"], dict):
+        return {"version": 1, "entries": data if isinstance(data, dict) else {}}
+    return data
+
+
+def _save_ai_alone_cache(cache_path: Path, cache: dict) -> None:
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(cache, indent=2, ensure_ascii=False))
+
+
+def _seed_ai_alone_cache_from_results(
+    cache: dict,
+    cases: list[CaseInfo],
+    medical_llm_cfg: dict,
+) -> int:
+    """Backfill the shared ai_alone cache from old run_poc results.json files.
+
+    Old records only store the boolean, not the selected option. That is still enough for the
+    headline accuracy and for downstream complementarity fields that consume ai_alone_correct.
+    """
+    entries = cache.setdefault("entries", {})
+    cases_by_id = {c.case_id: c for c in cases}
+    target_model = str(medical_llm_cfg["model"])
+    seeded = 0
+    for results_path in (_ROOT / "outputs").glob("**/results.json"):
+        try:
+            data = json.loads(results_path.read_text())
+        except Exception:
+            continue
+        if str(data.get("run_meta", {}).get("model", "")) != target_model:
+            continue
+        for record in data.get("records", []):
+            cid = record.get("case_id")
+            if cid not in cases_by_id or "ai_alone_correct" not in record:
+                continue
+            case_info = cases_by_id[cid]
+            key = _ai_alone_cache_key(case_info, medical_llm_cfg)
+            if key in entries:
+                continue
+            entries[key] = {
+                "case_id": cid,
+                "model": target_model,
+                "prompt": "oneshot_mcq_v1",
+                "case_hash": _case_cache_hash(case_info),
+                "correct": bool(record["ai_alone_correct"]),
+                "selected_option": None,
+                "source": str(results_path.relative_to(_ROOT)),
+            }
+            seeded += 1
+    return seeded
+
+
+def _load_or_measure_ai_alone(
+    cases: list[CaseInfo],
+    medical_llm_cfg: dict,
+    concurrency: int,
+    cache_path: Path,
+) -> dict[str, bool]:
+    cache = _load_ai_alone_cache(cache_path)
+    entries = cache.setdefault("entries", {})
+    seeded = _seed_ai_alone_cache_from_results(cache, cases, medical_llm_cfg)
+    if seeded:
+        _save_ai_alone_cache(cache_path, cache)
+        print(f"  Seeded ai_alone cache from old results: {seeded} case(s).")
+
+    ai_alone_by_case: dict[str, bool] = {}
+    pending: list[CaseInfo] = []
+    for case_info in cases:
+        key = _ai_alone_cache_key(case_info, medical_llm_cfg)
+        cached = entries.get(key)
+        if cached is not None and "correct" in cached:
+            ai_alone_by_case[case_info.case_id] = bool(cached["correct"])
+        else:
+            pending.append(case_info)
+
+    if pending:
+        print(
+            f"  ai_alone cache: {len(cases) - len(pending)}/{len(cases)} hit(s), "
+            f"{len(pending)} call(s) needed."
+        )
+        with ThreadPoolExecutor(max_workers=concurrency) as ex:
+            alone_futures = {
+                ex.submit(_simulate_ai_alone, case_info, medical_llm_cfg): case_info
+                for case_info in pending
+            }
+            for fut in tqdm(as_completed(alone_futures), total=len(alone_futures),
+                            desc="ai_alone", unit="case"):
+                case_info = alone_futures[fut]
+                correct = bool(fut.result())
+                ai_alone_by_case[case_info.case_id] = correct
+                entries[_ai_alone_cache_key(case_info, medical_llm_cfg)] = {
+                    "case_id": case_info.case_id,
+                    "model": str(medical_llm_cfg["model"]),
+                    "prompt": "oneshot_mcq_v1",
+                    "case_hash": _case_cache_hash(case_info),
+                    "correct": correct,
+                    "selected_option": None,
+                    "source": "fresh_api_call",
+                }
+        _save_ai_alone_cache(cache_path, cache)
+        print(f"  Saved ai_alone cache: {cache_path}")
+    else:
+        print(f"  ai_alone cache: all {len(cases)} case(s) hit. No API calls.")
+
+    return ai_alone_by_case
 
 
 # ── Aggregation ──────────────────────────────────────────────────────────────────────────
@@ -776,11 +921,10 @@ def run(config: dict) -> dict:
         "data_dir": data_dir,
         "specialty_counts": specialty_counts,
         "policy_type": config["plugins"]["policy"]["type"],
-        "initial_user_state": exp.get("initial_user_state"),
         "checkpoints": checkpoints,
         "burden_dropout_threshold": config["plugins"]["user_llm"].get("burden_dropout_threshold"),
         "user_llm_show_options": config["plugins"]["user_llm"].get("show_options", True),
-        "user_llm_persona": config["plugins"]["user_llm"].get("persona", "burned_out_resident"),
+        "user_llm_persona": config["plugins"]["user_llm"].get("persona", "veteran_attending"),
         "user_llm_information_sparsity": config["plugins"]["user_llm"].get("information_sparsity", "dense"),
         "medical_llm_show_case_info": config["plugins"]["medical_llm"].get("show_case_info", True),
     }
@@ -788,7 +932,7 @@ def run(config: dict) -> dict:
     # On crash/restart, load completed records from it and skip those cases.
     partial_path = output_dir / "records_partial.jsonl"
     completed_records: list[dict] = []
-    completed_keys: set[tuple] = set()
+    completed_keys: set[str] = set()
     if results_path.exists():
         saved = json.loads(results_path.read_text())
         if saved.get("run_meta") != run_meta:
@@ -804,7 +948,7 @@ def run(config: dict) -> dict:
                 if "checkpoint_results" in r and "checkpoints" not in r:
                     r["checkpoints"] = r.pop("checkpoint_results")
                 completed_records.append(r)
-                completed_keys.add((r["case_id"], r.get("initial_user_state")))
+                completed_keys.add(r["case_id"])
         if completed_keys:
             print(f"  Resuming: {len(completed_keys)}/{len(cases)} cases already done, skipping.")
 
@@ -816,36 +960,24 @@ def run(config: dict) -> dict:
     agenda_planner, resolution_tracker = build_agenda_plugins(config)
     user_llm_cfg = config["plugins"]["user_llm"]
 
-    # initial_user_state: None -> [(None, None)] (single default EpisodeConfig); a name/list/
-    # "all" -> one (name, EpisodeConfig) per preset, cross-producted with cases below. v3 only
-    # records these fields into user_state metadata (doesn't branch prompt logic on them, like
-    # v1) -- wired through anyway for template consistency + metadata fidelity.
-    episode_configs = load_episode_configs(exp.get("initial_user_state"))
-
     condition_label = (
         f"policy={config['plugins']['policy']['type']}, "
-        f"doctor_persona={config['plugins']['user_llm'].get('persona', 'burned_out_resident')}, "
+        f"doctor_persona={config['plugins']['user_llm'].get('persona', 'veteran_attending')}, "
         f"burden_dropout_threshold={user_llm_cfg.get('burden_dropout_threshold', 'inf')}"
     )
-    print(f"Running {len(cases)} case(s) x {len(episode_configs)} initial_user_state preset(s) "
-          f"({condition_label}, max_turns={max_turns})...")
+    print(f"Running {len(cases)} case(s) ({condition_label}, max_turns={max_turns})...")
 
     records: list[dict] = list(completed_records)
-    pending = [
-        (case_info, ep_name, ep_cfg)
-        for case_info in cases
-        for ep_name, ep_cfg in episode_configs
-        if (case_info.case_id, ep_name) not in completed_keys
-    ]
+    pending = [case_info for case_info in cases if case_info.case_id not in completed_keys]
     with ThreadPoolExecutor(max_workers=config.get("concurrency", 5)) as ex:
         futures = {
             ex.submit(
                 run_episode_with_termination, case_info, user_llm_cfg, medical_llm,
                 fact_validator_llm, policy, final_judge, config, max_turns, output_dir,
-                ep_name, ep_cfg, checkpoints,
+                checkpoints,
                 agenda_planner, resolution_tracker,
-            ): (case_info.case_id, ep_name)
-            for case_info, ep_name, ep_cfg in pending
+            ): case_info.case_id
+            for case_info in pending
         }
         with open(partial_path, "a") as _pf:
             for fut in tqdm(as_completed(futures), total=len(futures), desc="episodes", unit="case"):
@@ -858,17 +990,19 @@ def run(config: dict) -> dict:
     # experiment.measure_ai_alone: true -- off by default so existing configs are unaffected.
     ai_alone_correct: list[bool] | None = None
     if exp.get("measure_ai_alone", False):
-        print("  Measuring ai_alone accuracy (one-shot MCQ, no dialogue)...")
+        print("  Loading/measuring ai_alone accuracy (one-shot MCQ, no dialogue)...")
         medical_llm_cfg = config["plugins"]["medical_llm"]
-        with ThreadPoolExecutor(max_workers=config.get("concurrency", 5)) as ex:
-            alone_futures = {
-                ex.submit(_simulate_ai_alone, case_info, medical_llm_cfg): case_info.case_id
-                for case_info in cases
-            }
-            ai_alone_by_case: dict[str, bool] = {}
-            for fut in tqdm(as_completed(alone_futures), total=len(alone_futures),
-                            desc="ai_alone", unit="case"):
-                ai_alone_by_case[alone_futures[fut]] = fut.result()
+        cache_path = (
+            _ROOT / exp["ai_alone_cache"]
+            if exp.get("ai_alone_cache")
+            else _default_ai_alone_cache_path(medical_llm_cfg)
+        )
+        ai_alone_by_case = _load_or_measure_ai_alone(
+            cases=cases,
+            medical_llm_cfg=medical_llm_cfg,
+            concurrency=config.get("concurrency", 5),
+            cache_path=cache_path,
+        )
         # preserve original case order
         ai_alone_correct = [ai_alone_by_case[c.case_id] for c in cases]
         # write per-case result back into records so it's saved in results.json
@@ -928,11 +1062,38 @@ def _run_plot(output_path: Path) -> None:
         print("  *** plot failed (see above) ***")
 
 
+def _condition_from_output_leaf(name: str) -> str:
+    persona, sep, info_condition = name.rpartition("_")
+    return f"{persona}/{info_condition}" if sep and persona and info_condition else name
+
+
+def _load_summary_from_condition_results(base_name: str) -> dict[str, dict]:
+    """Recover summary entries from completed condition subdirs.
+
+    This keeps top-level summary.json cumulative across separate one-persona sweep runs. A
+    condition is included only after its results.json exists; records_partial.jsonl alone is
+    deliberately ignored because the run did not finish aggregation yet.
+    """
+    summary_dir = _ROOT / "outputs" / base_name
+    existing: dict[str, dict] = {}
+    if not summary_dir.exists():
+        return existing
+    for result_path in sorted(summary_dir.glob("*/results.json")):
+        try:
+            data = json.loads(result_path.read_text())
+        except Exception:
+            continue
+        scores = data.get("scores")
+        if isinstance(scores, dict):
+            existing[_condition_from_output_leaf(result_path.parent.name)] = scores
+    return existing
+
+
 def run_sweep(base_config: dict) -> dict[str, dict]:
     """Expands plugins.user_llm.persona/info_condition list(s) into one run() call per
     combination (cross product), prints the combined report, and saves summary.json."""
     import copy
-    personas = _as_list(base_config["plugins"]["user_llm"].get("persona", "burned_out_resident"))
+    personas = _as_list(base_config["plugins"]["user_llm"].get("persona", "veteran_attending"))
     info_conditions = _as_list(base_config["plugins"]["user_llm"].get("info_condition", "full"))
     base_name = base_config["experiment"]["name"]
 
@@ -953,12 +1114,23 @@ def run_sweep(base_config: dict) -> dict[str, dict]:
 
     summary_dir = _ROOT / "outputs" / base_name
     summary_dir.mkdir(parents=True, exist_ok=True)
+    merged_scores: dict[str, dict] = {}
+    summary_path = summary_dir / "summary.json"
+    if summary_path.exists():
+        try:
+            previous = json.loads(summary_path.read_text())
+            if isinstance(previous, dict):
+                merged_scores.update(previous)
+        except json.JSONDecodeError:
+            print(f"  WARNING: ignoring invalid existing summary: {summary_path}")
+    merged_scores.update(_load_summary_from_condition_results(base_name))
+    merged_scores.update(all_scores)
     with open(summary_dir / "summary.json", "w") as f:
-        json.dump(all_scores, f, indent=2, ensure_ascii=False)
+        json.dump(merged_scores, f, indent=2, ensure_ascii=False)
     print(f"  Combined summary saved to {summary_dir / 'summary.json'}")
 
     _run_plot(summary_dir)
-    return all_scores
+    return merged_scores
 
 
 def main(config_path: str, concurrency: int | None = None) -> None:

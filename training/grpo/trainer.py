@@ -3,17 +3,20 @@
 Per training item (case × persona) = one group: sample G full trajectories through the agent-external
 env (policy in sampling mode), score each with R(τ) (core/reward.py: r_align + r_final + length), compute
 group-relative advantages, and update the LoRA policy with a per-token policy-gradient + KL-to-reference
-loss. Reference = adapter-disabled forward (no separate model copy).
+loss. Reference = frozen SFT adapter when available; otherwise adapter-disabled base forward.
 """
 from __future__ import annotations
 
 import json
+import queue
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from core.reward import Trajectory, trajectory_return, group_advantages
+from core.reward import Trajectory, trajectory_return, group_advantages, leak_score
 from core.logger import RolloutLogger
-from core.token_tracker import tracker as _tracker
+from core.token_tracker import tracker as _tracker, TokenTracker
 from core.schemas import EpisodeConfig
 
 
@@ -39,6 +42,7 @@ class GRPOTrainer:
         self.weights = config.get("reward", {})
         self.save_dir = Path(exp.get("output_dir", "outputs")) / "grpo"
         self.rollout_dir = self.save_dir / "rollouts"   # saved dialogue transcripts (viewable in app.py)
+        self.metrics_path = self.save_dir / "metrics.jsonl"
         # Token accounting: every rollout's API + policy-generate tokens land here (same format as eval).
         self.exp_name = exp.get("name", "grpo")
         self.token_ledger = exp.get("token_ledger", "token_usage_ledger.json")
@@ -56,60 +60,106 @@ class GRPOTrainer:
         self.optim = torch.optim.AdamW(params, lr=self.lr)
         self._torch = torch
 
+        # ── parallel rollouts ────────────────────────────────────────────────
+        # A group's group_size rollouts are independent and I/O-bound (each is ~50 sequential
+        # OpenRouter calls). Run them across worker threads that overlap those API waits. Each
+        # worker checks out its OWN env from a pool (env + user_llm are stateful -> can't share);
+        # all envs share the single GPU policy, whose generate is serialized by _policy_lock
+        # (a small fraction of wall time). rollout_workers defaults to group_size; set it to 1
+        # for the old strictly-sequential behavior (e.g. to A/B the two are equivalent).
+        self.n_workers = max(1, min(self.group_size, int(grpo.get("rollout_workers", self.group_size))))
+        self._policy_lock = threading.Lock()
+        self._env_pool: queue.Queue = queue.Queue()
+        self._env_pool.put(self.env)
+        if self.n_workers > 1:
+            from core.config import build_plugins
+            from core.environment import MedicalHACEnvironment
+            for _ in range(self.n_workers - 1):
+                u, m, fv, _p, fj = build_plugins(self.cfg, reuse_policy=self.policy)
+                self._env_pool.put(MedicalHACEnvironment(
+                    user_llm=u, medical_llm=m, fact_validator_llm=fv,
+                    policy=self.policy, config=self.cfg, final_judge=fj,
+                ))
+
     # ── rollout one trajectory (sampling) ────────────────────────────────────
-    def _rollout(self, case_info, episode_config, tag: str) -> Trajectory:
+    def _rollout(self, env, case_info, episode_config, tag: str):
+        """Run one sampled rollout on `env` (checked out from the pool). Returns
+        (traj, sub_tracker, logger, tag); the caller persists tokens/transcript sequentially
+        after all workers join, so the shared ledger's read-modify-write never races."""
         eff = episode_config or EpisodeConfig()
         logger = RolloutLogger(
             case_info=case_info, model_names=self.model_names, episode_config=eff.model_dump(),
         )
-        _tracker.reset()   # episode-scoped token accounting (counts even degenerate rollouts)
-        obs = self.env.reset(case_info, episode_config, max_turns=self.max_turns)
+        sub = TokenTracker()   # per-rollout token accounting, isolated from sibling workers
         traj = Trajectory()
-        while not obs.done:
-            po = self.policy.sample_action(
-                obs.case_info, obs.dialogue_history, obs.current_user_utterance, obs.verification,
-            )
-            res = self.env.step(po)
-            logger.log_step(res, dialogue_snapshot=[t.model_dump() for t in self.env._history.turns])
-            traj.step_align.append(float(res.metadata.get("r_align", 0.0)))
-            traj.step_fmt.append(float(res.metadata.get("r_fmt", 0.0)))
-            traj.steps.append((po.metadata.get("prompt_ids", []), po.metadata.get("action_ids", [])))
-            # Burden from the user's response to this AI turn (NASA-TLX overall_workload, 1-5).
-            # Zero when no user turn follows (max_turns terminal: _advance_user_turn skipped).
-            _next_us = self.env.observation.user_state if self.env.observation else None
-            _burden = float(_next_us.model_dump().get("cognitive_burden", 0.0)) if _next_us else 0.0
-            if res.done and res.metadata.get("closed_by") == "max_turns":
-                _burden = 0.0
-            traj.step_burden.append(_burden)
-            if res.done:
-                fj = res.metadata.get("final_judgement")
-                traj.is_correct = bool(fj and fj.get("is_correct"))
-                logger.finalize(fj, res.metadata.get("closed_by"))
-            obs = self.env.observation
+        with _tracker.redirect(sub):   # every plugin record()/begin_turn()/flush_turn() -> sub
+            obs = env.reset(case_info, episode_config, max_turns=self.max_turns)
+            while not obs.done:
+                with self._policy_lock:   # serialize the one shared GPU policy's generate
+                    po = self.policy.sample_action(
+                        obs.case_info, obs.dialogue_history, obs.current_user_utterance, obs.verification,
+                    )
+                res = env.step(po)
+                logger.log_step(res, dialogue_snapshot=[t.model_dump() for t in env._history.turns])
+                traj.step_align.append(float(res.metadata.get("r_align", 0.0)))
+                traj.step_fmt.append(float(res.metadata.get("r_fmt", 0.0)))
+                # O2 guard: flag turns whose generated guidance names the correct option (core/reward.py)
+                traj.step_leak.append(leak_score(po.action_prompt, case_info.correct_option, case_info.answer))
+                traj.steps.append((po.metadata.get("prompt_ids", []), po.metadata.get("action_ids", [])))
+                # Burden from the user's response to this AI turn (NASA-TLX overall_workload, 1-5).
+                # Zero when no user turn follows (max_turns terminal: _advance_user_turn skipped).
+                _next_us = env.observation.user_state if env.observation else None
+                _burden = float(_next_us.model_dump().get("cognitive_burden", 0.0)) if _next_us else 0.0
+                if res.done and res.metadata.get("closed_by") == "max_turns":
+                    _burden = 0.0
+                traj.step_burden.append(_burden)
+                if res.done:
+                    fj = res.metadata.get("final_judgement")
+                    traj.is_correct = bool(fj and fj.get("is_correct"))
+                    logger.finalize(fj, res.metadata.get("closed_by"))
+                obs = env.observation
         traj.num_turns = len(traj.step_align)
+        return traj, sub, logger, tag
+
+    def _persist_rollout(self, traj, sub, logger, tag: str, case_id: str) -> None:
+        """Sequential post-join I/O: transcript + this rollout's token usage folded into the
+        cumulative ledger. Kept out of the worker threads so the ledger's read-modify-write and
+        the append-only history are never interleaved across rollouts."""
         if traj.steps:
             logger.save(self.rollout_dir / f"{tag}.jsonl")   # transcript: dialogue + actions + rewards
-        # Persist this rollout's token usage (raw per-call I/O + per-model summary) and fold its
-        # totals into the cumulative ledger. Done for every rollout, including degenerate ones.
-        _tracker.save_calls(self.token_dir / f"{tag}_calls.jsonl")
-        _tracker.save_summary(self.token_dir / f"{tag}_token_summary.json")
-        self._last_ledger = _tracker.accumulate_to_ledger(
+        # Persist per-rollout token usage (raw per-call I/O + per-model summary), for every
+        # rollout including degenerate ones, then fold totals into the cumulative ledger.
+        sub.save_calls(self.token_dir / f"{tag}_calls.jsonl")
+        sub.save_summary(self.token_dir / f"{tag}_token_summary.json")
+        self._last_ledger = sub.accumulate_to_ledger(
             self.token_ledger,
-            {"phase": "grpo", "exp": self.exp_name, "tag": tag, "case_id": case_info.case_id},
+            {"phase": "grpo", "exp": self.exp_name, "tag": tag, "case_id": case_id},
         )
-        return traj
 
     # ── training loop ────────────────────────────────────────────────────────
     def train(self, items: list[tuple]) -> None:
         torch = self._torch
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.metrics_path.write_text("")
         for step in range(self.steps):
             case_info, episode_config = items[step % len(items)]
 
-            group = [
-                self._rollout(case_info, episode_config, f"{case_info.case_id}_step{step}_g{g}")
-                for g in range(self.group_size)
-            ]
-            group = [t for t in group if t.steps]   # drop degenerate (immediate-close) trajectories
+            def _run(g, _ci=case_info, _ec=episode_config, _step=step):
+                env = self._env_pool.get()   # unique env per concurrent worker (blocks if none free)
+                try:
+                    return self._rollout(env, _ci, _ec, f"{_ci.case_id}_step{_step}_g{g}")
+                finally:
+                    self._env_pool.put(env)
+
+            if self.n_workers > 1:
+                with ThreadPoolExecutor(max_workers=self.n_workers) as ex:
+                    results = list(ex.map(_run, range(self.group_size)))
+            else:
+                results = [_run(g) for g in range(self.group_size)]
+            # Sequential post-join I/O (transcript + ledger; ledger RMW must not race).
+            for traj, sub, logger, tag in results:
+                self._persist_rollout(traj, sub, logger, tag, case_info.case_id)
+            group = [traj for (traj, _sub, _lg, _tag) in results if traj.steps]  # drop degenerate
             torch.cuda.empty_cache()                # free the rollout generate KV-cache before the update
             if len(group) < 2:
                 print(f"[grpo step {step}] skipped (only {len(group)} usable trajectories)")
@@ -124,8 +174,11 @@ class GRPOTrainer:
                 for g, (traj, R, adv) in enumerate(zip(group, returns, advs)):
                     lf.write(json.dumps({
                         "step": step, "sample": g, "case_id": case_info.case_id,
+                        "persona": episode_config.persona if episode_config else None,
                         "R": round(R, 4), "advantage": round(adv, 4),
                         "is_correct": traj.is_correct, "num_turns": traj.num_turns,
+                        "sum_burden": round(sum(traj.step_burden), 3),
+                        "sum_leak": round(sum(traj.step_leak), 1),
                         "sum_r_align": round(sum(traj.step_align), 4),
                         "step_rewards": [round(x, 3) for x in traj.step_align],
                     }) + "\n")
@@ -139,8 +192,11 @@ class GRPOTrainer:
                 for prompt_ids, action_ids in traj.steps:
                     if not action_ids:
                         continue
-                    logp = self.policy.action_logprob(prompt_ids, action_ids, use_ref=False)
+                    # Compute the frozen reference first. If we compute train logp first, its
+                    # autograd graph/activations stay resident while the ref forward runs; on
+                    # 24GB QLoRA this can OOM inside bitsandbytes' temporary 4-bit dequant buffer.
                     ref = self.policy.action_logprob(prompt_ids, action_ids, use_ref=True)
+                    logp = self.policy.action_logprob(prompt_ids, action_ids, use_ref=False)
                     # GRPO k3 KL estimator (≥0, low variance), grad flows through logp only
                     kl = torch.exp(ref - logp) - (ref - logp) - 1.0
                     step_loss = (-adv * logp + self.kl_coef * kl) / total_steps
@@ -161,7 +217,7 @@ class GRPOTrainer:
                 f"meanTurns={mean_turns:.1f} loss={loss_sum:.4f} kl={kl_acc / n_tok:.4f}"
             )
             # per-step metrics for plotting (loss / reward / acc / kl vs step)
-            with open(self.save_dir / "metrics.jsonl", "a") as mf:
+            with open(self.metrics_path, "a") as mf:
                 mf.write(json.dumps({
                     "step": step, "meanR": round(mean_R, 4), "acc": round(acc, 4),
                     "meanTurns": round(mean_turns, 2), "loss": round(loss_sum, 4),
@@ -173,6 +229,13 @@ class GRPOTrainer:
 
         self.policy.save(str(self.save_dir / "final"))
         print(f"GRPO done. Final adapter → {self.save_dir / 'final'}")
+        try:
+            from scripts.plot_grpo import plot_grpo
+            out = plot_grpo(self.metrics_path)
+            if out:
+                print(f"Training curve → {out}")
+        except Exception as e:  # noqa: BLE001 -- plotting is observational
+            print(f"(training curve not rendered: {e}; run scripts/plot_grpo.py manually)")
         if self._last_ledger is not None:
             gt = self._last_ledger["grand_total"]
             print(f"[cumulative tokens] episodes={self._last_ledger['total_episodes']} "

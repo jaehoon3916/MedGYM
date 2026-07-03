@@ -1,0 +1,9 @@
+{"step": 0, "meanR": 1.2667, "acc": 1.0, "meanTurns": 2.67, "loss": 6.4369, "kl": 0.0}
+{"step": 1, "meanR": 0.5, "acc": 0.1667, "meanTurns": 3.33, "loss": 0.9265, "kl": 0.023548}
+{"step": 2, "meanR": 1.35, "acc": 1.0, "meanTurns": 3.5, "loss": 5.0949, "kl": 0.030346}
+{"step": 3, "meanR": 1.2667, "acc": 1.0, "meanTurns": 2.67, "loss": 9.2478, "kl": 0.036232}
+{"step": 0, "meanR": 0.1667, "acc": 0.1667, "meanTurns": 4.0, "loss": -1.1615, "kl": 0.0}
+{"step": 1, "meanR": -1.1667, "acc": 0.1667, "meanTurns": 3.67, "loss": 0.7389, "kl": 0.01011}
+{"step": 2, "meanR": 0.0, "acc": 0.0, "meanTurns": 2.83, "loss": 0.0002, "kl": 0.016311}
+{"step": 3, "meanR": 0.0, "acc": 0.0, "meanTurns": 3.67, "loss": 0.0002, "kl": 0.01638}
+{"step": 4, "meanR": 0.0, "acc": 0.0, "meanTurns": 3.67, "loss": 0.0003, "kl": 0.028993}

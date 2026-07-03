@@ -17,45 +17,6 @@ def load_user_state_schema(path: str | Path | None = None) -> list[dict[str, Any
     return load_yaml(path)["fields"]
 
 
-def load_episode_config(name: str | None, base_dir: str | Path | None = None):
-    """Load an initial-user-state preset (EpisodeConfig) by name, like loading a persona.
-
-    `name` is the preset stem in initial_user_state/, e.g. "user_state_5". Returns None when
-    `name` is falsy, so the caller falls back to the default EpisodeConfig.
-    """
-    from core.schemas import EpisodeConfig
-
-    if not name:
-        return None
-    base = Path(base_dir) if base_dir else Path(__file__).parent.parent / "initial_user_state"
-    fname = name if str(name).endswith(".yaml") else f"{name}.yaml"
-    return EpisodeConfig(**load_yaml(base / fname))
-
-
-def load_episode_configs(spec, base_dir: str | Path | None = None):
-    """Resolve the experiment.initial_user_state spec into a list of (name, EpisodeConfig|None).
-
-    spec may be:
-      None / falsy        → [(None, None)]   (single run with the default EpisodeConfig)
-      "all"               → every preset in the folder, in numeric order
-      a single name (str) → [(name, cfg)]
-      a list of names     → one (name, cfg) per entry
-    """
-    base = Path(base_dir) if base_dir else Path(__file__).parent.parent / "initial_user_state"
-    if not spec:
-        return [(None, None)]
-    if isinstance(spec, str) and spec.strip().lower() == "all":
-        names = sorted(
-            (p.stem for p in base.glob("user_state_*.yaml")),
-            key=lambda s: int(s.rsplit("_", 1)[-1]),
-        )
-    elif isinstance(spec, str):
-        names = [spec]
-    else:
-        names = list(spec)
-    return [(n, load_episode_config(n, base)) for n in names]
-
-
 def load_action_space(path: str | Path | None = None) -> dict[str, Any]:
     if path is None:
         path = Path(__file__).parent.parent / "configs" / "action_space.yaml"
@@ -63,19 +24,26 @@ def load_action_space(path: str | Path | None = None) -> dict[str, Any]:
     return {
         "stages": {s["id"]: s for s in data["stages"]},
         "locutions": {loc["id"]: loc for loc in data["locutions"]},
+        "transitions": data.get("transitions", {}),   # v2 control-layer gate (absent in v1)
     }
 
 
-def build_plugins(config: dict[str, Any]):
+def build_plugins(config: dict[str, Any], reuse_policy: Any = None):
     """Instantiate plugins from YAML config.
 
     Returns (user_llm, medical_llm, fact_validator_llm, policy, final_judge).
     Also attaches agenda_planner and resolution_tracker to the returned objects
     as .agenda_planner / .resolution_tracker attributes when configured (agenda arm).
+
+    reuse_policy: when given, that already-built policy is returned as-is instead of
+    constructing (and loading) a new one -- used to build extra rollout envs that share the one
+    GPU-resident policy while getting their own fresh (stateful) user_llm + (stateless) API
+    plugins for parallel GRPO rollouts (see training/grpo/trainer.py).
     """
     from plugins.user_llm.user_simulator.v1 import UserSimulatorV1
     from plugins.user_llm.user_simulator.v2 import UserSimulatorV2
     from plugins.user_llm.user_simulator.v3 import UserSimulatorV3
+    from plugins.user_llm.user_simulator.v4 import UserSimulatorV4
     from plugins.medical_llm.vllm_medical import VLLMMedicalLLM
     from plugins.fact_validator_llm.vllm_fact_validator import VLLMFactValidatorLLM
     from plugins.fact_validator_llm.null_fact_validator import NullFactValidatorLLM
@@ -89,12 +57,17 @@ def build_plugins(config: dict[str, Any]):
     from plugins.policy.react_policy import ReactPolicy
     from plugins.policy.medcobe_feedback_policy import MedCobeFeedbackPolicy
     from plugins.policy.deliberation_llm_policy import DeliberationLLMPolicy
+    from plugins.policy.react_control_policy import ReactControlPolicy
+    from plugins.policy.reflexion_policy import ReflexionPolicy
     from plugins.policy.routing_policy import RoutingPolicy
     from plugins.policy.agenda_action_policy import AgendaActionPolicy
+    from plugins.policy.policy_ours_v2 import PolicyOursV2
+    from plugins.policy.ours_v2_api_teacher import OursV2APITeacher
 
     plugin_cfg = config.get("plugins", {})
 
-    _user_llm_map = {"v1": UserSimulatorV1, "v2": UserSimulatorV2, "v3": UserSimulatorV3}
+    _user_llm_map = {"v1": UserSimulatorV1, "v2": UserSimulatorV2, "v3": UserSimulatorV3,
+                     "v4": UserSimulatorV4}  # v4 = Bayesian belief core + narrow LLM surface
     _medical_llm_map = {"vllm": VLLMMedicalLLM}
     _POLICIES_WITHOUT_FACT_VALIDATOR = {"naive", "react", "medcobe_feedback", "medcobe_naive", "routing"}
 
@@ -115,8 +88,12 @@ def build_plugins(config: dict[str, Any]):
         "react":                        ReactPolicy,
         "medcobe_feedback":             MedCobeFeedbackPolicy,
         "deliberation_llm":             DeliberationLLMPolicy,  # validator on/off via policy.use_fact_validator
+        "react_control":                ReactControlPolicy,     # ReAct baseline on the 3 control stages (vs ours_v2)
+        "reflexion":                    ReflexionPolicy,        # Reflexion baseline (reflect->act) on the 3 control stages
         "routing":                      RoutingPolicy,
         "agenda_action":                AgendaActionPolicy,
+        "ours_v2":                      PolicyOursV2,  # hybrid 3-way control; validator via policy.use_fact_validator
+        "ours_v2_teacher":              OursV2APITeacher,  # API-backed (deepseek-v4) teacher for SFT distillation
     }
 
     user_type = plugin_cfg.get("user_llm", {}).get("type", "v2")
@@ -128,12 +105,12 @@ def build_plugins(config: dict[str, Any]):
     # Fact validator is only meaningful for deliberation_llm (and other needs_verification policies).
     # Force null unconditionally for all others regardless of what the config says. deliberation_llm
     # additionally exposes policy.use_fact_validator=false (ablation) -> also force null, no API calls.
-    _delib_fv_off = (policy_type == "deliberation_llm"
+    _delib_fv_off = (policy_type in ("deliberation_llm", "ours_v2")
                      and not plugin_cfg.get("policy", {}).get("use_fact_validator", True))
     _force_null_fv = policy_type in _POLICIES_WITHOUT_FACT_VALIDATOR or _delib_fv_off
     fact_validator_type = "null" if _force_null_fv else plugin_cfg.get("fact_validator_llm", {}).get("type", "vllm")
 
-    action_space = load_action_space()
+    action_space = load_action_space(config.get("action_space_path"))
 
     user_llm = _user_llm_map[user_type](plugin_cfg.get("user_llm", {}))
     medical_llm = _medical_llm_map[medical_type](plugin_cfg.get("medical_llm", {}))
@@ -153,14 +130,16 @@ def build_plugins(config: dict[str, Any]):
     # under test). An explicit policy.target_model still wins.
     if policy_type == "medcobe_feedback" and not policy_cfg.get("target_model"):
         policy_cfg["target_model"] = plugin_cfg.get("medical_llm", {}).get("model")
-    policy = _policy_map[policy_type](policy_cfg, action_space=action_space)
+    policy = reuse_policy if reuse_policy is not None else _policy_map[policy_type](policy_cfg, action_space=action_space)
     # final_judge is optional — disabled via plugins.final_judge.enabled: false (e.g. during experiments)
     final_judge = (
         _final_judge_map[final_judge_type](final_judge_cfg)
         if final_judge_cfg.get("enabled", True) else None
     )
 
-    to_load = [user_llm, medical_llm, fact_validator_llm, policy]
+    to_load = [user_llm, medical_llm, fact_validator_llm]
+    if reuse_policy is None:            # a reused policy is already loaded (GPU-resident); don't reload
+        to_load.append(policy)
     if final_judge is not None:
         to_load.append(final_judge)
     for p in to_load:

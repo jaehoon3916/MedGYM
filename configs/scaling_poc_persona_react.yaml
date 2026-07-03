@@ -14,7 +14,6 @@ experiment:
   data_dir: data/sample_data
   n_cases: 25
   token_ledger: token_usage_ledger.json
-  initial_user_state: null
 
   checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
 

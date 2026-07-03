@@ -1,0 +1,77 @@
+# Action space v2 — 3-stage CONTROL layer over the McBurney REALIZATION layer.
+# ---------------------------------------------------------------------------
+# Empirically grounded (analysis/action_space_findings.md): the 8-fold McBurney stages collapse
+# to rank≈3 on a cost×yield×risk manifold. We expose those 3 as the policy's control action and
+# keep the McBurney locutions as the realization sublayer each stage draws from.
+#
+# For the HYBRID factored-generative policy the policy emits:
+#   stage   ∈ {EXPAND, CHALLENGE, CONVERGE}   (discrete control — the credit-assignment anchor)
+#   guidance = free text conditioned on stage  (realization — what the medical LLM executes)
+# The `description` here is the fallback guidance for a purely discrete policy and the framing
+# hint prepended to the generative policy's stage-conditioned instruction.
+#
+# Measured profile (pooled deepseek-v3.2 / veteran_attending / 300 episodes, W3 yield):
+#   EXPAND    burden 1.60  yield 15.7%  regress 1.3%   cheap, delayed payoff, safe
+#   CHALLENGE burden 2.78  yield 27.9%  regress 10.9%  costly, highest yield, high risk
+#   CONVERGE  burden 1.25  yield  6.4%  regress 2.4%   cheap, terminal (closes, doesn't correct)
+
+stages:
+  - id: EXPAND
+    description: >
+      Broaden the shared picture at low cognitive cost. Surface goals, constraints, decision
+      criteria, or facts; ask the clinician to articulate their reasoning; introduce a missing
+      perspective WITHOUT yet evaluating or pushing an option. Cheap, safe, effect is often
+      delayed — this sets up a later CHALLENGE. Use when the epistemic state is still unclear or
+      the clinician has not exposed their rationale.
+    realizes: [INFORM, PROPOSE]          # McBurney sublayer
+    allowed_locutions: [assert, propose, ask_justify, retract]
+    allowed_types: [goal, constraint, perspective, fact, action]
+
+  - id: CHALLENGE
+    description: >
+      Directly evaluate the option on the table against a goal/constraint/perspective, or prefer
+      one option over another, and press the clinician to engage with the mismatch. This is the
+      only high-yield corrective move — and the most expensive AND most likely to cause
+      regression. Spend it deliberately: when you have reason to believe the clinician's current
+      position is wrong (or genuinely under-examined), not as a default.
+    realizes: [CONSIDER, REVISE]
+    allowed_locutions: [assert, prefer, ask_justify, propose, retract]
+    allowed_types: [evaluation, goal, constraint, perspective, action]
+
+  - id: CONVERGE
+    description: >
+      Move toward closure at low cost: recommend the option now best supported and invite
+      accept/reject, or confirm an agreement already reached. This is the STOP / pacing lever —
+      it stops paying cognitive burden once belief has settled. Use when the clinician's belief
+      has stabilized (correctly or after correction), or when further CHALLENGE is not worth its
+      cost/risk given accumulated burden.
+    realizes: [RECOMMEND, CONFIRM]
+    allowed_locutions: [move, assert, reject]
+    allowed_types: [action]
+
+# Realization-layer locution glossary (unchanged from v1 — McBurney/Hitchcock).
+locutions:
+  - id: propose
+    description: "Propose t as a valid instance of the given type (softer commitment than assert)."
+  - id: assert
+    description: "Assert t as a valid instance of the given type (stronger commitment)."
+  - id: prefer
+    description: "Express preference for action a over action b."
+  - id: ask_justify
+    description: "Request justification or evidence for the given claim."
+  - id: move
+    description: "Call for participants to express acceptance/rejection of action a as collective decision."
+  - id: reject
+    description: "Refuse to accept a as the collective decision."
+  - id: retract
+    description: "Withdraw a previous locution."
+
+# Hitchcock control-layer transition gate (coarsened from the stage rules in core/reward_align.py):
+#   EXPAND     always reachable
+#   CHALLENGE  requires a prior EXPAND (must broaden before evaluating)
+#   CONVERGE   requires a prior CHALLENGE or EXPAND (don't close before anything was discussed)
+# This is the v2 analogue of allowed_stages(); see docs/problem_formulation.md §Action.
+transitions:
+  EXPAND: []
+  CHALLENGE: [EXPAND]
+  CONVERGE: [EXPAND]

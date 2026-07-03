@@ -1,0 +1,23 @@
+{
+  "openai/gpt-4o-mini": {
+    "calls": 6,
+    "prompt_tokens": 14208,
+    "completion_tokens": 734,
+    "reasoning_tokens": 0,
+    "total_tokens": 14942
+  },
+  "deepseek/deepseek-v4-pro": {
+    "calls": 3,
+    "prompt_tokens": 3426,
+    "completion_tokens": 2295,
+    "reasoning_tokens": 1996,
+    "total_tokens": 5721
+  },
+  "policy-ours-v2-ours_v2": {
+    "calls": 1,
+    "prompt_tokens": 770,
+    "completion_tokens": 67,
+    "reasoning_tokens": 0,
+    "total_tokens": 837
+  }
+}

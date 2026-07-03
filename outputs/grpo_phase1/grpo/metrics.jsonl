@@ -1,0 +1,16 @@
+{"step": 0, "meanR": -0.2267, "acc": 1.0, "meanTurns": 3.0, "loss": -27.0061, "kl": 0.006193}
+{"step": 1, "meanR": -1.8, "acc": 1.0, "meanTurns": 6.67, "loss": -6.0626, "kl": 0.02314}
+{"step": 2, "meanR": 0.89, "acc": 1.0, "meanTurns": 5.5, "loss": -9.0178, "kl": 0.075027}
+{"step": 3, "meanR": 0.7967, "acc": 1.0, "meanTurns": 1.83, "loss": -38.693, "kl": 0.270965}
+{"step": 4, "meanR": 0.34, "acc": 0.6667, "meanTurns": 8.0, "loss": -7.0446, "kl": 0.340752}
+{"step": 5, "meanR": 0.3033, "acc": 1.0, "meanTurns": 1.5, "loss": -19.3702, "kl": 0.528246}
+{"step": 6, "meanR": -0.16, "acc": 0.0, "meanTurns": 8.0, "loss": 0.0074, "kl": 0.741638}
+{"step": 7, "meanR": 0.0067, "acc": 0.1667, "meanTurns": 8.0, "loss": -3.3326, "kl": 0.628281}
+{"step": 8, "meanR": -0.02, "acc": 1.0, "meanTurns": 1.0, "loss": 0.0031, "kl": 0.305398}
+{"step": 9, "meanR": 0.2867, "acc": 0.3333, "meanTurns": 2.33, "loss": -17.2027, "kl": 4.475949}
+{"step": 10, "meanR": -0.02, "acc": 1.0, "meanTurns": 1.0, "loss": 0.0036, "kl": 0.3583}
+{"step": 11, "meanR": 0.98, "acc": 1.0, "meanTurns": 1.0, "loss": 0.0045, "kl": 0.450444}
+{"step": 12, "meanR": -0.16, "acc": 0.0, "meanTurns": 8.0, "loss": 0.0264, "kl": 2.644011}
+{"step": 13, "meanR": 0.3567, "acc": 0.5, "meanTurns": 7.17, "loss": -3.6631, "kl": 2.31255}
+{"step": 14, "meanR": -0.1167, "acc": 0.1667, "meanTurns": 5.83, "loss": -8.0699, "kl": 3.611825}
+{"step": 15, "meanR": -1.23, "acc": 0.5, "meanTurns": 3.17, "loss": -44.0064, "kl": 3.417843}

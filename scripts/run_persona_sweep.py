@@ -69,7 +69,7 @@ def _print_combined_report(all_scores: dict[str, dict], conditions: list[str]) -
 
 def main(config_path: str) -> None:
     base_config = load_yaml(config_path)
-    personas = _as_list(base_config["plugins"]["user_llm"].get("persona", "burned_out_resident"))
+    personas = _as_list(base_config["plugins"]["user_llm"].get("persona", "veteran_attending"))
     info_conditions = _as_list(base_config["plugins"]["user_llm"].get("info_condition", "full"))
     # The config's OWN experiment.name is the experiment's root folder -- every condition this
     # sweep runs (and the combined summary) nests UNDER outputs/<base_name>/, as a subfolder

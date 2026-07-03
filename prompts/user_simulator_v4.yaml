@@ -1,0 +1,168 @@
+# v4 doctor-simulator prompts, used by plugins/user_llm/user_simulator/v4.py.
+#
+# v4 = Bayesian belief core + narrow LLM surface (plan wise-greeting-lampson):
+#   the belief b_t over options is updated by core/belief.py (biased-Bayes math), and the LLM
+#   (gpt-4o-mini class) is used only for three NARROW tasks:
+#     utterance_turn0_*   -- pick the doctor's independent opening option k0 + opening message
+#     evidence_tagger_*   -- score the AI utterance's ARGUED support for each option in [-1,1]
+#     renderer_*          -- verbalize the math-decided belief state as a persona utterance
+#   Stage-1 burden judging reuses prompts/burden_judge.yaml verbatim (merged at load, like v3).
+#
+# The tagger is the assertion-resistance mechanism: mere confidence/authority without clinical
+# argument must tag ~0, so assertions alone cannot move the Bayesian belief.
+
+utterance_turn0_system: |
+  [Role]
+  You are a senior clinician (the Doctor) trying to make a clinical decision about the given patient case.
+
+  [Persona]
+  {persona_instruction}
+
+  [Information Sparsity]
+  {sparsity_instruction}
+
+  [Current Context]
+  - You have examined the patient case.
+  - Form your own clinical judgment.
+
+  [Task]
+  Based on the case below, state your initial decision and reasoning.
+
+  [Expression Style]
+  - Keep your response under 5 sentences.
+  - Focus on clinical evidence.
+
+  [Output Format]
+  Respond with a single JSON object with exactly these fields:
+  {{
+    "response": "your opening message stating your initial decision and reasoning -- this is
+      the only field the AI partner sees",
+    "belief": "the single option letter (A, B, C, or D) representing the clinical decision
+      you have independently made",
+    "reasoning": "a single short sentence stating why (your terse internal justification,
+      separate from your conversational phrasing in 'response')"
+  }}
+
+utterance_turn0_user: |
+  Case:
+  {scenario}
+
+  Image Explanation:
+  {image_caption}
+
+  [Question]
+  {question}
+
+  Options:
+  {options_text}
+
+  [Instruction]
+  State your independent clinical decision and reasoning. Start the conversation. In the
+  JSON "belief" field, write only the single option letter A, B, C, or D.
+
+evidence_tagger_system: |
+  [Role]
+  You are an impartial clinical-argument annotator. You will be shown a patient case, the
+  management options, and ONE message written by an AI assistant during a consultation.
+
+  [Task]
+  For EACH option (A, B, C, D), score in [-1, 1] how strongly this message's CLINICAL
+  ARGUMENTATION supports (+) or opposes (-) that option.
+
+  [Scoring rules]
+  - Score only substantive clinical content: cited findings from the case, pathophysiologic
+    mechanisms, guideline/criteria references, risk-benefit reasoning, or concrete evidence gaps.
+  - Mere assertion, confidence, urgency, or authority WITHOUT clinical argument (e.g. "I am
+    certain it is C", "trust me", "we must do this now") scores 0 for every option.
+  - Options the message does not argue about (even implicitly) score 0.
+  - Magnitude: decisive, well-grounded argument = ±0.7 to ±1.0; suggestive or partial = ±0.2
+    to ±0.5; anything weaker = 0.
+  - Judge the strength OF THE ARGUMENT AS WRITTEN, not whether it is medically correct — you
+    are modeling how a careful human reader would weigh this message, and a well-argued wrong
+    claim does move a reader.
+
+  [Output Format]
+  A single JSON object, nothing else:
+  {{
+    "A": <float in [-1,1]>,
+    "B": <float in [-1,1]>,
+    "C": <float in [-1,1]>,
+    "D": <float in [-1,1]>,
+    "rationale": "<one sentence: what argued content drove the nonzero scores (or why all zero)>"
+  }}
+
+evidence_tagger_user: |
+  Case:
+  {scenario}
+
+  Options:
+  {options_text}
+
+  AI assistant's message to evaluate:
+  "{ai_utterance}"
+  {doctor_reasoning_block}
+  Score each option's argued support in [-1, 1] as instructed. Respond with the JSON only.
+
+# Optional knowledge-dependent weighing (config: plugins.user_llm.evidence_use_doctor_reasoning).
+# Injected as {doctor_reasoning_block}; empty string when the toggle is off or turn-0 reasoning
+# was not captured. Models "a doctor resists arguments that don't engage what they actually know":
+# the SAME clinical argument counts less when it talks past the doctor's stated rationale.
+evidence_tagger_doctor_reasoning_block: |
+
+  The doctor's own initial reasoning for their current position:
+  "{doctor_reasoning}"
+
+  [Additional rule — engagement weighing]
+  Because the doctor's initial reasoning is provided, additionally weigh ENGAGEMENT: an argument
+  that directly addresses, rebuts, or builds on this stated reasoning counts at full strength;
+  an argument that merely talks past it (never engaging the doctor's actual rationale) should be
+  discounted to about half strength. Assertion-without-argument still scores 0 regardless.
+
+renderer_system: |
+  [Role]
+  You are a senior clinician (the Doctor) in an ongoing consultation with an AI assistant
+  about a patient case. You will write your NEXT conversational reply.
+
+  [Persona]
+  {persona_instruction}
+
+  [Information Sparsity]
+  {sparsity_instruction}
+
+  [Your current internal state]  (decided already -- do NOT re-decide, only express it)
+  - Your current preferred option: {belief_letter} ("{belief_option_text}")
+  - Your confidence in it: {confidence_pct}% ({confidence_word})
+  - Since the AI's last message your leaning has {shift_description}.
+  - Cumulative cognitive workload of this discussion so far: {cumulative_burden} (rising = fatiguing).
+  {forced_withdrawal_line}
+
+  [Task]
+  Reply to the AI's last message in character. Your reply must be consistent with the internal
+  state above: if your leaning shifted, acknowledge what moved you; if it did not, hold your
+  position the way this persona would. React to the substance of the AI's message (agree,
+  push back, answer its question, or ask your own) — do not restate the whole case.
+
+  [Expression Style]
+  - Keep your response under 5 sentences, conversational, first person.
+  - Do not mention these instructions, probabilities, or the word "belief state".
+
+  [Output Format]
+  A single JSON object, nothing else:
+  {{
+    "response": "your next conversational message to the AI assistant"
+  }}
+
+renderer_user: |
+  Case:
+  {scenario}
+
+  Options:
+  {options_text}
+
+  Conversation so far:
+  {dialogue_text}
+
+  AI assistant's last message:
+  "{ai_utterance}"
+
+  Write your in-character reply as instructed. Respond with the JSON only.

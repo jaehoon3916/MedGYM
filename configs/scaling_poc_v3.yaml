@@ -17,7 +17,6 @@ experiment:
   data_path: data/sample_data/jama_raw_cardiology.json
   n_cases: 20
   token_ledger: token_usage_ledger.json
-  initial_user_state: null
   checkpoints: [1, 2, 4, 8]
 
 plugins:

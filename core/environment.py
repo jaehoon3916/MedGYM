@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
-from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig, StepResult, Observation, UserState
+from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig, StepResult, Observation, UserState, FinalJudgement
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
 from core.reward_align import align_reward_from_objs, ctx_from_history, allowed_stages, best_action
@@ -14,6 +15,19 @@ from plugins.policy.base import PolicyPlugin
 from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
 
 _VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM"}
+
+
+def _decision_letter(belief: Any) -> str:
+    """Extract an A–D option letter from a persona's self-reported belief; 'none' if absent.
+
+    Lettered beliefs (options shown) are already 'A'..'D'; free-text falls back to the first
+    A–D token. This only FORMATS the persona's own stated belief — it does not decide anything.
+    """
+    s = str(belief or "").strip().upper()
+    if s in ("A", "B", "C", "D"):
+        return s
+    m = re.search(r"(?<![A-Z])([A-D])(?![A-Z])", s)   # standalone A–D token, not a letter inside a word
+    return m.group(1) if m else "none"
 
 
 class MedicalHACEnvironment:
@@ -206,13 +220,25 @@ class MedicalHACEnvironment:
         return obs
 
     def _finalize(self) -> dict | None:
-        if self.final_judge is None or self._history is None or self._case_info is None:
+        if self._history is None or self._case_info is None:
             return None
-        fj = self.final_judge.judge(self._case_info, self._history)
-        fj.is_correct = (
-            fj.concluded_option.strip().upper() == str(self._case_info.correct_option).strip().upper()
+        # The terminal decision is the clinician persona's OWN last self-reported belief — the
+        # option it holds after living through the deliberation — NOT a separate judge re-reading
+        # the transcript. This makes is_correct structurally a function of the dialogue the persona
+        # actually participated in (a judge could re-answer the case and ignore the conversation).
+        belief = next(
+            (t.user_state.model_dump().get("belief")
+             for t in reversed(self._history.turns)
+             if t.speaker == "user" and t.user_state is not None),
+            None,
         )
-        return fj.model_dump()
+        option = _decision_letter(belief)
+        gold = str(self._case_info.correct_option).strip().upper()
+        return FinalJudgement(
+            concluded_option=option,
+            is_correct=(option != "none" and option == gold),
+            reason="clinician persona's terminal self-reported decision",
+        ).model_dump()
 
     # ── convenience wrapper (eval / data generation) ──────────────────────────
 

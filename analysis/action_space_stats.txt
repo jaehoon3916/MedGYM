@@ -1,0 +1,15 @@
+STAGE           n  burden  ->corr W1  ->corr W3   delay  regress  cluster
+----------------------------------------------------------------------------------------------------
+INFORM       1470    1.58       2.2%      15.7%  +13.4%     1.0%  PROBE
+PROPOSE       116    1.75      12.5%      16.7%   +4.2%     4.9%  PROBE
+CONSIDER      415    2.80      17.8%      28.4%  +10.6%     9.5%  CHALLENGE
+REVISE         67    2.66      13.6%      25.0%  +11.4%    21.1%  CHALLENGE
+RECOMMEND     392    1.75       6.0%      10.2%   +4.2%     5.1%  CONVERGE
+CONFIRM      1140    1.04       2.9%       4.0%   +1.1%     1.5%  CONVERGE
+
+====================================================================================================
+COLLAPSED to 3 clusters (W3 yield):
+cluster           n  burden  ->corr W3  regress
+PROBE          1586    1.60      15.7%     1.3%
+CHALLENGE       482    2.78      27.9%    10.9%
+CONVERGE       1532    1.25       6.4%     2.4%

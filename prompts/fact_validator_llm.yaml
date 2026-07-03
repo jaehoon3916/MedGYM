@@ -30,9 +30,6 @@ user: |
   Case:
   {scenario}
 
-  Options:
-  {options}
-
   Dialogue so far:
   {dialogue}
 
@@ -86,9 +83,6 @@ system_blind: |
 user_blind: |
   (You have NOT been given the case file. Judge only from the dialogue below and your own
   general medical knowledge -- do not assume findings that have not been stated.)
-
-  Options under discussion:
-  {options}
 
   Dialogue so far:
   {dialogue}

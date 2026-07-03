@@ -1,0 +1,30 @@
+{"step": 0, "sample": 0, "case_id": "0003", "R": 1.0, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_burden": 8.2, "sum_leak": 0.0, "sum_r_align": 0.0, "step_rewards": [0.0, 1.0, -1.0]}
+{"step": 0, "sample": 1, "case_id": "0003", "R": 0.0, "advantage": -1.0, "is_correct": false, "num_turns": 2, "sum_burden": 6.0, "sum_leak": 0.0, "sum_r_align": 0.3, "step_rewards": [0.0, 0.3]}
+{"step": 0, "sample": 2, "case_id": "0003", "R": 1.0, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_burden": 8.4, "sum_leak": 0.0, "sum_r_align": 0.0, "step_rewards": [0.0, 1.0, -1.0]}
+{"step": 0, "sample": 3, "case_id": "0003", "R": 0.0, "advantage": -1.0, "is_correct": false, "num_turns": 1, "sum_burden": 2.8, "sum_leak": 0.0, "sum_r_align": 0.0, "step_rewards": [0.0]}
+{"step": 0, "sample": 4, "case_id": "0003", "R": 1.0, "advantage": 1.0, "is_correct": true, "num_turns": 3, "sum_burden": 7.7, "sum_leak": 0.0, "sum_r_align": -0.3, "step_rewards": [0.0, 0.7, -1.0]}
+{"step": 0, "sample": 5, "case_id": "0003", "R": 0.0, "advantage": -1.0, "is_correct": false, "num_turns": 4, "sum_burden": 11.2, "sum_leak": 0.0, "sum_r_align": 1.0, "step_rewards": [0.0, 0.0, 0.0, 1.0]}
+{"step": 1, "sample": 0, "case_id": "0006", "R": -1.0, "advantage": -1.2127, "is_correct": false, "num_turns": 3, "sum_burden": 7.9, "sum_leak": 1.0, "sum_r_align": 1.7, "step_rewards": [0.0, 1.0, 0.7]}
+{"step": 1, "sample": 1, "case_id": "0006", "R": 0.0, "advantage": 0.2425, "is_correct": false, "num_turns": 2, "sum_burden": 4.4, "sum_leak": 0.0, "sum_r_align": -0.3, "step_rewards": [0.7, -1.0]}
+{"step": 1, "sample": 2, "case_id": "0006", "R": -1.0, "advantage": -1.2127, "is_correct": false, "num_turns": 2, "sum_burden": 3.5, "sum_leak": 1.0, "sum_r_align": -1.0, "step_rewards": [0.0, -1.0]}
+{"step": 1, "sample": 3, "case_id": "0006", "R": 0.0, "advantage": 0.2425, "is_correct": true, "num_turns": 4, "sum_burden": 9.5, "sum_leak": 1.0, "sum_r_align": 1.7, "step_rewards": [0.0, 0.0, 0.7, 1.0]}
+{"step": 1, "sample": 4, "case_id": "0006", "R": 0.0, "advantage": 0.2425, "is_correct": true, "num_turns": 3, "sum_burden": 5.2, "sum_leak": 1.0, "sum_r_align": -0.3, "step_rewards": [0.0, 0.7, -1.0]}
+{"step": 1, "sample": 5, "case_id": "0006", "R": 1.0, "advantage": 1.6977, "is_correct": true, "num_turns": 4, "sum_burden": 8.8, "sum_leak": 0.0, "sum_r_align": 2.0, "step_rewards": [0.0, 0.7, 0.3, 1.0]}
+{"step": 2, "sample": 0, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 1, "sum_burden": 2.0, "sum_leak": 0.0, "sum_r_align": 0.7, "step_rewards": [0.7]}
+{"step": 2, "sample": 1, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 1, "sum_burden": 2.2, "sum_leak": 0.0, "sum_r_align": 0.7, "step_rewards": [0.7]}
+{"step": 2, "sample": 2, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 2, "sum_burden": 6.3, "sum_leak": 0.0, "sum_r_align": 1.0, "step_rewards": [0.0, 1.0]}
+{"step": 2, "sample": 3, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 8.2, "sum_leak": 0.0, "sum_r_align": 1.1, "step_rewards": [0.7, 0.7, 0.7, -1.0]}
+{"step": 2, "sample": 4, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 1, "sum_burden": 2.5, "sum_leak": 0.0, "sum_r_align": 0.7, "step_rewards": [0.7]}
+{"step": 2, "sample": 5, "case_id": "0007", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 9.5, "sum_leak": 0.0, "sum_r_align": 3.4, "step_rewards": [0.7, 0.7, 1.0, 1.0]}
+{"step": 3, "sample": 0, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 10.2, "sum_leak": 0.0, "sum_r_align": 3.0, "step_rewards": [0.0, 1.0, 1.0, 1.0]}
+{"step": 3, "sample": 1, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 9.6, "sum_leak": 0.0, "sum_r_align": 3.0, "step_rewards": [0.0, 1.0, 1.0, 1.0]}
+{"step": 3, "sample": 2, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 8.5, "sum_leak": 0.0, "sum_r_align": 1.7, "step_rewards": [0.0, 0.0, 0.7, 1.0]}
+{"step": 3, "sample": 3, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 10.2, "sum_leak": 0.0, "sum_r_align": 3.0, "step_rewards": [0.0, 1.0, 1.0, 1.0]}
+{"step": 3, "sample": 4, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 3, "sum_burden": 10.2, "sum_leak": 0.0, "sum_r_align": 2.0, "step_rewards": [0.0, 1.0, 1.0]}
+{"step": 3, "sample": 5, "case_id": "0008", "R": 0.0, "advantage": 0.0, "is_correct": false, "num_turns": 4, "sum_burden": 10.0, "sum_leak": 0.0, "sum_r_align": 2.0, "step_rewards": [0.0, 1.0, 0.0, 1.0]}
+{"step": 4, "sample": 0, "case_id": "0009", "R": 0.0, "advantage": -0.4472, "is_correct": false, "num_turns": 4, "sum_burden": 8.5, "sum_leak": 0.0, "sum_r_align": 1.1, "step_rewards": [0.7, 0.7, 0.7, -1.0]}
+{"step": 4, "sample": 1, "case_id": "0009", "R": 0.0, "advantage": -0.4472, "is_correct": false, "num_turns": 3, "sum_burden": 5.5, "sum_leak": 0.0, "sum_r_align": -1.3, "step_rewards": [0.7, -1.0, -1.0]}
+{"step": 4, "sample": 2, "case_id": "0009", "R": 0.0, "advantage": -0.4472, "is_correct": false, "num_turns": 4, "sum_burden": 10.1, "sum_leak": 0.0, "sum_r_align": 3.0, "step_rewards": [0.0, 1.0, 1.0, 1.0]}
+{"step": 4, "sample": 3, "case_id": "0009", "R": 0.0, "advantage": -0.4472, "is_correct": false, "num_turns": 4, "sum_burden": 7.5, "sum_leak": 0.0, "sum_r_align": 1.1, "step_rewards": [0.7, 0.7, 0.7, -1.0]}
+{"step": 4, "sample": 4, "case_id": "0009", "R": 0.0, "advantage": -0.4472, "is_correct": false, "num_turns": 4, "sum_burden": 9.7, "sum_leak": 0.0, "sum_r_align": 1.4, "step_rewards": [0.7, 0.7, 1.0, -1.0]}
+{"step": 4, "sample": 5, "case_id": "0009", "R": 1.0, "advantage": 2.2361, "is_correct": true, "num_turns": 4, "sum_burden": 9.5, "sum_leak": 0.0, "sum_r_align": 2.4, "step_rewards": [0.7, 0.0, 1.0, 0.7]}

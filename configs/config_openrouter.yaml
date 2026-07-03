@@ -6,7 +6,6 @@ experiment:
   data_path: data/sample_data/sample_data.json
   ablation_mode: baseline_policy   # naive | prompt | rule | baseline_policy | sft_policy | full_policy
   token_ledger: token_usage_ledger.json   # persistent cumulative token total across ALL runs (read-add-write, never overwritten)
-  initial_user_state: user_state_1         # persona preset(s) in initial_user_state/. One episode per preset.
                                     #   null            → default EpisodeConfig (single run)
                                     #   user_state_5     → single preset
                                     #   [user_state_1, user_state_5, user_state_9]  → list

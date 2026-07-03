@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ case_id }} / {{ persona }} — SFT Data Viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
+  header { background: #1a3c5e; color: #fff; padding: 16px 32px; display: flex;
+           align-items: center; justify-content: space-between; }
+  header h1 { font-size: 1.1rem; font-weight: 600; }
+  header .nav a { color: #bcd6ee; font-size: 0.82rem; margin-left: 14px; }
+  header .pos { color: #9db8d0; font-size: 0.78rem; margin-left: 14px; }
+  main { max-width: 900px; margin: 28px auto; padding: 0 24px 60px; }
+  .turn { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+          margin-bottom: 18px; overflow: hidden; }
+  .turn-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+               background: #eef1f5; }
+  .turn-idx { font-size: 0.78rem; color: #666; font-weight: 600; }
+  .badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .badge-EXPAND    { background: #d8e8f8; color: #1a5c9a; }
+  .badge-CHALLENGE { background: #f8d8d8; color: #a01a1a; }
+  .badge-CONVERGE  { background: #d8f8e0; color: #1a7a40; }
+  .badge-other     { background: #eee; color: #666; }
+  .turn-body { padding: 14px 16px; }
+  .section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+                   color: #888; margin: 10px 0 4px; }
+  .section-label:first-child { margin-top: 0; }
+  .prompt-box { background: #f8f9fb; border: 1px solid #e5e8ec; border-radius: 6px;
+                padding: 10px 12px; font-size: 0.82rem; white-space: pre-wrap;
+                max-height: 260px; overflow-y: auto; color: #333; font-family: ui-monospace, monospace; }
+  .guidance-box { background: #fffef4; border: 1px solid #f0e8c8; border-radius: 6px;
+                  padding: 10px 12px; font-size: 0.88rem; color: #333; }
+  .toggle { font-size: 0.75rem; color: #1a6fa8; cursor: pointer; user-select: none; }
+  a { color: #1a6fa8; text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ case_id }} / {{ persona }}</h1>
+  <div>
+    <span class="pos">{{ position[0] }} / {{ position[1] }}</span>
+    <span class="nav">
+      <a href="/dataset/{{ path }}">&uarr; episode list</a>
+      {% if prev_key %}<a href="/dataset/{{ path }}/episode/{{ prev_key[0] }}/{{ prev_key[1] }}">&larr; prev</a>{% endif %}
+      {% if next_key %}<a href="/dataset/{{ path }}/episode/{{ next_key[0] }}/{{ next_key[1] }}">next &rarr;</a>{% endif %}
+    </span>
+  </div>
+</header>
+<main>
+  {% for t in turns %}
+  <div class="turn">
+    <div class="turn-head">
+      <span class="turn-idx">TURN {{ t.turn }}</span>
+      <span class="badge badge-{{ t.stage if t.stage in ['EXPAND','CHALLENGE','CONVERGE'] else 'other' }}">{{ t.stage }}</span>
+    </div>
+    <div class="turn-body">
+      {% if t.guidance %}
+      <div class="section-label">Golden action_guidance (what the student should generate)</div>
+      <div class="guidance-box">{{ t.guidance }}</div>
+      {% else %}
+      <div class="section-label">Golden action</div>
+      <div class="guidance-box">{{ t.raw_action }}</div>
+      {% endif %}
+      <div class="section-label">
+        <span class="toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+          ▸ Prompt shown to the student (click to expand)
+        </span>
+      </div>
+      <div class="prompt-box" style="display:none">{{ t.prompt }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</main>
+</body>
+</html>

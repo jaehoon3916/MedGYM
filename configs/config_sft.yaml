@@ -1,17 +1,31 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SFT config — reward-oracle(argmax r_align) 골든 action을 정책(LoRA)에 imitation.
+# 2-step 파이프라인 (둘 다 이 config를 --config 로 받음):
+#   1) python scripts/build_sft_data.py --config configs/config_sft.yaml   # env 롤아웃(sim LLM 콜=유료) → (prompt, golden_action) jsonl
+#   2) python scripts/train_sft.py     --config configs/config_sft.yaml   # 로컬 Qwen+LoRA imitation (GPU)
+#
+# 역할: RL 전에 정책이 유효한 (STAGE.locution) action 형식 + 협업적 move를 먼저 익혀
+#       비싼 GRPO 롤아웃이 malformed/랜덤 출력에 낭비되지 않게 하는 공용 init 체크포인트.
+# 가드레일:
+#   - r_align 은 여기(SFT init)까지만. RL reward 엔 절대 넣지 않음(넣으면 순환논증). RL이 덮어쓸 수 있는 출발점일 뿐.
+#   - 과적합 금지: SFT를 argmax에 너무 세게 맞추면 정책 엔트로피가 죽어 GRPO 그룹이 전부 같은 action → advantage 0.
+#     → epochs 작게 + holdout_frac 로 holdout NLL 감시, 상승 시작 직전 epoch 체크포인트를 GRPO init 으로.
+# ─────────────────────────────────────────────────────────────────────────────
+
 experiment:
   name: sft1
-  output_dir: outputs/sft1
-  data_path: data/sample_data/sample_data.json
-  max_turns: 6
-  token_ledger: token_usage_ledger.json
-  initial_user_state: [user_state_25, user_state_27, user_state_2]   # personas to collect golden data over
-                                    # null → default | all → 48 presets
+  output_dir: outputs/sft1                       # 체크포인트: {output_dir}/sft/epoch_N, .../final
+  data_path: data/sample_data/sample_data.json   # 골든 데이터 뽑을 케이스(list 또는 단일 obj)
+  max_turns: 6                                    # 티처를 몇 턴까지 굴려 골든 action을 모을지
+  token_ledger: token_usage_ledger.json          # build_sft_data 의 sim LLM 토큰 사용 기록
+  # 골든 데이터를 모을 페르소나(초기 user_state). incorrect/correct 섞어야 티처가 다양한 relation을 밟음.
+  #   null → 기본 EpisodeConfig 단일 | all → 48개 프리셋 전부(데이터·비용 급증)
 
 plugins:
-  # ── simulators (env) — used by build_sft_data.py to roll out the oracle teacher ──
+  # ── 시뮬레이터(환경) — build_sft_data.py 가 오라클 티처를 롤아웃할 때만 사용. OpenRouter=유료 ──
   user_llm:
-    type: v2
-    use_mask: false
+    type: v2                       # v2 = persona/sparsity dial 있는 시뮬레이터
+    use_mask: false                # Stage-3 mask ablation 토글
     base_url: https://openrouter.ai/api/v1
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 256
@@ -28,27 +42,34 @@ plugins:
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 384
     temperature: 0.0
-  # final_judge not needed for SFT data; build_sft_data disables it.
+  # final_judge 는 SFT 데이터에 불필요 — build_sft_data 가 자동 비활성화.
 
-  # ── student policy (used by train_sft.py) — local Qwen + LoRA ──
+  # ── student 정책 (train_sft.py 가 학습) — 로컬 Qwen + LoRA ──
   policy:
-    type: local_baseline
+    type: local_baseline           # local_baseline | local_sft | local_full
     model: Qwen/Qwen3-8B
-    load_in_4bit: true             # QLoRA: 4-bit frozen base so 8B fits a 24GB GPU
+    load_in_4bit: true             # QLoRA: 4-bit frozen base(~5GB)로 8B를 24GB GPU에 적재. 큰 GPU면 false.
+    # load_in_8bit: 미구현 — 필요하면 요청.
     enable_thinking: false
-    max_tokens: 32
-    device: auto
+    max_tokens: 32                 # action 은 짧음("STAGE.locution"). 작게.
+    temperature: 0.8               # (GRPO 탐색용) SFT 학습 자체엔 미사용.
+    device: auto                   # auto | cuda | cuda:0 | cpu
     lora:
       r: 16
       alpha: 32
       dropout: 0.05
-      target_modules: [q_proj, k_proj, v_proj, o_proj]
+      target_modules: [q_proj, k_proj, v_proj, o_proj]   # + gate_proj, up_proj, down_proj = wider LoRA
+      # bias / modules_to_save 등 추가 peft 옵션은 미노출(필요 시 요청).
 
+# action space — teacher(build_sft_data)와 student(train_sft) 가 반드시 동일해야 함.
+#   configs/action_space.yaml    = v1, 6-stage 풀 McBurney. reward_align BASE 표가 직접 키로 씀. ← 현재/기본
+#   configs/action_space_v2.yaml = v2, 3-stage 축약(control→McBurney). "ours_v2" 경로. 쓰려면 GRPO config도 v2로 맞출 것.
 action_space_path: configs/action_space.yaml
 
 sft:
-  data_out: outputs/sft1/sft_data.jsonl
-  epochs: 3
+  data_out: outputs/sft1/sft_data.jsonl   # build_sft_data 출력 = train_sft 입력(--data 로 덮어쓰기 가능)
+  epochs: 2                               # 과적합/엔트로피붕괴 방지로 작게 시작. 형식 유효율 낮으면 올리되 holdout NLL 감시.
   batch_size: 4
   learning_rate: 1.0e-4
-  save_every: 1
+  save_every: 1                           # 매 epoch 체크포인트 저장 → GRPO는 붕괴 직전 epoch를 init으로 고를 수 있음.
+  holdout_frac: 0.1                       # 0.0=holdout 없음(기존동작). >0 이면 그만큼 떼어 매 epoch holdout NLL 출력(조기중단 신호).

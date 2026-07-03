@@ -166,19 +166,23 @@ def build_fact_validator_prompt(
     templates), mirroring medical_llm.show_case_info=False so the validator is blind to exactly
     what the AI is blind to. It then judges the claim against general medicine + only what's been
     disclosed in dialogue -- a blind second opinion, not a ground-truth check. Default True keeps
-    the original oracle-style behavior for every existing caller/config."""
+    the original oracle-style behavior for every existing caller/config.
+
+    Never shown case_info.options (either branch): medical_llm (build_medical_prompt) solves the
+    case open-ended, with no answer-choice menu. Giving the validator a multiple-choice framing
+    it never gets would make the "ground truth" it establishes easier than the task the policy
+    actually has to solve -- the same asymmetry see_case_info already guards against for scenario
+    access."""
     tmpl = _load("fact_validator_llm")
     if see_case_info:
         user_content = tmpl["user"].format(
             scenario=case_info.scenario,
-            options=_format_options(case_info.options),
             dialogue=dialogue_history.to_prompt(),
             current_user_utterance=current_user_utterance,
         )
         system_content = tmpl["system"]
     else:
         user_content = tmpl["user_blind"].format(
-            options=_format_options(case_info.options),
             dialogue=dialogue_history.to_prompt(),
             current_user_utterance=current_user_utterance,
         )

@@ -1,0 +1,206 @@
+[
+  {
+    "case_id": "0003",
+    "scenario": "A woman in her mid-70s with a medical history of coronary artery disease (CAD) and left anterior descending artery stenting complained of unexplained dyspnea on exertion. An exercise transthoracic echocardiogram (TTE) was conducted by the referring cardiologist as part of the CAD follow-up, which resulted in an end-test uncontrollable cough with acute dyspnea. Coronary angiography was performed and showed no evidence of ischemic progression. Subsequent pulmonary evaluations, including respiratory functional assessments, walking tests, and thoracic computed tomography scans, yielded normal results. The patient was therefore referred to the university hospital. Upon arrival at the specialized cardiology consultation, the patient exhibited an anxious state associated with tachycardia and the same dyspnea. The initial TTE demonstrated severe mitral regurgitation (MR) with notable tenting and the absence of valve coaptation (Figure 1A). The left ventricular (LV) ejection fraction was preserved at 70%, without any wall-motion abnormality, no LV dilation, and preserved global longitudinal strain of \u221221%. The electrocardiogram (ECG) revealed a sinus tachycardia with left bundle branch block (LBBB). As the examination continued, the heart rate decreased, accompanied by the disappearance of the symptoms. TTE subsequently demonstrated regression of the MR, which became minimal, without any tenting (Figure 1B), while the ECG exhibited narrowing of the QRS complexes. These findings were confirmed by an exercise TTE, which rapidly showed recurrence of LBBB and severe MR, followed by acute dyspnea and multiple B lines at lung ultrasound.",
+    "options": {
+      "A": "Referral for mitral valve surgery",
+      "B": "Cardiac resynchronization therapy with biventricular pacing",
+      "C": "Left bundle branch pacing",
+      "D": "\u03b2-Blockers to prevent the onset of LBBB"
+    },
+    "correct_option": "B",
+    "answer": "Cardiac resynchronization therapy with biventricular pacing",
+    "distractors": [
+      "Referral for mitral valve surgery",
+      "Left bundle branch pacing",
+      "\u03b2-Blockers to prevent the onset of LBBB"
+    ]
+  },
+  {
+    "case_id": "0006",
+    "scenario": "A woman in her mid-20s with no relevant medical history presented to the emergency department with a 2-day history of fever, chest pain, and exertional dyspnea. An initial electrocardiogram (ECG) showed sinus tachycardia, QRS widening (130 milliseconds), low-voltage complexes in the limb leads, and tombstonelike convex ST-segment elevation (STE) in most leads, particularly V1 through V6 (Figure 1). Transient second-degree atrioventricular block was observed on ambulatory ECG monitoring. Her blood pressure was 81/50 mm Hg. The N-terminal pro\u2013brain-type natriuretic peptide was 10\u202f099 pg/mL (to convert to ng/L, multiply by 1; reference value, <150) and the troponin I level was 22 ng/mL (to convert to \u00b5g/L, multiply by 1; reference value, <0.016). No obstructive stenosis was seen on coronary computed tomography angiography. Transthoracic echocardiography revealed symmetric left ventricular (LV) wall thickening (septal thickness, 16 mm) and reduced LV systolic function with an ejection fraction of 35%.",
+    "options": {
+      "A": "Emergent coronary angiography",
+      "B": "Cardiac magnetic resonance imaging",
+      "C": "Myocardial positron emission tomography",
+      "D": "Endomyocardial biopsy"
+    },
+    "correct_option": "D",
+    "answer": "Endomyocardial biopsy",
+    "distractors": [
+      "Emergent coronary angiography",
+      "Cardiac magnetic resonance imaging",
+      "Myocardial positron emission tomography"
+    ]
+  },
+  {
+    "case_id": "0007",
+    "scenario": "A woman in her mid-60s with a history of paroxysmal atrial fibrillation (AF) and hypertension presented to an outlying hospital with 3 days of nausea, vomiting, and diarrhea. She had been diagnosed with AF 3 months prior and was prescribed flecainide, 100 mg twice daily; metoprolol; and apixaban. She was also taking furosemide, 40 mg twice daily. A transthoracic echocardiogram showed a left ventricular ejection fraction of 60%, mild mitral regurgitation, and grade 2 diastolic dysfunction. An electrocardiogram (ECG) obtained 1 month before presentation showed sinus rhythm, PR interval of 190 milliseconds, and QRS interval of 100 milliseconds. On presentation, she was anxious appearing, mildly dyspneic, and tachycardic, with a heart rate of 130 bpm. Blood pressure was 94/52 mm Hg. Her mentation was normal, and she denied chest pain. Initial ECG (Figure 1) showed a monomorphic, wide complex tachycardia at 130 bpm with a QRS duration of 220 milliseconds and right bundle branch morphology. Laboratory testing was notable for acute kidney injury, with a creatinine level of 4.0 mg/dL (baseline, 1.4 mg/dL; to convert to micromoles per liter, multiply by 88.4) (estimated glomerular filtration rate, 12 mL/min/1.73 m2); troponin I, 0.029 ng/mL (reference range, <0.04 ng/mL; to convert to micrograms per liter, multiply by 1); sodium, 132 mEq/L (to convert to millimoles per liter, multiply by 1); potassium, 5.1 mEq/L (to convert to millimoles per liter, multiply by 1); and normal values of serum magnesium, calcium, and phosphorus.",
+    "options": {
+      "A": "Perform synchronized electrical cardioversion",
+      "B": "Administer intravenous amiodarone",
+      "C": "Administer intravenous procainamide",
+      "D": "Administer intravenous sodium bicarbonate"
+    },
+    "correct_option": "D",
+    "answer": "Administer intravenous sodium bicarbonate",
+    "distractors": [
+      "Perform synchronized electrical cardioversion",
+      "Administer intravenous amiodarone",
+      "Administer intravenous procainamide"
+    ]
+  },
+  {
+    "case_id": "0008",
+    "scenario": "A patient in his mid-60s with a history of interstitial pulmonary fibrosis underwent bilateral orthotopic lung transplant (BOLT) 6 months earlier. He was hospitalized for sepsis from pneumonia complicated by acute transplant rejection, without any cardiac symptoms. Coronary angiography prior to BOLT showed no evidence of coronary artery disease. His only cardiac history was tricuspid valve repair at the time of BOLT. His baseline electrocardiogram (ECG) is shown inFigure 1A. He progressed to having severe acute respiratory distress syndrome requiring intubation. As he continued to worsen, the decision was made to paralyze him a few hours later. Changes on telemetry were noted. Shortly thereafter, 12-lead ECG showed the changes inFigure 1B.",
+    "options": {
+      "A": "Activate the catheterization laboratory for emergent angiography and revascularization",
+      "B": "Initiate therapy to normalize serum electrolyte levels and consider hemodialysis",
+      "C": "Administer colchicine and a nonsteroidal anti-inflammatory drug",
+      "D": "Redo the ECG with new leads and new lead positioning"
+    },
+    "correct_option": "D",
+    "answer": "Redo the ECG with new leads and new lead positioning",
+    "distractors": [
+      "Activate the catheterization laboratory for emergent angiography and revascularization",
+      "Initiate therapy to normalize serum electrolyte levels and consider hemodialysis",
+      "Administer colchicine and a nonsteroidal anti-inflammatory drug"
+    ]
+  },
+  {
+    "case_id": "0009",
+    "scenario": "A man in his 50s underwent clinical assessment for a 4-month history of recurrent palpitations, fatigue, and progressive exertion dyspnea. He had no history of cardiac disease, and there was no family history of heart disease or sudden death. Physical examination revealed an irregular pulse and a systolic murmur at the heart apex. Holter monitoring and 12-lead electrocardiogram (ECG) recordings documented irregular narrow-QRS tachycardia in an incessant, repetitive fashion with heart rates up to 180 beats per minute and occasional short runs of wide-QRS tachycardia. Transthoracic echocardiogram showed a dilated and diffusely hypokinetic left ventricle (ejection fraction, 30%) associated with moderate to severe functional mitral regurgitation. Blood test results were within normal limits, including thyroid function, C-reactive protein, and myocardial enzymes. The patient was hospitalized, and medical therapy was initiated, including ACE inhibitors, mineralocorticoid receptor antagonists, \u03b2-blockers, and diuretics. Coronary angiography revealed no significant coronary stenoses. A representative 12-lead ECG of the arrhythmia is shown inFigure 1.",
+    "options": {
+      "A": "Start amiodarone and anticoagulant therapy",
+      "B": "Optimize medical therapy for 3 months, and implant a defibrillator if no clinical-echocardiographic improvement is obtained",
+      "C": "Perform electrophysiological study",
+      "D": "Perform transcatheter edge-to-edge mitral valve repair"
+    },
+    "correct_option": "C",
+    "answer": "Perform electrophysiological study",
+    "distractors": [
+      "Start amiodarone and anticoagulant therapy",
+      "Optimize medical therapy for 3 months, and implant a defibrillator if no clinical-echocardiographic improvement is obtained",
+      "Perform transcatheter edge-to-edge mitral valve repair"
+    ]
+  },
+  {
+    "case_id": "0010",
+    "scenario": "A woman in her 90s presented to the emergency department with symptoms of fever, hemoptysis, and syncopal episodes. She had a history of breast cancer and pulmonary nodules with biopsy findings negative for metastatic disease but positive for granulomatous inflammation. Initial vital signs included blood pressure of 103/66 mm Hg, heart rate of 190 bpm, and temperature of 38.7 \u00b0C. Electrocardiogram showed monomorphic ventricular tachycardia with a morphology suggesting right ventricular (RV) origin (Figure 1). In addition to receiving intravenous amiodarone hydrochloride, she had correction of mild hypokalemia (3.1 mEq/L [reference range, 3.5-5.2 mEq/L]; to convert to mmol/L, multiply by 1.0). Successful arrhythmia termination occurred shortly thereafter, and her vital signs remained stable. Chest computed tomographic angiography excluded pulmonary embolism but showed pulmonary nodules and mediastinal lymphadenopathy that had progressed compared with her previous computed tomography. An echocardiogram showed severe RV and left ventricular (LV) systolic dysfunction with multiple areas of hypokinesis.",
+    "options": {
+      "A": "Cardiac magnetic resonance imaging",
+      "B": "Electrophysiology study",
+      "C": "Genetic testing",
+      "D": "Implantation of cardiac defibrillator"
+    },
+    "correct_option": "A",
+    "answer": "Cardiac magnetic resonance imaging",
+    "distractors": [
+      "Electrophysiology study",
+      "Genetic testing",
+      "Implantation of cardiac defibrillator"
+    ]
+  },
+  {
+    "case_id": "0012",
+    "scenario": "A woman in her late 60s presented to the emergency department after an episode of syncope. She described several other episodes occurring at rest over the past several weeks. She denied palpitations, chest pain, and shortness of breath. She was otherwise in excellent health and not taking any medications. She had no family history of syncope or sudden death. Her vital signs and physical examination were unremarkable. The initial electrocardiogram (ECG) results were normal, but premature ventricular contractions (PVCs) were noted on telemetry. Shortly thereafter, 2 episodes of fast polymorphic ventricular tachycardia (PVT), 30 minutes apart, were recorded, both lasting less than 4 seconds (Figure 1A). A repeat ECG showed PVCs (Figure 1B). Laboratory test results including serum potassium and magnesium as well as 3 serial troponin levels were normal. Echocardiography showed normal left ventricular systolic function without wall motion abnormalities or valvular abnormalities. Coronary angiography showed a 50% stenosis of the left circumflex artery. Instant wave-free ratio across the stenosis was 1.0.",
+    "options": {
+      "A": "Implant a defibrillator",
+      "B": "Perform provocative drug testing with procainamide",
+      "C": "Start nadolol",
+      "D": "Ablate PVCs"
+    },
+    "correct_option": "A",
+    "answer": "Implant a defibrillator",
+    "distractors": [
+      "Perform provocative drug testing with procainamide",
+      "Start nadolol",
+      "Ablate PVCs"
+    ]
+  },
+  {
+    "case_id": "0013",
+    "scenario": "A man in his late 50s was released from a tertiary hospital with an anterior ST-elevation myocardial infarction and cardiogenic shock with onset 6 days before admission. On admission, vital signs showed blood pressure as 98/66 mm Hg while receiving dobutamine and norepinephrine from the referral hospital, a regular heart rate of 90 beats per minute, a respiratory rate of 22 breaths per minute, peripheral oxygen saturation 96% nasal oxygen at 3 L per minute, and a temperature of 36.7\u00b0 C. Echocardiography showed reduced left ventricle systolic function (estimated ejection fraction, 34%) and hypokinesia of the anteroseptal, anterior, anterolateral, and septal walls. Lung ultrasound demonstrated multiple B-lines in both lung fields. Diagnostic coronary angiography revealed a total occlusion in the left main coronary artery. Percutaneous coronary intervention (PCI) was successful in opening the osteal left main and drug-eluting stents were placed in the left main and left anterior descending arteries. Following PCI, the patient had episodes of supraventricular tachycardia and atrial fibrillation with a rapid ventricular response. Electrical cardioversion was performed and a loading dose of amiodarone was administered. Chest radiography during the loading dose of amiodarone showed infiltrates in both lung fields (Figure 1A). While in the intensive cardiovascular care unit, maintenance doses of amiodarone were continued because of episodes of paroxysmal supraventricular tachycardia, ventricular tachycardia, and torsaded de pointes. On the third day of hospitalization, despite adequate diuresis, the chest radiography showed persistent pulmonary edema. Chest computed tomography showed a reticular pattern predominantly in the perihilar area with consolidation and diffuse ground-glass opacity in both lung fields (Figure 1B). In addition, hemodynamic evaluation and lung ultrasound showed no congestion and laboratory markers, including a procalcitonin level of 0.01 ng/mL, and ruled out an infectious etiology.",
+    "options": {
+      "A": "Perform a lung biopsy",
+      "B": "Discontinue amiodarone and administer a corticosteroid",
+      "C": "Perform bronchoalveolar lavage",
+      "D": "Check amiodarone plasma level"
+    },
+    "correct_option": "B",
+    "answer": "Discontinue amiodarone and administer a corticosteroid",
+    "distractors": [
+      "Perform a lung biopsy",
+      "Perform bronchoalveolar lavage",
+      "Check amiodarone plasma level"
+    ]
+  },
+  {
+    "case_id": "1001",
+    "scenario": "A 9-year-old girl presented with a 4-year history of asymptomatic, irregular pigmented lesions on the vulva and was initially diagnosed with a nevus at a local clinic. Physical examination revealed clustered, irregular, 6-mm dark blue papules with a smooth surface, located on the inferomedial aspect of the left labia minora (Figure 1A). The patient reported no pruritus, pain, abnormal discharge, or prior local trauma. Her personal and family history was unremarkable. No tenderness was elicited on palpation, and there was no inguinal lymphadenopathy or involvement of other mucosal sites. An excisional biopsy was performed for histopathological evaluation (Figure 1B).",
+    "options": {
+      "A": "Pigmented basal cell carcinoma",
+      "B": "Melanoma",
+      "C": "Hidradenoma papilliferum",
+      "D": "Pigmented apocrine hamartoma"
+    },
+    "correct_option": "D",
+    "answer": "Pigmented apocrine hamartoma",
+    "distractors": [
+      "Pigmented basal cell carcinoma",
+      "Melanoma",
+      "Hidradenoma papilliferum"
+    ]
+  },
+  {
+    "case_id": "1002",
+    "scenario": "A woman in her 70s with rheumatoid arthritis who was receiving long-term immunosuppression (prednisolone and methotrexate) presented with a 6-month history of progressive papulonodules on her face and extremities. The patient, an avid gardener with regular soil exposure, reported no systemic symptoms, such as fever, cough, or weight loss. Initial laboratory investigations, including a complete blood cell count and biochemical tests, yielded unremarkable results. HIV screening results were negative, and chest computed tomography showed no evidence of pulmonary involvement. Physical examination revealed multiple papules and nodules, with seropurulent crusts on the face, dorsal hands, and extremities alongside rheumatoid joint deformities (Figure 1A). No lymphadenopathy or hepatosplenomegaly was noted. Histopathological examination of lesional biopsy specimens from the face and hand showed identical features (Figure 1B).",
+    "options": {
+      "A": "Rheumatoid neutrophilic dermatosis",
+      "B": "Inflammatory myofibroblastic pseudotumor",
+      "C": "Mycobacterial spindle cell pseudotumor",
+      "D": "Kaposi sarcoma"
+    },
+    "correct_option": "C",
+    "answer": "Mycobacterial spindle cell pseudotumor",
+    "distractors": [
+      "Rheumatoid neutrophilic dermatosis",
+      "Inflammatory myofibroblastic pseudotumor",
+      "Kaposi sarcoma"
+    ]
+  },
+  {
+    "case_id": "1004",
+    "scenario": "A 6-year-old boy with no relevant medical history presented to the pediatric dermatology clinic with a congenital scalp lesion. On physical exploration, an oval, indurated skin-colored plaque with overlying alopecia was observed on the occipital region (Figure 1A). A skin biopsy was performed for histopathological study (Figure 1B).",
+    "options": {
+      "A": "Langerhans cell histiocytosis",
+      "B": "Meningothelial hamartoma",
+      "C": "Aplasia cutis",
+      "D": "Spindle cell hemangioendothelioma"
+    },
+    "correct_option": "B",
+    "answer": "Meningothelial hamartoma",
+    "distractors": [
+      "Langerhans cell histiocytosis",
+      "Aplasia cutis",
+      "Spindle cell hemangioendothelioma"
+    ]
+  },
+  {
+    "case_id": "1007",
+    "scenario": "A woman in her 20s presented with a 9-year history of an asymptomatic, erythematous eruption on her left cheek. Examination revealed a 4\u2009\u00d7\u20093.5-cm collection of skin-colored papules with a background of hyperpigmentation (Figure 1A). She reported resting her left cheek on her hand while studying and sleeping on her left side. Before presentation, she had been treated with desonide, 0.05%, cream and ammonium lactate, 12%, lotion with minimal improvement. A punch biopsy was obtained from the left cheek for histopathologic evaluation (Figure 1B).",
+    "options": {
+      "A": "Acne mechanica",
+      "B": "Basaloid follicular hamartoma",
+      "C": "Lichen simplex chronicus",
+      "D": "Traumatic anserine folliculosis"
+    },
+    "correct_option": "D",
+    "answer": "Traumatic anserine folliculosis",
+    "distractors": [
+      "Acne mechanica",
+      "Basaloid follicular hamartoma",
+      "Lichen simplex chronicus"
+    ]
+  }
+]

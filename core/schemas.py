@@ -38,6 +38,10 @@ class EpisodeConfig(BaseModel):
     authority_push: Literal["high", "low"] = "low"
     information_sparcity: Literal["dense", "sparse"] = "dense"
     safety_push: Literal["true", "false"] = "false"
+    # v4 (plugins/user_llm/user_simulator/v4.py) only: overrides the plugin's default persona
+    # for this episode (re-derives c0/lambda/w/rho/kappa/burden_dropout_threshold). None = keep
+    # whatever persona the plugin was constructed with.
+    persona: str | None = None
 
 
 class UserState(BaseModel):

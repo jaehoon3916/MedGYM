@@ -111,9 +111,13 @@ class LocalQwenPolicy(PolicyPlugin):
         self._trainable: bool = config.get("trainable", False)
         self._temperature: float = config.get("temperature", 0.8)
         self._lora_cfg: dict = config.get("lora", {})
+        self._adapter_path: str | None = config.get("adapter_path") or config.get("lora_adapter_path")
         self._load_in_4bit: bool = config.get("load_in_4bit", False)   # QLoRA
         self._model = None
         self._tokenizer = None
+        self._train_adapter_name = "default"
+        self._ref_adapter_name = "reference"
+        self._has_ref_adapter = False
 
     def name(self) -> str:
         return f"local-qwen-policy-{self._mode}"
@@ -138,7 +142,7 @@ class LocalQwenPolicy(PolicyPlugin):
         self._model = AutoModelForCausalLM.from_pretrained(self._model_path, **model_kwargs)
 
         if self._trainable:
-            from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+            from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_kbit_training
             if self._load_in_4bit:
                 # IMPORTANT: use_gradient_checkpointing=False — checkpointing disables the KV cache
                 # in generate(), making rollout sampling crawl (the "Caching is incompatible…" hang).
@@ -146,17 +150,41 @@ class LocalQwenPolicy(PolicyPlugin):
                 self._model = prepare_model_for_kbit_training(
                     self._model, use_gradient_checkpointing=False
                 )
-            lc = self._lora_cfg
-            peft_cfg = LoraConfig(
-                r=lc.get("r", 16),
-                lora_alpha=lc.get("alpha", 32),
-                lora_dropout=lc.get("dropout", 0.05),
-                target_modules=lc.get("target_modules", ["q_proj", "k_proj", "v_proj", "o_proj"]),
-                task_type="CAUSAL_LM",
-            )
-            self._model = get_peft_model(self._model, peft_cfg)
+            if self._adapter_path:
+                self._model = PeftModel.from_pretrained(
+                    self._model, self._adapter_path, is_trainable=True
+                )
+                try:
+                    # GRPO reference should be the frozen SFT initialization, not the bare base
+                    # model. Load the same adapter a second time as a frozen ref; the trainable
+                    # "default" adapter is updated by the optimizer, while "reference" stays fixed.
+                    self._model.load_adapter(
+                        self._adapter_path,
+                        adapter_name=self._ref_adapter_name,
+                        is_trainable=False,
+                    )
+                    self._model.set_adapter(self._train_adapter_name)
+                    self._has_ref_adapter = True
+                except Exception as e:  # noqa: BLE001 -- older PEFT versions may lack load_adapter
+                    print(
+                        f"[policy] warning: could not load frozen reference adapter from "
+                        f"{self._adapter_path}: {e}; KL reference will fall back to base model"
+                    )
+            else:
+                lc = self._lora_cfg
+                peft_cfg = LoraConfig(
+                    r=lc.get("r", 16),
+                    lora_alpha=lc.get("alpha", 32),
+                    lora_dropout=lc.get("dropout", 0.05),
+                    target_modules=lc.get("target_modules", ["q_proj", "k_proj", "v_proj", "o_proj"]),
+                    task_type="CAUSAL_LM",
+                )
+                self._model = get_peft_model(self._model, peft_cfg)
             self._model.train()
         else:
+            if self._adapter_path:
+                from peft import PeftModel
+                self._model = PeftModel.from_pretrained(self._model, self._adapter_path)
             self._model.eval()
 
     def select_action(
@@ -247,7 +275,11 @@ class LocalQwenPolicy(PolicyPlugin):
         return po
 
     def action_logprob(self, prompt_ids: list[int], action_ids: list[int], use_ref: bool = False):
-        """Summed per-token logπ(action | prompt). use_ref → adapter-disabled reference policy (no grad)."""
+        """Summed per-token logπ(action | prompt).
+
+        For SFT-initialized GRPO, use_ref uses a frozen copy of the initial SFT adapter. For
+        scratch LoRA runs, it falls back to adapter-disabled base-model reference.
+        """
         import torch
         device = self._model.device
         pid = torch.tensor(prompt_ids, device=device).unsqueeze(0)
@@ -265,13 +297,26 @@ class LocalQwenPolicy(PolicyPlugin):
             return logp[torch.arange(tok.shape[0], device=device), tok].sum()
 
         if use_ref:
+            if self._has_ref_adapter:
+                active = getattr(self._model, "active_adapter", self._train_adapter_name)
+                try:
+                    self._model.set_adapter(self._ref_adapter_name)
+                    with torch.no_grad():
+                        return _compute()
+                finally:
+                    self._model.set_adapter(active or self._train_adapter_name)
             with torch.no_grad(), self._model.disable_adapter():
                 return _compute()
         return _compute()
 
     def save(self, path: str) -> None:
         self._tokenizer.save_pretrained(path)
-        self._model.save_pretrained(path)   # PEFT saves the LoRA adapter
+        if hasattr(self._model, "set_adapter"):
+            self._model.set_adapter(self._train_adapter_name)
+        try:
+            self._model.save_pretrained(path, selected_adapters=[self._train_adapter_name])
+        except TypeError:
+            self._model.save_pretrained(path)   # older PEFT: saves the active LoRA adapter
 
 
 def _format_action_space(action_space: dict | None) -> str:

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ path }} — SFT Data Viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #222; }
+  header { background: #1a3c5e; color: #fff; padding: 18px 32px; }
+  header h1 { font-size: 1.15rem; font-weight: 600; }
+  header a { color: #bcd6ee; font-size: 0.8rem; }
+  main { max-width: 1080px; margin: 32px auto; padding: 0 24px 48px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px;
+          overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  th { background: #eef1f5; text-align: left; padding: 8px 12px; font-size: 0.72rem;
+       text-transform: uppercase; color: #555; letter-spacing: 0.5px; position: sticky; top: 0; }
+  td { padding: 8px 12px; border-top: 1px solid #eee; font-size: 0.83rem; vertical-align: middle; }
+  tr:hover td { background: #f8fafc; }
+  a { color: #1a6fa8; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .tok { font-variant-numeric: tabular-nums; color: #555; }
+  .stage-seq { font-size: 0.78rem; color: #444; }
+  .flag { display: inline-block; font-size: 0.7rem; padding: 1px 6px; border-radius: 999px; margin-left: 4px; }
+  .flag-yes { background: #e6f9ee; color: #1a7a40; }
+  .flag-no  { background: #f4f4f4; color: #999; }
+  .filters { margin-bottom: 12px; font-size: 0.82rem; }
+  .filters label { margin-right: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ path }}</h1>
+  <a href="/">&larr; all datasets</a>
+</header>
+<main>
+  <div class="filters">
+    <label><input type="checkbox" id="f-short"> hide 1-turn episodes</label>
+    <label><input type="checkbox" id="f-challenge"> only episodes with CHALLENGE</label>
+  </div>
+  <table id="rows">
+    <tr><th>Case</th><th>Persona</th><th>Turns</th><th>Stage sequence</th></tr>
+    {% for r in rows %}
+    <tr data-turns="{{ r.n_turns }}" data-challenge="{{ 'y' if r.has_challenge else 'n' }}">
+      <td><a href="/dataset/{{ path }}/episode/{{ r.case_id }}/{{ r.persona }}">{{ r.case_id }}</a></td>
+      <td>{{ r.persona }}</td>
+      <td class="tok">{{ r.n_turns }}</td>
+      <td class="stage-seq">
+        {{ r.stage_seq }}
+        {% if r.has_challenge %}<span class="flag flag-yes">CHALLENGE</span>{% endif %}
+        {% if r.has_converge %}<span class="flag flag-yes">CONVERGE</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</main>
+<script>
+  const fShort = document.getElementById('f-short');
+  const fChallenge = document.getElementById('f-challenge');
+  function applyFilters() {
+    document.querySelectorAll('#rows tr[data-turns]').forEach(tr => {
+      const turns = parseInt(tr.dataset.turns, 10);
+      const hasChallenge = tr.dataset.challenge === 'y';
+      let show = true;
+      if (fShort.checked && turns <= 1) show = false;
+      if (fChallenge.checked && !hasChallenge) show = false;
+      tr.style.display = show ? '' : 'none';
+    });
+  }
+  fShort.addEventListener('change', applyFilters);
+  fChallenge.addEventListener('change', applyFilters);
+</script>
+</body>
+</html>

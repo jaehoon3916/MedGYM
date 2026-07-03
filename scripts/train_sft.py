@@ -23,7 +23,10 @@ def main():
     print(f"Loaded {len(data)} SFT pairs from {data_path}")
 
     pol_cfg = {**config.get("plugins", {}).get("policy", {}), "trainable": True, "mode": "sft"}
-    policy = LocalQwenPolicy(pol_cfg, load_action_space())
+    # Honor the config's action_space_path so the student trains on the SAME action space the
+    # oracle teacher used in build_sft_data (build_plugins → load_action_space(config path)).
+    # Without this, train_sft silently fell back to the v1 default and mismatched any v2 run.
+    policy = LocalQwenPolicy(pol_cfg, load_action_space(config.get("action_space_path")))
     policy.load()
 
     SFTTrainer(policy, config).train(data)

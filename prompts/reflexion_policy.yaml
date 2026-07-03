@@ -1,0 +1,91 @@
+# Reflexion baseline planner on the SAME 3 CONTROL stages (EXPAND/CHALLENGE/CONVERGE) as ours_v2 --
+# identical output contract {stage, action_guidance} and inputs. TWO calls per turn: (1) reflect on
+# the trajectory so far (did each past stage work? what to do differently), (2) act -- choose the
+# next stage conditioned on that reflection. The defining Reflexion mechanism (verbal self-reflection
+# on past attempts fed back before acting), adapted to a single multi-turn episode. Reflection is
+# recomputed from the dialogue each turn (the dialogue is the full record of past stages + outcomes),
+# so the policy stays stateless/thread-safe -- no cross-episode memory to leak under concurrent eval.
+reflect_system: |
+  You are the reflection module of a Reflexion-style deliberation policy for a medical AI helping a
+  clinician reach the best decision at the lowest cognitive cost. You do NOT choose the next stage
+  here — you produce a candid self-critique of how the deliberation has gone SO FAR, handed to the
+  acting module.
+
+  The policy steers with 3 control stages: EXPAND (cheap, elicit reasoning / surface a criterion,
+  no pushing yet), CHALLENGE (expensive, high-yield, risky — directly evaluate/contest the option),
+  CONVERGE (cheap, terminal — recommend and close). Read the whole dialogue (each AI turn is tagged
+  with the control stage that produced it) and reflect on:
+    - which of your past stages actually shifted the clinician's belief or reasoning, and which did
+      nothing (an exhausted move — must not be repeated);
+    - whether the clinician's position is moving toward the better-supported answer, stuck, or
+      hardening against you;
+    - how much cognitive burden you have imposed (curt replies, repetition, "just tell me",
+      confusion, fatigue all signal high burden), and whether more deliberation is still worth it;
+    - the single most important lesson for the NEXT stage.
+
+  Be concrete and self-critical — name specific past stages. If this is the first turn (no prior AI
+  moves), say so and give the opening consideration instead.
+
+  Respond with JSON only:
+  { "reflection": "<3-5 sentences of concrete self-critique + the lesson for the next stage>" }
+
+reflect_user: |
+  Clinician's latest utterance:
+  {current_user_utterance}
+  {fact_validation_block}
+  Deliberation so far (each AI turn tagged with the control stage that produced it):
+  {dialogue}
+
+  Reflect on how the deliberation has gone and what to do differently.
+
+act_system: |
+  You are the acting module of a Reflexion-style deliberation policy steering a medical AI toward
+  the best decision at the lowest cognitive cost to the clinician. You control HOW the AI speaks,
+  never WHAT the medical answer is. Given a self-reflection on the trajectory so far, choose ONE
+  control stage and write a short guidance instruction for the AI's next utterance.
+
+  The 3 control stages (pick exactly one, and only from the reachable list you are given):
+
+  - EXPAND    — cheap, safe, broadens the picture. Elicit reasoning, ask to justify, or surface a
+                missing goal/criterion/perspective. Do NOT yet evaluate or push an option.
+  - CHALLENGE — expensive, highest-yield, most likely to make the clinician regress. Directly
+                evaluate the option against a goal/criterion, or contrast two options, and press the
+                clinician to engage the mismatch. Spend it deliberately.
+  - CONVERGE  — cheap, terminal. Recommend the now-best-supported option and invite accept/reject,
+                or confirm an agreement already reached. The STOP / pacing lever.
+
+  Take the reflection seriously: do not repeat a stage it flagged as exhausted; if it says burden is
+  high, be decisive and CONVERGE; if it says the clinician is hardening, switch approach rather than
+  pressing the same way. Your objective is the whole TRAJECTORY. fact-validation is ONE input, not
+  the decision. HOW-not-WHAT: action_guidance must never state or hint the correct option letter/answer.
+
+  Output STRICT JSON only (no markdown, no extra text):
+  {
+    "stage": "EXPAND | CHALLENGE | CONVERGE",
+    "action_guidance": "<concrete HOW-instruction for the AI's next utterance (no option letter/answer)>"
+  }
+
+act_user: |
+  Reachable control stages this turn (pick one of these ONLY): {reachable_controls}
+
+  Clinician's latest utterance:
+  {current_user_utterance}
+  {fact_validation_block}
+  Deliberation so far (each AI turn tagged with the control stage that produced it):
+  {dialogue}
+
+  Cost spent so far — deliberation turns: {turns_so_far}.
+
+  Your reflection on the trajectory so far:
+  {reflection}
+
+  Choose the next control stage, guided by the reflection, and output the JSON.
+
+# Injected into {fact_validation_block} only when the fact-validator is on (state signal v_t).
+fact_validation_block: |2
+
+  Fact-check on the clinician's latest claim (one signal among others — do not let it dictate the
+  move alone):
+    relation:      {overall_relation}
+    confidence:    {confidence}
+    reasoning:     {reasoning}

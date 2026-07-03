@@ -1,0 +1,75 @@
+# ours_v2 (LEARNED policy) eval — the head of the planner ladder that the prompt baselines
+# (poc_0703_react_control / poc_0703_reflexion / deliberation_llm) are the control for. The
+# experiment + user_llm + medical_llm + fact_validator + final_judge + action_space blocks are
+# IDENTICAL to those baselines on purpose: the ONLY difference across all four eval runs is the
+# `policy` block, so any acc / burden / regressed gap is attributable to the planner, not the env.
+# Keep them in lock-step; if you edit the env here, mirror it into the two baseline configs.
+#
+# adapter_path selects WHICH ours_v2 to evaluate -- the two points that make the story:
+#   outputs/sft_v2/sft/final        -> SFT-only (BEFORE GRPO). Exists now.
+#   outputs/grpo_phase2/grpo/final  -> after Phase-2 (burden) GRPO. Exists once training finishes.
+#   outputs/grpo_phase1/grpo/final  -> after Phase-1 (turn)  GRPO.
+# Point it at whichever checkpoint you want to score; the SFT->GRPO delta is the GRPO contribution.
+#
+# Run:  python scripts/run_poc.py --config configs/poc_0703_ours_v2.yaml
+
+experiment:
+  name: poc_0703_ours_v2
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 100
+  token_ledger: token_usage_ledger.json
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+  ai_alone_cache: outputs/_cache/ai_alone_deepseek_v3_2.json
+
+plugins:
+  user_llm:
+    type: v4
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 512
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: false
+    show_options: true
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v4-pro
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+
+  # LOCAL GPU policy (Qwen3-8B + LoRA) -- unlike the API baselines. That is why `concurrency`
+  # below is small: run_poc runs episodes on a ThreadPoolExecutor and each calls the ONE local
+  # model's generate; a high fan-out would contend / OOM on the single GPU (the medical/validator/
+  # user calls are still API, so a moderate value still overlaps most of the wall-clock).
+  policy:
+    type: ours_v2
+    model: Qwen/Qwen3-8B
+    adapter_path: outputs/grpo_phase2/grpo/final   # <- swap to outputs/sft_v2/sft/final for the pre-GRPO point
+    trainable: false
+    load_in_4bit: true
+    enable_thinking: false
+    use_fact_validator: true
+    max_tokens: 320
+    temperature: 0.0
+    device: auto
+
+action_space_path: configs/action_space_v2.yaml
+concurrency: 8

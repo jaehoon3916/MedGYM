@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.config import load_yaml, build_plugins, load_episode_configs
+from core.config import load_yaml, build_plugins
 from core.environment import MedicalHACEnvironment
 from core.schemas import CaseInfo
 from core.token_tracker import tracker
@@ -65,52 +65,32 @@ def main():
     exp_dir = output_dir if output_dir.name == exp_name else output_dir / exp_name
     max_turns = args.max_turns or config.get("experiment", {}).get("max_turns", 2)
 
-    # One episode per initial user-state preset (persona). The config value may be a single
-    # preset name, a list of names, or "all"; None/missing → one run with the default config.
-    presets = load_episode_configs(config.get("experiment", {}).get("initial_user_state"))
     ledger_path = config.get("experiment", {}).get("token_ledger", "token_usage_ledger.json")
 
-    summaries = []
-    ledger = None
-    for name, episode_config in presets:
-        tracker.reset()
-        suffix = f"__{name}" if name else ""
-        if args.output and len(presets) == 1:
-            output_path = args.output
-        else:
-            output_path = str(exp_dir / f"{case_info.case_id}{suffix}.jsonl")
+    tracker.reset()
+    output_path = args.output or str(exp_dir / f"{case_info.case_id}.jsonl")
+    results = env.run_episode(
+        case_info, max_turns=max_turns, output_path=output_path, episode_config=None
+    )
 
-        if episode_config is not None:
-            print(f"\n=== {name}: {episode_config.model_dump()} ===")
-        results = env.run_episode(
-            case_info, max_turns=max_turns, output_path=output_path, episode_config=episode_config
-        )
+    # Per-rollout token logs in a tokens/ subdir (tracker was reset above → episode-scoped)
+    rollout_p = Path(output_path)
+    token_dir = rollout_p.parent / "tokens"
+    tracker.save_calls(str(token_dir / f"{rollout_p.stem}_calls.jsonl"))
+    tracker.save_summary(str(token_dir / f"{rollout_p.stem}_token_summary.json"))
+    # Add this episode's usage to the persistent cumulative ledger (survives overwrites)
+    ledger = tracker.accumulate_to_ledger(
+        ledger_path,
+        {"exp": exp_name, "case_id": case_info.case_id},
+    )
 
-        # Per-rollout token logs in a tokens/ subdir (tracker was reset above → episode-scoped)
-        rollout_p = Path(output_path)
-        token_dir = rollout_p.parent / "tokens"
-        tracker.save_calls(str(token_dir / f"{rollout_p.stem}_calls.jsonl"))
-        tracker.save_summary(str(token_dir / f"{rollout_p.stem}_token_summary.json"))
-        # Add this episode's usage to the persistent cumulative ledger (survives overwrites)
-        ledger = tracker.accumulate_to_ledger(
-            ledger_path,
-            {"exp": exp_name, "preset": name or "default", "case_id": case_info.case_id},
-        )
-
-        fj = results[-1].metadata.get("final_judgement") if results else None
-        closed_by = results[-1].metadata.get("closed_by") if results else None
-        mark = "?" if fj is None else ("✓" if fj["is_correct"] else "✗")
-        concluded = fj["concluded_option"] if fj else "?"
-        print(f"[{name or 'default'}] {len(results)} turns | {mark} "
-              f"concluded={concluded} correct={case_info.correct_option} "
-              f"closed_by={closed_by} -> {output_path}")
-        summaries.append(fj)
-
-    # Aggregate accuracy across presets
-    judged = [s for s in summaries if s is not None]
-    if judged:
-        n_correct = sum(1 for s in judged if s["is_correct"])
-        print(f"\nAccuracy: {n_correct}/{len(judged)} = {n_correct / len(judged):.3f}")
+    fj = results[-1].metadata.get("final_judgement") if results else None
+    closed_by = results[-1].metadata.get("closed_by") if results else None
+    mark = "?" if fj is None else ("✓" if fj["is_correct"] else "✗")
+    concluded = fj["concluded_option"] if fj else "?"
+    print(f"{len(results)} turns | {mark} "
+          f"concluded={concluded} correct={case_info.correct_option} "
+          f"closed_by={closed_by} -> {output_path}")
 
     if ledger is not None:
         gt = ledger["grand_total"]

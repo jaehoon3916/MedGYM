@@ -1,0 +1,905 @@
+{
+  "version": 1,
+  "entries": {
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2000::2b73b35e456d6f6b": {
+      "case_id": "2000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "2b73b35e456d6f6b",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1000::1553738a1093506d": {
+      "case_id": "1000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "1553738a1093506d",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4000::5c296a4cc053ebcc": {
+      "case_id": "4000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5c296a4cc053ebcc",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3000::e0c9c73ec686b918": {
+      "case_id": "3000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "e0c9c73ec686b918",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0000::b7428625e67727d2": {
+      "case_id": "0000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b7428625e67727d2",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4009::c5c4f48658ed3cc5": {
+      "case_id": "4009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "c5c4f48658ed3cc5",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2010::380cd2eb9d2caa41": {
+      "case_id": "2010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "380cd2eb9d2caa41",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5013::48fe02c702377041": {
+      "case_id": "5013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "48fe02c702377041",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6012::c27d1339c48bec11": {
+      "case_id": "6012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "c27d1339c48bec11",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4010::8bd6984dfb0c5b0e": {
+      "case_id": "4010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "8bd6984dfb0c5b0e",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2009::759496e7af3c6755": {
+      "case_id": "2009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "759496e7af3c6755",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4006::2efd20e6dd7e7900": {
+      "case_id": "4006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "2efd20e6dd7e7900",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1007::fb7371a0e10746ad": {
+      "case_id": "1007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "fb7371a0e10746ad",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1013::251fef2d2e28f89f": {
+      "case_id": "1013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "251fef2d2e28f89f",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3012::f3b0ef0eb962745e": {
+      "case_id": "3012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f3b0ef0eb962745e",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6001::4bd30b49efd60c76": {
+      "case_id": "6001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "4bd30b49efd60c76",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3004::0787b9274dba7e83": {
+      "case_id": "3004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "0787b9274dba7e83",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2007::64aa0e7431a4ebd2": {
+      "case_id": "2007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "64aa0e7431a4ebd2",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3010::39e3b296ee019d2f": {
+      "case_id": "3010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "39e3b296ee019d2f",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4003::8ec0f25c4b6f3812": {
+      "case_id": "4003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "8ec0f25c4b6f3812",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0003::ea2e4ffe09947899": {
+      "case_id": "0003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "ea2e4ffe09947899",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5010::18c1432c4496f315": {
+      "case_id": "5010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "18c1432c4496f315",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1012::dddaa721bd36e49e": {
+      "case_id": "1012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "dddaa721bd36e49e",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5008::5956c5e5826b422a": {
+      "case_id": "5008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5956c5e5826b422a",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0010::9960ce9c2ac8b7fa": {
+      "case_id": "0010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "9960ce9c2ac8b7fa",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0013::1527346b51a2c315": {
+      "case_id": "0013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "1527346b51a2c315",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6002::23e8b2ee30500ee8": {
+      "case_id": "6002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "23e8b2ee30500ee8",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3003::e74262babdf9620b": {
+      "case_id": "3003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "e74262babdf9620b",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0012::5641bdb414a235e7": {
+      "case_id": "0012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5641bdb414a235e7",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4008::fc36c910fc29d51f": {
+      "case_id": "4008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "fc36c910fc29d51f",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5003::b33eefe223eff6f7": {
+      "case_id": "5003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b33eefe223eff6f7",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0011::06eddb39ddac8c98": {
+      "case_id": "0011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "06eddb39ddac8c98",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2005::a34790611b3ef5e6": {
+      "case_id": "2005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "a34790611b3ef5e6",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5001::fba4bdbb6cb61e3b": {
+      "case_id": "5001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "fba4bdbb6cb61e3b",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3007::b9d52920ac626799": {
+      "case_id": "3007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b9d52920ac626799",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6009::7888df3087484e23": {
+      "case_id": "6009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "7888df3087484e23",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4012::251e41fa117d17cf": {
+      "case_id": "4012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "251e41fa117d17cf",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0008::7c29b3c44e20c578": {
+      "case_id": "0008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "7c29b3c44e20c578",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4005::c47cd1e996651513": {
+      "case_id": "4005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "c47cd1e996651513",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2012::33963f6b3f59ffa2": {
+      "case_id": "2012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "33963f6b3f59ffa2",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3001::02dad7dd8fb7a7bf": {
+      "case_id": "3001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "02dad7dd8fb7a7bf",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6011::0b5b9890834bf320": {
+      "case_id": "6011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "0b5b9890834bf320",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1011::eb14a2c4b36419aa": {
+      "case_id": "1011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "eb14a2c4b36419aa",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5005::a126f8ac3c31ca07": {
+      "case_id": "5005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "a126f8ac3c31ca07",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3005::540448d3adf94634": {
+      "case_id": "3005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "540448d3adf94634",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6007::c3f510c30997954c": {
+      "case_id": "6007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "c3f510c30997954c",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2013::8378ef81d5d1f13f": {
+      "case_id": "2013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "8378ef81d5d1f13f",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6013::28a1bd334fec24a7": {
+      "case_id": "6013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "28a1bd334fec24a7",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4013::a38a391bdf085166": {
+      "case_id": "4013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "a38a391bdf085166",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1005::de8771d829205d5f": {
+      "case_id": "1005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "de8771d829205d5f",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1001::95c3c42d7127465f": {
+      "case_id": "1001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "95c3c42d7127465f",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2006::4cb3d86487a6517e": {
+      "case_id": "2006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "4cb3d86487a6517e",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3006::ecc1c7510dfef925": {
+      "case_id": "3006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "ecc1c7510dfef925",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0005::58383a37432983bf": {
+      "case_id": "0005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "58383a37432983bf",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1010::b7b876dac074c09a": {
+      "case_id": "1010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b7b876dac074c09a",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6008::f0472760f83517ce": {
+      "case_id": "6008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f0472760f83517ce",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2011::feafba626a3ae005": {
+      "case_id": "2011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "feafba626a3ae005",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5004::5d1aadec51452076": {
+      "case_id": "5004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5d1aadec51452076",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5002::3960eb3750a8eaa7": {
+      "case_id": "5002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "3960eb3750a8eaa7",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5000::0d558ac60d02d20d": {
+      "case_id": "5000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "0d558ac60d02d20d",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1014::a0a242719bf1d39e": {
+      "case_id": "1014",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "a0a242719bf1d39e",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6000::d7ba459b700de67c": {
+      "case_id": "6000",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "d7ba459b700de67c",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3009::a46738a9ddfa1d03": {
+      "case_id": "3009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "a46738a9ddfa1d03",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0004::67bb1b132df3aa4d": {
+      "case_id": "0004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "67bb1b132df3aa4d",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4004::35817afffa2a7c23": {
+      "case_id": "4004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "35817afffa2a7c23",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6004::8ae10b89e8861d73": {
+      "case_id": "6004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "8ae10b89e8861d73",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3008::3f8da49679698218": {
+      "case_id": "3008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "3f8da49679698218",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1003::9a953881edc6e490": {
+      "case_id": "1003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "9a953881edc6e490",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3013::0d778110f3aafe79": {
+      "case_id": "3013",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "0d778110f3aafe79",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2002::d2b8d4c2c70f1b20": {
+      "case_id": "2002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "d2b8d4c2c70f1b20",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6003::023793f67d8cfa57": {
+      "case_id": "6003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "023793f67d8cfa57",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2001::9e5806f1eb5bb21f": {
+      "case_id": "2001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "9e5806f1eb5bb21f",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3011::c424c628d8b61ecc": {
+      "case_id": "3011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "c424c628d8b61ecc",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6006::91eec8d38b5058f9": {
+      "case_id": "6006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "91eec8d38b5058f9",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1008::34c4130df8997769": {
+      "case_id": "1008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "34c4130df8997769",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1002::ebb82a02f56677fe": {
+      "case_id": "1002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "ebb82a02f56677fe",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0002::b902ea1d118f3cd3": {
+      "case_id": "0002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b902ea1d118f3cd3",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5012::8d51dadf18178077": {
+      "case_id": "5012",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "8d51dadf18178077",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4002::5416e6d2354777ee": {
+      "case_id": "4002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5416e6d2354777ee",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5006::f753c08396829443": {
+      "case_id": "5006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f753c08396829443",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1009::71ed846e1a561cb7": {
+      "case_id": "1009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "71ed846e1a561cb7",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0001::f2e4055bd7d0c285": {
+      "case_id": "0001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f2e4055bd7d0c285",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5007::3e649da21327ba18": {
+      "case_id": "5007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "3e649da21327ba18",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6010::caba35658c8e9d1f": {
+      "case_id": "6010",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "caba35658c8e9d1f",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0007::ad0fdbf49b736079": {
+      "case_id": "0007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "ad0fdbf49b736079",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4011::97cca68ed04902f9": {
+      "case_id": "4011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "97cca68ed04902f9",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::3002::b5bce239ee18e550": {
+      "case_id": "3002",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "b5bce239ee18e550",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5011::adaef485af13ab37": {
+      "case_id": "5011",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "adaef485af13ab37",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4007::de2536998fb96dfc": {
+      "case_id": "4007",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "de2536998fb96dfc",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0014::5e7762cce64774f5": {
+      "case_id": "0014",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "5e7762cce64774f5",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::5009::f16c4646d9247d70": {
+      "case_id": "5009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f16c4646d9247d70",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2003::af6486b042889290": {
+      "case_id": "2003",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "af6486b042889290",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2004::f69da2465f10e30e": {
+      "case_id": "2004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "f69da2465f10e30e",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1004::1177d7d644cb9a09": {
+      "case_id": "1004",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "1177d7d644cb9a09",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0009::86827c48de887a16": {
+      "case_id": "0009",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "86827c48de887a16",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::2008::7a8fcc1098c26d3d": {
+      "case_id": "2008",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "7a8fcc1098c26d3d",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::4001::bf78605618471b66": {
+      "case_id": "4001",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "bf78605618471b66",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::0006::d09f027630d3771f": {
+      "case_id": "0006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "d09f027630d3771f",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::1006::bf5a46a7ea0123e9": {
+      "case_id": "1006",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "bf5a46a7ea0123e9",
+      "correct": false,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    },
+    "deepseek/deepseek-v3.2::oneshot_mcq_v1::6005::488a1723e81ea1d3": {
+      "case_id": "6005",
+      "model": "deepseek/deepseek-v3.2",
+      "prompt": "oneshot_mcq_v1",
+      "case_hash": "488a1723e81ea1d3",
+      "correct": true,
+      "selected_option": null,
+      "source": "outputs/poc_0630_ours_v4/veteran_attending_full/results.json"
+    }
+  }
+}

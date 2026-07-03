@@ -1,0 +1,53 @@
+[
+  {
+    "case_id": "0000",
+    "scenario": "A previously healthy 55-year-old man presented to his local family medicine clinic after waking up with a buzzing sensation in his chest. He denied chest pain, dyspnea, palpitations, lightheadedness, diaphoresis, fever, lower-extremity edema, or fatigue. He worked in retail sales and had been lifting televisions in the preceding days. His initial vital signs included blood pressure of 124/71 mm Hg, pulse of 100 beats/min, temperature of 36.6 \u00b0C, respiratory rate of 18 breaths/min, oxygen saturation of 98% as measured by pulse oximetry, and body mass index (calculated as weight in kilograms divided by height in meters squared) of 25. He was directed to the local emergency department. On physical examination, he was alert, oriented, and in no acute distress. Chest palpation demonstrated a thrill along the sternal border, and the point of maximal impulse was laterally displaced. Auscultation revealed regular rate and rhythm, with normal first (S1) and soft second (S2) heart sounds. A buzzing, decrescendo, grade 6/6 diastolic murmur (DM) was heard at the right upper sternal border (Figure 1;Video 1). The murmur radiated throughout the precordium, into the abdomen, and to the bilateral carotids and was audible in the posterior thorax. Electrocardiogram showed normal sinus rhythm, moderate voltage criteria for left ventricular (LV) hypertrophy, and ST and T abnormalities in the lateral leads.",
+    "options": {
+      "A": "Recommend avoiding heavy lifting, initiate \u03b2-blocker therapy, and schedule outpatient follow-up in 1 week",
+      "B": "Obtain blood cultures, begin empiric antibiotics, and admit with telemetry",
+      "C": "Obtain serial cardiac troponin measurements, perform a triple rule-out chest computed tomographic angiogram, and admit to observation",
+      "D": "Perform transthoracic echocardiography in the emergency department"
+    },
+    "correct_option": "D",
+    "answer": "Perform transthoracic echocardiography in the emergency department",
+    "distractors": [
+      "Recommend avoiding heavy lifting, initiate \u03b2-blocker therapy, and schedule outpatient follow-up in 1 week",
+      "Obtain blood cultures, begin empiric antibiotics, and admit with telemetry",
+      "Obtain serial cardiac troponin measurements, perform a triple rule-out chest computed tomographic angiogram, and admit to observation"
+    ]
+  },
+  {
+    "case_id": "0001",
+    "scenario": "A man in his mid-30s with history of Crohn disease presented with several years of intermittent, nonexertional chest pressure. His chest symptoms were partially relieved with belching, proton pump inhibitor use, and selective serotonin reuptake inhibitor use and worsened with leaning forward. Furthermore, he reported exertional lightheadedness that worsened with dehydration. Due to persistent chest symptoms, he was referred for transthoracic echocardiography (TTE) and chest radiography (Figure 1). TTE revealed normal left ventricular chamber size and systolic function, a prominent ventricular septal bounce, expiratory diastolic hepatic vein (HV) flow reversals, significant respirophasic tricuspid valve inflow variation (>70% increase in E velocities with inspiration), and a borderline enlarged inferior vena cava with normal inspiratory collapse. The medial mitral annulus e\u2032 velocity was 0.10 m/s (normal, >0.08 m/s). There was no significant respiratory variation in mitral valve inflow velocity or superior vena cava flow. No pericardial effusion or pericardial thickening was identified. The combination of ventricular septal bounce, medial e\u2032 velocity greater than 9 cm/s, and HV and tricuspid valve inflow Doppler findings (Figure 1) was consistent with constrictive pericarditis (CP). Chest radiography (Figure 1) showed clear lung fields and pectus excavatum (PEX). The patient was referred for cardiology consultation, on which physical examination revealed normal jugular venous pressure without prominentxorydescent, normal cardiac auscultation, and marked depression of the sternum.",
+    "options": {
+      "A": "Cardiac catheterization",
+      "B": "Cardiac magnetic resonance imaging",
+      "C": "Computed tomography of the chest",
+      "D": "Transesophageal echocardiography"
+    },
+    "correct_option": "C",
+    "answer": "Computed tomography of the chest",
+    "distractors": [
+      "Cardiac catheterization",
+      "Cardiac magnetic resonance imaging",
+      "Transesophageal echocardiography"
+    ]
+  },
+  {
+    "case_id": "0002",
+    "scenario": "A man in his early 50s presented with recurrent episodes of cough, palpitations, shortness of breath, and exertional chest pain. He had a history of type 2 diabetes but had no history of smoking or other cardiovascular risk factors, including hypertension and hypercholesterolemia. There was no family history of sudden cardiac death. The electrocardiogram (ECG) showed an ST-segment elevation in leads V1and V2(Figure 1). Chest computed tomography (CT) revealed a right lung mass, and coronary CT angiography indicated stenosis in the right coronary and left anterior descending coronary arteries.",
+    "options": {
+      "A": "Perform emergency coronary angiography",
+      "B": "Conduct a sodium channel blocker drug provocation test",
+      "C": "Implant a cardioverter-defibrillator",
+      "D": "Perform genetic testing to confirm an SCN5A variant"
+    },
+    "correct_option": "A",
+    "answer": "Perform emergency coronary angiography",
+    "distractors": [
+      "Conduct a sodium channel blocker drug provocation test",
+      "Implant a cardioverter-defibrillator",
+      "Perform genetic testing to confirm an SCN5A variant"
+    ]
+  }
+]

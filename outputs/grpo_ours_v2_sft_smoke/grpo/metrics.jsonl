@@ -1,0 +1,5 @@
+{"step": 0, "meanR": 0.5, "acc": 0.5, "meanTurns": 2.67, "loss": 11.4217, "kl": 0.003153}
+{"step": 1, "meanR": -0.1667, "acc": 0.5, "meanTurns": 3.0, "loss": 0.8479, "kl": 0.010217}
+{"step": 2, "meanR": 0.0, "acc": 0.0, "meanTurns": 2.17, "loss": 0.0003, "kl": 0.025113}
+{"step": 3, "meanR": 0.0, "acc": 0.0, "meanTurns": 3.83, "loss": 0.001, "kl": 0.099306}
+{"step": 4, "meanR": 0.1667, "acc": 0.1667, "meanTurns": 3.83, "loss": -4.0597, "kl": 0.11713}

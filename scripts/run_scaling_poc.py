@@ -30,6 +30,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import statistics
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -145,6 +146,21 @@ def _state(turn: DialogueTurn) -> dict:
     return turn.user_state.model_dump() if turn.user_state is not None else {}
 
 
+def _belief_correct(belief, gold) -> bool:
+    """True iff the persona's self-reported belief names the gold option (A–D letter match).
+
+    Formats the persona's OWN belief to a letter; it does not decide anything for the persona.
+    """
+    s = str(belief or "").strip().upper()
+    g = str(gold or "").strip().upper()
+    if s in ("A", "B", "C", "D"):
+        letter = s
+    else:
+        m = re.search(r"(?<![A-Z])([A-D])(?![A-Z])", s)   # standalone A–D token
+        letter = m.group(1) if m else ""
+    return letter != "" and letter == g
+
+
 # ── Episode + checkpoint scoring ────────────────────────────────────────────────────────
 
 def run_episode_with_checkpoints(
@@ -234,9 +250,14 @@ def run_episode_with_checkpoints(
             checkpoint_results[c] = dict(checkpoint_results[0])
             continue
         truncated_turns = turns[: 2 * c_eff]
-        truncated = DialogueHistory(case_id=case_info.case_id, turns=truncated_turns)
-        fj = final_judge.judge(case_info, truncated)
-        is_correct = fj.concluded_option.strip().upper() == str(case_info.correct_option).strip().upper()
+        # Final decision at this checkpoint = the clinician persona's OWN last self-reported belief
+        # in the truncated history (the position it holds after the deliberation up to here) — not a
+        # judge re-reading the transcript. Structurally dialogue-dependent, and no extra LLM call.
+        self_belief = next(
+            (_state(t).get("belief") for t in reversed(truncated_turns) if t.speaker == "user"),
+            opening_belief,
+        )
+        is_correct = _belief_correct(self_belief, case_info.correct_option)
         cum_burden = sum(burden_by_user_turn[k] for k in range(1, c_eff + 1))
         r_aligns_so_far: list[float] = []
         for i in range(c_eff):
@@ -244,10 +265,6 @@ def run_episode_with_checkpoints(
             if r is not None:
                 r_aligns_so_far.append(r)
         cum_r_align = sum(r_aligns_so_far)
-        self_belief = next(
-            (_state(t).get("belief") for t in reversed(truncated_turns) if t.speaker == "user"),
-            opening_belief,
-        )
         checkpoint_results[c] = {
             "is_correct": is_correct,
             "cumulative_burden": round(cum_burden, 4),
@@ -507,7 +524,7 @@ def run(config: dict) -> dict:
         "user_llm_show_options": config["plugins"]["user_llm"].get("show_options", True),
         # persona and information_sparsity are the 2 independent persona axes -- both change
         # the doctor's behavior materially -- same cache-invalidation reasoning as show_options.
-        "user_llm_persona": config["plugins"]["user_llm"].get("persona", "burned_out_resident"),
+        "user_llm_persona": config["plugins"]["user_llm"].get("persona", "veteran_attending"),
         "user_llm_information_sparsity": config["plugins"]["user_llm"].get("information_sparsity", "dense"),
         # Whether the AI receives case_info.scenario directly (see core/prompt_builder.py:
         # build_medical_prompt) -- this is what gives information_sparsity real teeth (see
@@ -537,7 +554,7 @@ def run(config: dict) -> dict:
     condition_label = (
         f"policy={config['plugins']['policy']['type']}, user_llm={config['plugins']['user_llm']['type']}, "
         f"doctor_show_options={config['plugins']['user_llm'].get('show_options', True)}, "
-        f"doctor_persona={config['plugins']['user_llm'].get('persona', 'burned_out_resident')}, "
+        f"doctor_persona={config['plugins']['user_llm'].get('persona', 'veteran_attending')}, "
         f"doctor_information_sparsity={config['plugins']['user_llm'].get('information_sparsity', 'dense')}, "
         f"medical_show_case_info={config['plugins']['medical_llm'].get('show_case_info', True)}"
     )

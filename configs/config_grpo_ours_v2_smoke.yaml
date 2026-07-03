@@ -1,0 +1,87 @@
+# GRPO Phase-0 smoke — policy_ours_v2 (3-way control) — docs/problem_formulation.md §7.
+# GOAL: confirm the pipeline learns AT ALL (R separates groups, loss/KL move) — NOT the frontier.
+# Reward = ACCURACY ONLY (λ_cost=0, λ_align=0, λ_fmt on). Cost terms come in Phase 1/2.
+experiment:
+  name: grpo_ours_v2_smoke
+  output_dir: outputs/grpo_ours_v2_smoke
+  data_path: data/sample_data/ours_v2_train_wrong.json   # 12 wrong-anchored cases (real learning signal)
+  max_turns: 4
+  token_ledger: token_usage_ledger.json
+
+action_space_path: configs/action_space_v2.yaml   # 3-way control layer
+
+plugins:
+  # ── environment simulators (OpenRouter) ──
+  user_llm:
+    type: v3                          # v3 = burden + agreement/dropout termination
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 256
+    temperature: 0.8
+    persona: veteran_attending
+    info_condition: full
+    force_full_turns: false           # REQUIRED: policy controls episode length via agreement
+    show_options: true
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:                 # v_t signal in state s_t
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: true                     # GRPO needs r_final (is_correct)
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 256
+    temperature: 0.0
+
+  # ── the GRPO-trained agent (local Qwen + QLoRA) ──
+  policy:
+    type: ours_v2
+    model: Qwen/Qwen3-8B
+    trainable: true
+    load_in_4bit: true                # QLoRA: 8B fits 24GB
+    enable_thinking: false
+    use_fact_validator: true          # keep v_t in state (set false for an even more minimal smoke)
+    max_tokens: 320                    # generative: {stage, reason, action_guidance} needs room
+    temperature: 0.8
+    device: auto
+    lora:
+      r: 16
+      alpha: 32
+      dropout: 0.05
+      target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+grpo:
+  group_size: 6                       # trajectories per (case,persona) — need spread for advantages
+  kl_coef: 0.01
+
+reward:                               # PHASE 0: R = is_correct − leaks (nothing else)
+  lambda_align: 0.0
+  lambda_final: 1.0
+  lambda_turn: 0.0                     # Phase 1: raise to ~0.02-0.05 for the turn frontier
+  lambda_burden: 0.0                   # Phase 2: burden frontier (ours)
+  lambda_fmt: 0.0                      # 0: our mapping is always valid-format, so any r_fmt would
+                                       # only inject a spurious length signal (rewards more turns —
+                                       # observed in the first smoke: meanTurns crept 2.7→3.5)
+  lambda_leak: 1.0                     # O2 guard: −1/turn if guidance names the correct option;
+                                       # required with generative guidance or accuracy-only R is
+                                       # maximized by whispering the answer
+
+training:
+  learning_rate: 1.0e-5
+  steps: 5
+  save_every: 10
+
+concurrency: 6

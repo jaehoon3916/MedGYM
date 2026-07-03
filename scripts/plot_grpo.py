@@ -8,20 +8,15 @@ import json
 from pathlib import Path
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--metrics", default="outputs/grpo1/grpo/metrics.jsonl")
-    parser.add_argument("--out", default=None)
-    args = parser.parse_args()
-
-    path = Path(args.metrics)
+def plot_grpo(metrics_path, out=None) -> Path | None:
+    path = Path(metrics_path)
     if not path.exists():
         print(f"No metrics at {path} — run training first (it appends per step).")
-        return
+        return None
     rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     if not rows:
         print("metrics file is empty.")
-        return
+        return None
 
     import matplotlib
     matplotlib.use("Agg")
@@ -30,7 +25,7 @@ def main():
     steps = [r["step"] for r in rows]
     panels = [
         ("loss", "loss (policy-gradient; oscillates)"),
-        ("meanR", "mean reward  R(τ)"),
+        ("meanR", "mean reward  R(tau)"),
         ("acc", "accuracy (reached gold)"),
         ("kl", "KL to reference"),
     ]
@@ -44,9 +39,21 @@ def main():
     fig.suptitle(f"GRPO training — {path.parent}", fontsize=11)
     fig.tight_layout()
 
-    out = Path(args.out) if args.out else path.with_name("curves.png")
-    fig.savefig(out, dpi=120)
-    print(f"saved {out}  ({len(rows)} steps)")
+    out_path = Path(out) if out else path.with_name("curves.png")
+    fig.savefig(out_path, dpi=120)
+    return out_path
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--metrics", default="outputs/grpo1/grpo/metrics.jsonl")
+    parser.add_argument("--out", default=None)
+    args = parser.parse_args()
+
+    out = plot_grpo(args.metrics, args.out)
+    if out:
+        rows = [line for line in Path(args.metrics).read_text().splitlines() if line.strip()]
+        print(f"saved {out}  ({len(rows)} steps)")
 
 
 if __name__ == "__main__":

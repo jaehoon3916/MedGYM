@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,26 @@ class TokenTracker:
         # another's in-flight calls, or have its flush_turn() pick up a DIFFERENT episode's
         # calls (confirmed: a rollout's "turn_prompts" log contained another case's prompt).
         self._local = threading.local()
+        # Per-thread redirect target (see redirect()). When set, every record/begin_turn/
+        # flush_turn on THIS tracker delegates to the sub-tracker instead. Lets the GRPO trainer
+        # run group_size rollouts in parallel threads, each accumulating into its OWN sub-tracker
+        # (per-rollout _calls, save_summary, accumulate_to_ledger stay isolated) even though the
+        # plugins all record into the one global singleton. Untouched threads (eval) are unaffected.
+        self._ctx = threading.local()
+
+    def _active(self) -> "TokenTracker | None":
+        return getattr(self._ctx, "sub", None)
+
+    @contextmanager
+    def redirect(self, sub: "TokenTracker"):
+        """Within this context, the calling thread's record/begin_turn/flush_turn are captured by
+        `sub` (a private, single-thread TokenTracker) instead of this shared instance."""
+        prev = getattr(self._ctx, "sub", None)
+        self._ctx.sub = sub
+        try:
+            yield sub
+        finally:
+            self._ctx.sub = prev
 
     def _turn_buffer(self) -> list[dict[str, Any]]:
         if not hasattr(self._local, "buffer"):
@@ -32,6 +53,10 @@ class TokenTracker:
         response_text: str,
         usage: Any,
     ) -> None:
+        sub = self._active()
+        if sub is not None:
+            sub.record(model, messages, response_text, usage)
+            return
         prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
         completion_tokens = getattr(usage, "completion_tokens", 0) or 0
         total_tokens = getattr(usage, "total_tokens", 0) or 0
@@ -54,10 +79,17 @@ class TokenTracker:
 
     def begin_turn(self) -> None:
         """Reset the CALLING THREAD's per-turn call buffer. Call at the start of each step()."""
+        sub = self._active()
+        if sub is not None:
+            sub.begin_turn()
+            return
         self._local.buffer = []
 
     def flush_turn(self) -> list[dict[str, Any]]:
         """Return and clear the calling thread's per-turn buffer."""
+        sub = self._active()
+        if sub is not None:
+            return sub.flush_turn()
         buf = self._turn_buffer()
         self._local.buffer = []
         return buf

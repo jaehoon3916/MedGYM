@@ -1,0 +1,49 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# v3 SFT training — 학생(로컬 Qwen + LoRA)을 build_sft_data_v3.py가 만든 골든 JSON action에 imitation.
+#   python scripts/train_sft.py --config configs/config_sft_v3_train.yaml
+#   (데이터는 먼저 아래 2단계로 생성 후 병합:
+#     1) python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_naive.yaml
+#     2) python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_quadrant_oracle.yaml
+#     3) cat outputs/sft_v3/sft_data_naive.jsonl outputs/sft_v3/sft_data_quadrant_oracle.jsonl \
+#          > outputs/sft_v3/sft_data_combined.jsonl
+#   )
+#
+# train_sft.py 는 plugins.policy 를 LocalQwenPolicy 로 로드(type 무관, action_space도 프롬프트
+# 빌더 없이 그냥 저장만 함 — v2/v3 어느 쪽이든 안전, config_sft_v2_train.yaml과 동일한 이유).
+# SFTTrainer 는 데이터의 {messages, action} 을 그대로 씀. 저장되는 LoRA 어댑터는 GRPO 시
+# PolicyOursV3(같은 베이스 Qwen)가 그대로 로드해 이어받는다. action 타깃은 {stage, action_guidance}
+# JSON, stage ∈ {EXTEND, RECOMMEND} (v2의 EXPAND/CHALLENGE/CONVERGE 대신).
+# ─────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: sft_v3
+  output_dir: outputs/sft_v3                     # 체크포인트: outputs/sft_v3/sft/epoch_N, .../final
+  data_path: outputs/sft_v3/sft_data_combined.jsonl   # (train_sft 는 미사용; sft.data_out 만 읽음)
+  token_ledger: token_usage_ledger.json
+
+plugins:
+  # 학생 = 로컬 Qwen + LoRA. train_sft 는 type 무시하고 LocalQwenPolicy 로 로드(생성경로는 GRPO 때 PolicyOursV3).
+  policy:
+    type: ours_v3                  # 의미상 학생. (train_sft 내부는 LocalQwenPolicy 로 처리)
+    model: Qwen/Qwen3-8B
+    load_in_4bit: false          # QLoRA: 4-bit frozen base(~5GB)로 8B를 24GB GPU에.
+    enable_thinking: false
+    max_tokens: 128                # {stage, action_guidance} JSON 생성분(GRPO/추론 시). SFT 학습엔 무영향.
+    temperature: 0.8               # GRPO 탐색용.
+    device: auto
+    lora:
+      r: 16
+      alpha: 32
+      dropout: 0.05
+      target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+action_space_path: configs/action_space_v3.yaml   # v3 필수 (SFT 데이터가 EXTEND/RECOMMEND control로 생성됨)
+
+sft:
+  data_out: outputs/sft_v3/sft_data_combined.jsonl   # naive+quadrant_oracle 병합 세트 (--data 로 덮어쓰기 가능)
+  epochs: 2                                 # 과적합=엔트로피붕괴→GRPO그룹 동일화 방지로 작게
+  batch_size: 4
+  learning_rate: 1.0e-4
+  save_every: 1                             # 매 epoch 체크포인트 → holdout NLL 상승 직전을 GRPO init으로
+  holdout_frac: 0.1                         # >0 이면 매 epoch holdout NLL 출력(조기중단 신호)
+  log_every: 1                               # step별 train NLL을 outputs/sft_v3/sft/metrics.jsonl에 기록

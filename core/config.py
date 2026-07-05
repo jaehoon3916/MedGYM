@@ -23,7 +23,9 @@ def load_action_space(path: str | Path | None = None) -> dict[str, Any]:
     data = load_yaml(path)
     return {
         "stages": {s["id"]: s for s in data["stages"]},
-        "locutions": {loc["id"]: loc for loc in data["locutions"]},
+        # absent entirely in specs with no McBurney locution/type sublayer (e.g. the current
+        # configs/action_space_v3.yaml -- see its header and core/reward.py's docstring)
+        "locutions": {loc["id"]: loc for loc in data.get("locutions", [])},
         "transitions": data.get("transitions", {}),   # v2 control-layer gate (absent in v1)
     }
 
@@ -62,7 +64,13 @@ def build_plugins(config: dict[str, Any], reuse_policy: Any = None):
     from plugins.policy.routing_policy import RoutingPolicy
     from plugins.policy.agenda_action_policy import AgendaActionPolicy
     from plugins.policy.policy_ours_v2 import PolicyOursV2
+    from plugins.policy.policy_ours_v3 import PolicyOursV3
+    from plugins.policy.react_control_v3_policy import ReactControlV3Policy
+    from plugins.policy.reflexion_v3_policy import ReflexionV3Policy
     from plugins.policy.ours_v2_api_teacher import OursV2APITeacher
+    from plugins.policy.action_space_llm_policy import ActionSpaceLLMPolicy
+    from plugins.policy.action_space_v3_llm_policy import ActionSpaceV3LLMPolicy
+    from plugins.policy.action_space_v3_oracle_policy import ActionSpaceV3OraclePolicy
 
     plugin_cfg = config.get("plugins", {})
 
@@ -93,7 +101,14 @@ def build_plugins(config: dict[str, Any], reuse_policy: Any = None):
         "routing":                      RoutingPolicy,
         "agenda_action":                AgendaActionPolicy,
         "ours_v2":                      PolicyOursV2,  # hybrid 3-way control; validator via policy.use_fact_validator
+        "ours_v3":                      PolicyOursV3,  # local trainable EXTEND/RECOMMEND control; validator via policy.use_fact_validator
+        "react_control_v3":             ReactControlV3Policy,  # ReAct baseline on the A3 EXTEND/RECOMMEND control (vs ours_v3)
+        "reflexion_v3":                 ReflexionV3Policy,     # Reflexion baseline (reflect->act) on the A3 EXTEND/RECOMMEND control (vs ours_v3)
         "ours_v2_teacher":              OursV2APITeacher,  # API-backed (deepseek-v4) teacher for SFT distillation
+        "action_space_llm":             ActionSpaceLLMPolicy,  # generic control-layer prompt, driven by action_space_path
+        "action_space_v3_llm":          ActionSpaceV3LLMPolicy,  # v3-specific EXTEND/RECOMMEND prompt
+        "naive_a3":                     ActionSpaceV3LLMPolicy,  # alias for the v3 naive prompt policy
+        "oracle_a3":                    ActionSpaceV3OraclePolicy,  # A3 oracle / meta-oracle policy
     }
 
     user_type = plugin_cfg.get("user_llm", {}).get("type", "v2")

@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# v3 SFT distillation, Track A -- SAME-PROMPT teacher (deepseek-v3.2 API model, byte-identical
+# prompt to the student PolicyOursV3). Golden {stage, action_guidance} JSON over EXTEND/RECOMMEND.
+#
+#   1) pilot:  python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_naive.yaml --limit 15
+#      -> eyeball outputs/sft_v3/sft_data_naive_quadrant_report.{csv,png} for r_t quadrant + the
+#         RECOMMEND misaligned-fraction (v2 audit baseline was ~1.3% -- see script docstring).
+#   2) full:   python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_naive.yaml
+#
+# This track alone reproduces build_sft_data_v2.py's ours_v2_teacher track one-for-one on the new
+# action space; run it together with sft_v3_distill_quadrant_oracle.yaml (Track B) to also fill
+# the ai_only_correct / conflicting-RECOMMEND cells that a same-prompt-only teacher is expected to
+# under-cover (a naive teacher has no more reason to disagree with the clinician than v2's CONVERGE
+# teacher did -- see build_sft_data_v3.py's module docstring).
+# ─────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: sft_v3_distill_naive
+  output_dir: outputs/sft_v3
+  data_path: data/sample_data/balanced_100.json   # golden-demo case pool (NOT the heldout_* eval sets)
+  max_turns: 8
+  token_ledger: token_usage_ledger.json
+
+action_space_path: configs/action_space_v3.yaml
+
+plugins:
+  # user_llm = persona (final decision-maker) = v4 Bayesian belief core, matches sft_v2_distill.yaml.
+  user_llm:
+    type: v4
+    model: openai/gpt-4o-mini
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512
+    temperature: 0.8
+    show_options: true              # v4 requires this (lettered belief simplex)
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+    # true (diverges from sft_v2_distill.yaml's false): that config's own comment argues true is
+    # right for SFT collection (rides out early-termination, e.g. veteran c0=0.85 vs q_close=0.90
+    # is a narrow gap that otherwise cuts episodes short) -- taking that argument at face value
+    # here rather than silently copying the inconsistent value. Flip to false if you want
+    # deployment-realistic early stopping in the collected data instead.
+    force_full_turns: true
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false   # build_sft_data_v3.py also forces this off; is_correct comes from the persona
+
+  # ── teacher policy = same-prompt API model over action_space_v3.yaml ──
+  policy:
+    type: action_space_v3_llm       # plugins/policy/action_space_v3_llm_policy.py
+    model: deepseek/deepseek-v3.2   # same model as Track B's teacher -- isolates privilege as the
+                                    # only difference between the two tracks' data, not raw capability
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512                # room for {stage, reason, action_guidance} JSON
+    temperature: 0.7                # demo diversity (too close to 0 -> monotone golden actions)
+    use_fact_validator: true        # v_t in the prompt (fact validation block)
+
+# Parallel episodes (ThreadPoolExecutor, build_sft_data_v3.py). Override with --concurrency.
+concurrency: 100
+
+sft:
+  data_out: outputs/sft_v3/sft_data_naive.jsonl

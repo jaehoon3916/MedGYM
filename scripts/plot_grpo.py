@@ -6,9 +6,10 @@ Saves a PNG next to the metrics file (curves.png).
 import argparse
 import json
 from pathlib import Path
+from typing import Optional
 
 
-def plot_grpo(metrics_path, out=None) -> Path | None:
+def plot_grpo(metrics_path, out=None) -> Optional[Path]:
     path = Path(metrics_path)
     if not path.exists():
         print(f"No metrics at {path} — run training first (it appends per step).")

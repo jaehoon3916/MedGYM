@@ -106,7 +106,7 @@ class LocalQwenPolicy(PolicyPlugin):
         self._model_path: str = config.get("model", "Qwen/Qwen3-8B")
         self._enable_thinking: bool = config.get("enable_thinking", False)
         self._max_new_tokens: int = config.get("max_tokens", 512)
-        self._device: str = config.get("device", "auto")
+        self._device: str = config.get("device") or "auto"
         # training (GRPO) knobs — off by default so the inference path is unchanged
         self._trainable: bool = config.get("trainable", False)
         self._temperature: float = config.get("temperature", 0.8)

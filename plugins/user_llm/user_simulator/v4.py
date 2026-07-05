@@ -182,6 +182,9 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
         self._episode_cfg: EpisodeConfig = EpisodeConfig()
         self._burden_samples: int = int(config.get("burden_samples_per_item", 3))
         self._force_full_turns: bool = bool(config.get("force_full_turns", False))
+        self._burden_dropout_ends_forced_full_turns: bool = bool(
+            config.get("burden_dropout_ends_forced_full_turns", True)
+        )
         # plugins.user_llm.persona may be a single persona name (fixed for the whole run) or a
         # list (the pool this run cycles over via per-episode EpisodeConfig.persona overrides —
         # see train_grpo.py). Either way every name must be one of _VALID_PERSONAS: silently
@@ -239,9 +242,11 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
         #   kappa < 0  retreat — burden raises anchoring lam_eff (fall back to own initial belief)
         # So at a burden_dropout the doctor ends on the AI's option (defer) or their own (retreat).
         self._kappa: float = max(-1.0, min(1.0, float(params.get("kappa", 1.0))))
-        self._burden_dropout_threshold: float = float(
-            self.config.get("burden_dropout_threshold", _load_burden_dropout_thresholds()[self._persona])
-        )
+        threshold_cfg = self.config.get("burden_dropout_threshold", _load_burden_dropout_thresholds())
+        threshold = threshold_cfg.get(self._persona) if isinstance(threshold_cfg, dict) else threshold_cfg
+        if threshold is None:
+            threshold = _load_burden_dropout_thresholds()[self._persona]
+        self._burden_dropout_threshold: float = float(threshold)
 
     def reset_episode(self, episode_config: EpisodeConfig) -> None:
         self._episode_cfg = episode_config
@@ -360,7 +365,10 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
             converge_ok = str(last_action).split(".")[0].upper() in _CONVERGE_STAGES
         agreed = q >= self._q_close and converge_ok
         decision = "END" if (agreed or burden_exceeded) else "CONTINUE"
-        done = (decision == "END") and not self._force_full_turns
+        done = (
+            (burden_exceeded and self._burden_dropout_ends_forced_full_turns)
+            or (agreed and not self._force_full_turns)
+        )
         if burden_exceeded:
             termination_reason = "burden_dropout"
         elif agreed:
@@ -372,7 +380,7 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
         utterance = self._render_utterance(
             case_info, history, ai_utterance,
             letter=letter, q=q, prev_letter=prev_letter, prev_q=prev_q,
-            burden_exceeded=burden_exceeded,
+            burden_exceeded=burden_exceeded, argument_validity=tag_rationale,
         )
 
         return utterance, done, {
@@ -436,6 +444,7 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
         prev_letter: str,
         prev_q: float,
         burden_exceeded: bool,
+        argument_validity: str | None,
     ) -> str:
         if letter != prev_letter:
             shift = f"SHIFTED from option {prev_letter} to option {letter}"
@@ -458,6 +467,7 @@ class UserSimulatorV4(VLLMBasePlugin, UserLLMPlugin):
             confidence_pct=int(round(q * 100)),
             confidence_word=_confidence_word(q),
             shift_description=shift,
+            argument_validity=argument_validity or "(no clinical-argument summary available this turn)",
             cumulative_burden=round(self._burden_cumulative, 2),
             forced_withdrawal_line=_FORCED_WITHDRAWAL_LINE if burden_exceeded else "",
         )

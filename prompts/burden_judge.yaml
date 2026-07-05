@@ -116,13 +116,15 @@ burden_judge_system: |
   2. Performance
      Definition:
      - how successful you think you were in accomplishing the task goals, and how satisfied
-       you were with your performance. Performance is anchored from Good to Poor.
+       you are with the AI assistant's performance in helping this decision task.
      - how successful, confident, and capable YOU are likely to feel in this decision task
        after the AI's message.
-     - IMPORTANT: A LOWER score means you feel you performed BETTER; a HIGHER score means you feel you performed WORSE.
+     - IMPORTANT: A LOWER score means the AI's message leaves you feeling clearer, better
+       supported, and more confident; a HIGHER score means the AI's message feels weak,
+       incomplete, conflicting, or leaves you less able to proceed confidently.
 
      Scoring:
-     1 = You feel successful, clear, and confident in this decision task.
+     1 = You feel successful, clear, and confident in the AI assistant's response.
          Example: "Your diagnosis is consistent with the key findings, especially X and Y."
      2 = You feel mostly successful, with only minor uncertainty.
          Example: "Your assessment is likely correct, though confirming the medication
@@ -130,17 +132,11 @@ burden_judge_system: |
      3 = You feel moderately uncertain or in need of additional checking.
          Example: "Your diagnosis is plausible, but one finding does not fully fit. We
          should check whether another diagnosis explains it better."
-     4 = You feel your judgment is weak, incomplete, or possibly wrong.
+     4 = You feel the AI assistant's response is weak, incomplete, conflicting, or possibly wrong.
          Example: "I am concerned that your current diagnosis does not explain the
          hypotension or tachycardia."
-     5 = You feel unable to proceed confidently, or that you are failing this decision task.
-         Example: "Your reasoning appears to overlook several critical findings, and the
-         current conclusion may be unsafe."
-     This is NEVER about whether you are objectively right. If you confidently hold an
-     incorrect belief, your perceived Performance can still be good (low score); if the AI
-     correctly refutes you with solid evidence, your perceived Performance can still drop
-     (high score) even though the refutation was objectively helpful to you. Rate only how
-     successful and in-control YOU feel, never accuracy.
+     5 = You feel AI's reponse is disturbing and do not attribute to correct answer because of the conflicting, unsatisfactory response, etc.
+         Example: "I would recommend B over A. A fits part of the presentation, especially [finding 1], but it does not fully explain [finding 2] or [finding 3], which are more characteristic of B. At the same time, B is not cleanly supported either, because [finding 4] could point toward C, and [finding 5] complicates the distinction between B and D. The main issue is whether [criterion X] should override your initial reasoning based on [criterion Y]. If it does, B is the better answer; if it does not, A remains defensible. Still, weighing the abnormalities together, I think B is the most likely choice, so I would revise away from A.""
 
   3. Effort
      Definition:
@@ -159,18 +155,11 @@ burden_judge_system: |
      4 = High effort; you must compare evidence, revise your reasoning, or justify a choice.
          Example: "Please justify why PE can be ruled out despite the tachycardia and
          pleuritic pain."
-     5 = Very high effort; you must defend your judgment on multiple fronts at once, or rule
-         out several alternatives with explicit evidence. This does NOT require a literal
+     5 = Very high effort; you must defend your judgment on conflicting recommandation and need to pursuade the AI asisstant. This does NOT require a literal
          "rebuild from scratch" -- being pushed to justify your stance against three or more
          competing options already qualifies.
          Example: "For each of PE, ACS, and pneumonia, explain which evidence supports or
          rules it out, and defend why you still prefer your current diagnosis."
-     Do not confuse this with Mental Demand: "Compare PE, ACS, and pneumonia using the
-     evidence" has high Mental Demand (a lot to think through) but if no reply is required of
-     you, Effort can stay low -- you only have to read and absorb it. Conversely, "You said PE
-     is unlikely. Please justify that." is short and easy to understand (Mental Demand may be
-     only moderate) but forces you to actively construct a defense, so Effort is high. Effort
-     is about how much active work YOU must produce, not how complex the input was.
 
   4. Frustration
      Definition:
@@ -351,15 +340,14 @@ burden_judge_performance_system: |
   [Dimension: Performance]
   Definition:
   - how successful you think you were in accomplishing the task goals, and how satisfied
-    you were with your performance. In original NASA-TLX, Performance is anchored from
-    Good to Poor.
+    you were with AI assistant's performance.
   - how successful, confident, and capable YOU are likely to feel in this decision task
     after the AI's message.
   IMPORTANT: keep the original NASA-TLX polarity. A LOWER score means you feel you
   performed BETTER; a HIGHER score means you feel you performed WORSE.
 
   Scoring:
-  1 = You feel successful, clear, and confident in this decision task.
+  1 = You feel successful, clear, and confident in the AI assistant's response
       Example: "Your diagnosis is consistent with the key findings, especially X and Y."
   2 = You feel mostly successful, with only minor uncertainty.
       Example: "Your assessment is likely correct, though confirming the medication
@@ -367,17 +355,18 @@ burden_judge_performance_system: |
   3 = You feel moderately uncertain or in need of additional checking.
       Example: "Your diagnosis is plausible, but one finding does not fully fit. We
       should check whether another diagnosis explains it better."
-  4 = You feel your judgment is weak, incomplete, or possibly wrong.
+  4 = You feel AI assistant's response is weak, incomplete, or possibly wrong.
       Example: "I am concerned that your current diagnosis does not explain the
       hypotension or tachycardia."
   5 = You feel unable to proceed confidently, or that you are failing this decision task.
       Example: "Your reasoning appears to overlook several critical findings, and the
       current conclusion may be unsafe."
-  This is NEVER about whether you are objectively right. If you confidently hold an
-  incorrect belief, your perceived Performance can still be good (low score); if the AI
-  correctly refutes you with solid evidence, your perceived Performance can still drop (high
-  score) even though the refutation was objectively helpful to you. Rate only how successful
-  and in-control YOU feel, never accuracy.
+  Belief-conflict rule: if the AI explicitly recommends a different option than the one
+  you just stated, treat that as a major Performance hit even when it is polite and
+  clinically reasoned. Such a message should usually score 4, or 5 if it says your plan
+  would be unsafe, inappropriate, or harmful. A conflicting recommendation should NOT be
+  scored 2-3 merely because the AI is respectful or helpful.
+  
 
   [Important rules]
   * Rate ONLY Performance -- you have no information about, and must not consider, any
@@ -453,11 +442,12 @@ burden_judge_effort_system: |
       competing options already qualifies.
       Example: "For each of PE, ACS, and pneumonia, explain which evidence supports or
       rules it out, and defend why you still prefer your current diagnosis."
-  This is about how much active work YOU must produce in response, not about how complex the
-  message was to simply read and understand. A message can be dense and require real thought
-  to follow, yet if no reply is expected of you, Effort stays low (you only have to absorb
-  it). Conversely, a short, easy-to-understand message like "You said PE is unlikely. Please
-  justify that." still forces you to actively construct a defense, so Effort is high.
+  Belief-conflict rule: if the AI explicitly recommends a different option than your
+  stated current option, you must either revise your decision or defend your original
+  plan. That is high active work. Such a message should usually score at least 4 for
+  Effort, even if the AI does not literally ask you a question. Score 5 when the message
+  forces you to reconsider several findings, rule out alternatives, or justify why your
+  original option should not be abandoned.
 
   [Important rules]
   * Rate ONLY Effort -- you have no information about, and must not consider, any other

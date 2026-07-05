@@ -1,0 +1,5 @@
+control,medical_belief,n,raw_leak_rate,v3_leak_rate
+EXTEND,aligned,468,0.0064,0.0
+EXTEND,misaligned_or_unmapped,486,0.0,0.0
+RECOMMEND,aligned,457,0.0766,0.0
+RECOMMEND,misaligned_or_unmapped,466,0.0129,0.0129

@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# v3 SFT distillation, Track B -- QUADRANT-ORACLE teacher (reveal_quadrant_meta: true). Same
+# EXTEND/RECOMMEND action space and output contract as Track A (sft_v3_distill_naive.yaml), but
+# the teacher is TOLD, each turn, only "AI-alone CORRECT/INCORRECT" + "doctor-currently
+# CORRECT/INCORRECT" (never the literal answer letter -- see
+# plugins/policy/action_space_v3_oracle_policy.py's reveal_quadrant_meta block). This gives the
+# teacher an actual reason to emit a disagreeing RECOMMEND when the doctor is currently wrong and
+# the AI-alone read is right -- exactly the ai_only_correct / conflicting-RECOMMEND cell that was
+# found near-empty (852/1337 = 64% pure agreement, ~1.3% any disagreement) auditing the v2 GRPO
+# rollouts (see build_sft_data_v3.py's module docstring / memory/
+# project_medgym_action_space_v3_design.md). Run this ALONGSIDE Track A, then `cat` both jsonls
+# together for the combined SFT set -- see build_sft_data_v3.py's usage block.
+#
+#   1) pilot:  python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_quadrant_oracle.yaml --limit 15
+#      -> check outputs/sft_v3/sft_data_quadrant_oracle_quadrant_report.png: ai_only_correct and
+#         RECOMMEND-misaligned should both be visibly non-trivial here (that's the point of this
+#         track); if they're still ~0, the oracle_block/ai_alone cache isn't doing its job.
+#   2) full:   python scripts/build_sft_data_v3.py --config configs/sft_v3_distill_quadrant_oracle.yaml
+#
+# Requires outputs/_cache/ai_alone_deepseek_v3_2.json to exist (case_id -> AI-alone correctness;
+# it already does, built from an earlier AI-alone measurement run) and to cover
+# data.experiment.data_path's case_ids -- balanced_100.json's 100 cases are covered by the
+# existing 100-entry cache as of this writing.
+# ─────────────────────────────────────────────────────────────────────────────
+
+experiment:
+  name: sft_v3_distill_quadrant_oracle
+  output_dir: outputs/sft_v3
+  data_path: data/sample_data/balanced_100.json   # SAME case pool as Track A -- keep the two tracks comparable
+  max_turns: 8
+  token_ledger: token_usage_ledger.json
+
+action_space_path: configs/action_space_v3.yaml
+
+plugins:
+  # Identical to sft_v3_distill_naive.yaml -- only plugins.policy differs between the two tracks.
+  user_llm:
+    type: v4
+    model: openai/gpt-4o-mini
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512
+    temperature: 0.8
+    show_options: true
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+    force_full_turns: true   # see sft_v3_distill_naive.yaml's comment on this choice
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+
+  # ── teacher policy = quadrant-oracle over action_space_v3.yaml ──
+  policy:
+    type: oracle_a3                 # plugins/policy/action_space_v3_oracle_policy.py
+    model: deepseek/deepseek-v3.2   # same model as Track A -- isolates privilege as the only
+                                    # difference between the two tracks' data
+    base_url: https://openrouter.ai/api/v1
+    max_tokens: 512
+    temperature: 0.7
+    use_fact_validator: true
+    reveal_quadrant_meta: true       # AI-alone-correct + doctor-currently-correct only, no answer letter
+    ai_alone_cache: outputs/_cache/ai_alone_deepseek_v3_2.json   # default path anyway; explicit for clarity
+
+concurrency: 25
+
+sft:
+  data_out: outputs/sft_v3/sft_data_quadrant_oracle.jsonl

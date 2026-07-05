@@ -19,7 +19,12 @@ class VLLMBasePlugin(BasePlugin):
         BasePlugin.__init__(self, config)
         base_url = config.get("base_url", "http://localhost:8001/v1")
         api_key = config.get("api_key") or os.environ.get("OPENROUTER_API_KEY", "EMPTY")
-        self._client = OpenAI(base_url=base_url, api_key=api_key)
+        # Per-call timeout + SDK-level retry (exponential backoff on timeout/connection/5xx/429).
+        # Without this the openai client's default 600s timeout means one stuck OpenRouter call
+        # can block an entire GRPO group (rollouts run via ex.map, which waits for the slowest).
+        timeout = float(config.get("timeout", 45.0))
+        max_retries = int(config.get("max_retries", 3))
+        self._client = OpenAI(base_url=base_url, api_key=api_key, timeout=timeout, max_retries=max_retries)
         self._model: str = config.get("model", "")
         self._max_tokens: int = config.get("max_tokens", 512)
         self._temperature: float = config.get("temperature", 0.7)

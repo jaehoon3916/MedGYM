@@ -1,0 +1,108 @@
+# GRPO Phase-0 training — v4 user simulator + SFT-initialized ours_v2 policy.
+# Ablation of poc_0703_grpo_phase1.yaml: lambda_leak 1.0 -> 0.0.
+#
+# Why: leak_score's text-channel (answer phrase appears in guidance, >=10 chars) turned out to
+# be ~91% false positives on named-entity diagnoses (e.g. "meningioma", "cryptococcosis") that
+# get discussed legitimately during differential-diagnosis reasoning -- not whispered. It
+# dominated R sign on several groups despite 100% correctness (e.g. phase1 step14: acc=5/6,
+# meanR=-1.45, contribution final(+0.83) vs LEAK(-2.17)) and correlated with longer (more
+# deliberative) episodes, adding a hidden anti-scaling pressure toward 1-turn answers. The
+# letter-channel ("option B" literal handover) fired only 6/476 turns and showed no upward
+# trend across training -- not currently an active exploit. Kept everything else identical to
+# poc_0703_grpo_phase1.yaml for a clean single-variable comparison.
+#
+# Purpose:
+#   Learn from v4 user-simulator rollouts, starting from outputs/sft_v2/sft/final.
+#   This is the first real "does GRPO improve SFT?" run, not merely a 5-step smoke.
+#
+# Evaluate after training with:
+#   python scripts/run_poc.py --config configs/poc_0630_ours_v4_sft.yaml
+#   python scripts/run_poc.py --config configs/poc_0630_ours_v4_grpo_sft_smoke.yaml
+
+experiment:
+  name: poc_0703_grpo_phase2_noleak
+  seed: 42
+  output_dir: outputs/grpo_phase2_noleak
+  # Wrong-anchored cases give mixed outcomes more often, so sparse final reward creates
+  # nonzero GRPO advantages. Use balanced_100 only after this phase shows a clean signal.
+  data_path: data/sample_data/heldout_50_excluding_sft.json
+  max_turns: 8
+  token_ledger: token_usage_ledger.json
+
+action_space_path: configs/action_space_v2.yaml
+
+plugins:
+  user_llm:
+    type: v4
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 512
+    temperature: 0.8
+    persona: [veteran_attending,exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+    force_full_turns: false
+    show_options: true
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  # Unused on the GRPO training path: is_correct comes from the v4 persona's own terminal
+  # self-report (core/environment.py: Env._finalize), not a separate judge. final_judge.judge()
+  # is only called from scripts/run_poc.py (eval). build_plugins defaults enabled=true when this
+  # key is absent, so it must be explicitly false here rather than deleted.
+  final_judge:
+    enabled: false
+
+  policy:
+    type: ours_v2
+    model: Qwen/Qwen3-8B
+    adapter_path: outputs/sft_v2/sft/final
+    trainable: true
+    load_in_4bit: true
+    enable_thinking: false
+    use_fact_validator: true
+    max_tokens: 320
+    temperature: 0.8
+    device: auto
+    lora:
+      r: 16
+      alpha: 32
+      dropout: 0.05
+      target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+grpo:
+  group_size: 6
+  kl_coef: 0.1
+
+reward:
+  # Phase 0: learn "reach correct without answer leakage" first. Add turn/burden costs only
+  # after this beats or matches SFT on v4 POC.
+  lambda_align: 0.0
+  lambda_final: 1.0
+  lambda_turn: 0.0
+  lambda_burden: 0.02
+  lambda_fmt: 0.0
+  lambda_leak: 0.0   # ablation: was 1.0 -- see header comment (text-channel false positives)
+
+training:
+  learning_rate: 5.0e-6
+  # 50 cases x 4 personas = 200 items (see train_grpo.py); steps=200 with the shuffle there
+  # gives exactly one full pass instead of only the first ~8 cases in file order.
+  # (aligned with poc_0703_grpo_phase2.yaml so the two runs differ only in reward: below,
+  # for a clean reward-function comparison.)
+  steps: 200
+  save_every: 10
+
+concurrency: 6

@@ -14,7 +14,7 @@ experiment:
   output_dir: outputs/grpo_phase1
   # Wrong-anchored cases give mixed outcomes more often, so sparse final reward creates
   # nonzero GRPO advantages. Use balanced_100 only after this phase shows a clean signal.
-  data_path: data/sample_data/heldout_100_excluding_sft.json
+  data_path: data/sample_data/heldout_50_excluding_sft.json
   max_turns: 8
   token_ledger: token_usage_ledger.json
 
@@ -35,7 +35,7 @@ plugins:
   medical_llm:
     type: vllm
     base_url: https://openrouter.ai/api/v1
-    model: deepseek/deepseek-v4-pro
+    model: deepseek/deepseek-v3.2
     frame_style: command
     max_tokens: 512
     temperature: 0.7
@@ -43,7 +43,7 @@ plugins:
   fact_validator_llm:
     type: vllm
     base_url: https://openrouter.ai/api/v1
-    model: deepseek/deepseek-v4-pro
+    model: deepseek/deepseek-v3.2
     max_tokens: 384
     temperature: 0.0
 
@@ -73,7 +73,7 @@ plugins:
 
 grpo:
   group_size: 6
-  kl_coef: 0.01
+  kl_coef: 0.1
 
 reward:
   # Phase 0: learn "reach correct without answer leakage" first. Add turn/burden costs only
@@ -86,10 +86,12 @@ reward:
   lambda_leak: 1.0
 
 training:
-  learning_rate: 1.0e-5
-  # 100 cases x 4 personas = 400 items (see train_grpo.py); steps=400 with the shuffle there
+  learning_rate: 5.0e-6
+  # 50 cases x 4 personas = 200 items (see train_grpo.py); steps=200 with the shuffle there
   # gives exactly one full pass instead of only the first ~8 cases in file order.
-  steps: 400
-  save_every: 50
+  # (aligned with poc_0703_grpo_phase2.yaml so the two runs differ only in reward: below,
+  # for a clean reward-function comparison.)
+  steps: 200
+  save_every: 10
 
 concurrency: 6

@@ -1,0 +1,98 @@
+# Action space v3 — 2-way disclosure-mode control layer.
+# ---------------------------------------------------------------------------------------------
+# Design source: user's own re-formalization (2026-07-04 session), replacing the empirically-
+# clustered 3-way EXPAND/CHALLENGE/CONVERGE of action_space_v2.yaml. Full derivation and
+# hypotheses in docs/action_space_v3_formulation.md — this file is the mechanical action-space
+# spec; the math lives there and is only summarized here.
+#
+# ── The core idea ─────────────────────────────────────────────────────────────────────────
+# The policy does not classify moves by epistemic KIND (McBurney) or by cost/yield cluster
+# (v2). It classifies moves by exactly one bit: does this turn DISCLOSE THE AI'S OWN CONCLUSION,
+# or does it strengthen the clinician's OWN reasoning without disclosing one?
+#
+#   EXTEND     — never states the AI's own diagnosis/answer. Surfaces criteria, facts,
+#                missing considerations, or asks the clinician to justify their reasoning.
+#   RECOMMEND  — states the AI's own conclusion directly and explicitly, in every case —
+#                REGARDLESS of whether it agrees or disagrees with the clinician's current
+#                stated position. (This is the deliberate fix over the old v2 CONVERGE
+#                realization, whose generated guidance collapsed to "confirm whatever the
+#                clinician already said" in practice — see finding below.)
+#
+# The direction/strength/tone within either mode is left entirely to the policy's generated
+# free-text guidance — that is the "how", not the control layer. AI never ends the dialogue;
+# termination (agreement / burden_dropout) is exclusively the simulated clinician's decision
+# (core/environment.py + user_simulator v4) — there is no CLOSE/STOP action here.
+#
+# No McBurney locution/type sublayer: an earlier draft of this file carried `realizes`/
+# `allowed_locutions`/`allowed_types` per stage purely so core/environment.py's stage-gate and
+# core/reward_align.py's r_align table (both hardcoded to the 6 McBurney stage names) kept
+# working underneath this control layer. That machinery was removed from the shared env/reward
+# path (core/reward.py's docstring) — the locution/type bookkeeping was never part of the actual
+# thesis design (docs/action_space_v3_formulation.md's math is unchanged), so it's dropped here
+# too. plugins/policy/action_space_llm_policy.py handles a spec with no `allowed_locutions`
+# anywhere automatically: it stops asking the LLM for a locution/locution_type and uses the
+# control id ("EXTEND"/"RECOMMEND") directly as PolicyOutput.stage/action_id.
+#
+# ── Empirical finding that shaped RECOMMEND's wording (2026-07-04, analysis/ this session) ──
+# Audited outputs/grpo_phase{1,2}(_noleak)/ rollouts (1337 RECOMMEND.move turns, v2's CONVERGE
+# realization): 64% contained overt agreement language ("agree/glad/excellent/consistent
+# with/confirm"), ~1.3% any disagreement marker (and those read as benign on inspection).
+# RECOMMEND's burden was ~1.3 regardless of measured belief-conflict D_t (aligned mean 1.27 vs
+# conflicting mean 1.26 — no effect). Root cause: the guidance text the trained policy learned
+# to generate for CONVERGE was "acknowledge the clinician's plan and invite confirmation," which
+# structurally never surfaces a differing AI conclusion for the burden judge (or the clinician)
+# to react to. v3's RECOMMEND stage description below explicitly forbids that collapse.
+#
+# ── Effect model summary (see docs/action_space_v3_formulation.md for the full derivation) ──
+# Neither action has a fixed accuracy-gain or burden-cost; both are distributions conditioned
+# on the hidden correctness-relation quadrant r_t (whose belief is actually right: AI, doctor,
+# both, or neither — never observed, only inferred from v_t/dialogue), the persona's C/BS dials,
+# and the current belief state:
+#   RECOMMEND: burden ~ α_R + β_R·D_t + γ_R·BS         (D_t = 1 − b^H_t(ŷ^A_t), belief conflict)
+#              belief-move e_t is a CONCENTRATED spike on the AI's named option -> fast,
+#              high-leverage, but only in the direction of whatever the AI actually said (right
+#              or wrong) -> risky when AI is the one who is wrong.
+#   EXTEND:    burden ~ α_E + β_E·InfoLoad_t + γ_E·BS   (~independent of belief conflict)
+#              belief-move e_t is DIFFUSE (evidence tagged from shared facts/criteria, not a
+#              named option) -> slower, safer, plus a sensing/VoI value (sharpens the next
+#              turn's estimate of r_t) that a single-turn (Δq,ΔB) score misses.
+#
+# ── Persona coupling (C, BS -> the SAME dials already in source/persona/bayes_params.yaml) ──
+# Nothing new to configure here: C = (c0, lambda, w) sets how large an e_t a RECOMMEND needs to
+# flip belief (e* = (lambda/2w)*log(3c0/(1-c0)), core/belief.py); BS = (rho, kappa, B*) sets how
+# RECOMMEND's induced burden feeds back into w_eff/lambda_eff (kappa>0 defer / kappa<0 retreat)
+# and how close the doctor is to burden_dropout. action_space_v3 does not add new persona
+# parameters — it is designed so the EXISTING Bayesian core is the effect mechanism, not a
+# separate model.
+
+stages:
+  - id: EXTEND
+    description: >
+      Do NOT state your own diagnosis or answer, anywhere in this turn — not even as a
+      tentative guess, hedge, or "I lean toward X." Instead strengthen the CLINICIAN's own
+      reasoning: surface a missing fact, name a decision criterion they have not applied yet,
+      ask them to justify or elaborate their current reasoning, or point out an inconsistency
+      in their argument WITHOUT supplying the resolution. The clinician must do the concluding.
+      Safe by construction (you never assert a possibly-wrong answer), but its payoff is often
+      delayed — it may take a turn or two before the effect shows up in their stated belief, and
+      it also improves your own read of whether they are on the right track (worth spending
+      even when this turn alone looks low-yield).
+
+  - id: RECOMMEND
+    description: >
+      State YOUR OWN conclusion directly and explicitly: name the option you believe is
+      correct, plainly, in this turn. Do this REGARDLESS of whether it agrees or disagrees
+      with what the clinician currently holds — do not soften a disagreement into a question,
+      and do not phrase agreement as if you were merely inviting them to confirm THEIR plan.
+      This is a disclosure of YOUR belief, not a vote-call on theirs. If your conclusion
+      differs from the clinician's stated position, say so plainly and give your reasoning; if
+      it matches, state that it matches and why. Never state an option you do not actually
+      believe (no persuasion-by-bluffing) — the medical LLM answering this turn reports its own
+      independently-formed belief field; RECOMMEND means surfacing that, not fabricating one to
+      match or oppose the clinician.
+
+# Control-layer transition gate: RECOMMEND requires a prior EXTEND (must have said SOMETHING
+# before disclosing a conclusion — mirrors v2's EXPAND-before-CHALLENGE/CONVERGE gate).
+transitions:
+  EXTEND: []
+  RECOMMEND: [EXTEND]

@@ -1,0 +1,69 @@
+# Step 2 of docs/action_space_v3_formulation.md §7's validation plan: naive-prompted sampling
+# over action_space_v3.yaml's 2-way EXTEND/RECOMMEND control, using plugins/policy/
+# action_space_llm_policy.py (generic, driven entirely by action_space_path -- no v3-specific
+# Python). Purpose: re-test H1/H2 (RECOMMEND burden ~ conflict D_t; EXTEND burden ~ flat) now
+# that RECOMMEND's wording explicitly forbids the sycophantic-confirm collapse found in v2's
+# CONVERGE (see action_space_v3.yaml's header finding).
+#
+# Same user_llm v4 / medical_llm / fact_validator settings as configs/poc_0703_grpo_phase1_noleak.yaml
+# (the run that produced the falsified-H1/H2 rollouts being re-tested), so this is a clean
+# swap of only the policy + action space.
+#
+# Usage: python scripts/run_poc.py --config configs/poc_action_v3_naive.yaml
+#
+# ⚠ outputs/poc_action_v3_naive/*/rollouts/* currently holds data collected BEFORE
+# action_space_v3.yaml's 2026-07-04 edit that dropped the McBurney locution/type sublayer (the
+# policy was also asked for `locution`/`locution_type` back then; it no longer is). Re-running
+# this config now will OVERWRITE that directory with post-drop data -- see
+# configs/poc_action_v3_naive_postmerge.yaml if you want a fresh run in a separate directory
+# instead, to compare old vs new rather than clobber.
+
+experiment:
+  name: poc_action_v3_naive
+  seed: 42
+  output_dir: outputs/action_space_v3_naive
+  data_path: data/sample_data/action_v3_probe_8.json
+  max_turns: 8
+  token_ledger: token_usage_ledger.json
+
+action_space_path: configs/action_space_v3.yaml
+
+plugins:
+  user_llm:
+    type: v4
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 512
+    temperature: 0.8
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    information_sparsity: dense
+    force_full_turns: false
+    show_options: true
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+
+  policy:
+    type: action_space_llm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 320
+    temperature: 0.7
+    use_fact_validator: true
+
+concurrency: 8

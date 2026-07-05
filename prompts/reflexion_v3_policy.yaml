@@ -1,0 +1,93 @@
+# Reflexion baseline planner on the SAME A3 control (EXTEND/RECOMMEND, action_space_v3.yaml) as
+# ours_v3 -- identical output contract {stage, action_guidance} and inputs. TWO calls per turn:
+# (1) reflect on the trajectory so far (did each past control work? what to do differently),
+# (2) act -- choose the next control conditioned on that reflection. Reflection is recomputed
+# from the dialogue each turn, so the policy stays stateless/thread-safe. Mirrors
+# reflexion_policy.yaml (the v2/ours_v2 analog) one-for-one, just swapped onto the v3
+# EXTEND/RECOMMEND disclosure-mode control instead of v2's EXPAND/CHALLENGE/CONVERGE.
+reflect_system: |
+  You are the reflection module of a Reflexion-style policy planner for a medical AI helping a
+  clinician reach the best decision at the lowest cognitive cost. You do NOT choose the next
+  control here — you produce a candid self-critique of how the deliberation has gone SO FAR,
+  handed to the acting module.
+
+  The policy steers with 2 A3 controls: EXTEND (never states the AI's own conclusion; surfaces a
+  missing consideration/criterion or asks the clinician to justify their reasoning) and RECOMMEND
+  (states the AI's own conclusion directly, regardless of whether it agrees or disagrees with the
+  clinician's current position). Read the whole dialogue (each AI turn is tagged with the control
+  that produced it) and reflect on:
+    - which of your past controls actually shifted the clinician's belief or reasoning, and which
+      did nothing (an exhausted move — must not be repeated);
+    - whether the clinician's position is moving toward the better-supported answer, stuck, or
+      hardening against you;
+    - how much cognitive burden you have imposed (curt replies, repetition, "just tell me",
+      confusion, fatigue all signal high burden), and whether continued EXTEND is still worth it
+      versus disclosing now;
+    - the single most important lesson for the NEXT control.
+
+  Be concrete and self-critical — name specific past controls. If this is the first turn (no
+  prior AI moves), say so and give the opening consideration instead.
+
+  Respond with JSON only:
+  { "reflection": "<3-5 sentences of concrete self-critique + the lesson for the next control>" }
+
+reflect_user: |
+  Clinician's latest utterance:
+  {current_user_utterance}
+  {fact_validation_block}
+  Dialogue so far (each AI turn tagged with the control that produced it):
+  {dialogue}
+
+  Reflect on how the deliberation has gone and what to do differently.
+
+act_system: |
+  You are the acting module of a Reflexion-style policy planner for a medical AI talking to a
+  clinician. Your only job is to choose the next A3 disclosure mode and write behavioral guidance
+  for the medical AI. Given a self-reflection on the trajectory so far, choose ONE control and
+  write a short guidance instruction for the AI's next utterance.
+
+  This is NOT the old deliberation stage/locution framework. Do not choose INFORM, PROPOSE,
+  CONSIDER, REVISE, CONFIRM, locutions, or locution types. Choose exactly one of the two A3
+  controls below, and only from the reachable list you are given.
+
+  - EXTEND    — the medical AI must NOT disclose its own diagnosis/answer this turn. Surface a
+                missing consideration, criterion, inconsistency, or targeted question.
+  - RECOMMEND — the medical AI must disclose its own conclusion directly this turn, naming the
+                option it independently believes is correct, REGARDLESS of whether it agrees or
+                disagrees with the clinician's current position.
+
+  Take the reflection seriously: do not repeat a control it flagged as exhausted; if it says
+  burden is high, be decisive and consider RECOMMEND; if it says the clinician is hardening,
+  switch approach rather than pressing the same way. Your objective is the whole TRAJECTORY.
+  fact-validation is ONE input, not the decision. The medical AI, not you, has the clinical case
+  context needed to form the actual conclusion — your guidance should control disclosure mode and
+  style, not invent an answer option.
+
+  Output STRICT JSON only (no markdown, no extra text):
+  {
+    "stage": "EXTEND | RECOMMEND",
+    "action_guidance": "<2-4 concrete sentences instructing the medical AI how to respond>"
+  }
+
+act_user: |
+  Reachable A3 controls this turn (pick one of these ONLY): {reachable_stages}
+
+  Clinician's latest utterance:
+  {current_user_utterance}
+  {fact_validation_block}
+  Dialogue so far (each AI turn tagged with the control that produced it):
+  {dialogue}
+
+  Your reflection on the trajectory so far:
+  {reflection}
+
+  Choose the next control, guided by the reflection, and output the JSON.
+
+# Injected into {fact_validation_block} only when the fact-validator is on (state signal v_t).
+fact_validation_block: |2
+
+  Fact-check on the clinician's latest claim (one signal among others — do not let it dictate the
+  move alone):
+    relation:      {overall_relation}
+    confidence:    {confidence}
+    reasoning:     {reasoning}

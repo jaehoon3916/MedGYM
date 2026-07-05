@@ -17,10 +17,17 @@
 # The 8-turn empirical threshold (verify_bayes_user.py Part A table) runs ~1-2x e* for low-conf
 # (not yet converged) and ~= e* for high-conf.
 #
-# PROVISIONAL calibration (2026-07-02): tuned so high-conf e*~0.45 (flips only on strong argued
-# evidence) and low-conf e*~0.20 (flips on moderate evidence, NOT on near-noise) — a ~2x
-# confidence separation instead of the initial 9x (0.10 vs 0.90). FINAL calibration still needs
-# Part B (the tagger's real |e| distribution) + matching observed naive-arm flip rates
+# PROVISIONAL calibration (2026-07-02 initial; revised 2026-07-04 for veteran_attending): the
+# initial pass only split confidence high/low (high-conf e*~0.45, low-conf e*~0.20 — a ~2x
+# separation instead of the original 9x c0-only version, 0.10 vs 0.90). That flattened
+# veteran_attending and exhausted_attending to the same e*~0.44, conflating "holds a strong
+# prior" with "never revises." The 2026-07-04 revision splits them WITHIN the high-conf group:
+# veteran_attending e*~0.29 (skeptical but movable — scrutinizes the AI, revises on a real
+# argument), exhausted_attending e*~0.44 (unchanged — only strong argued evidence moves them).
+# eager_resident/burned_out_resident stay low-conf, e*~0.20 (flip on moderate evidence, not
+# near-noise). FINAL calibration still needs Part B (the tagger's real |e| distribution) +
+# re-matching observed naive-arm flip rates against THIS revised veteran e* — the rates below
+# were measured against the pre-split veteran e*~0.44 and have not been re-run since:
 # (veteran recovery 0.33 / corruption 0.00, eager 0.50/0.11, exhausted 0.14/0.09,
 # burned_out 0.43/0.27; project_medgym_persona_scaling_poc memory §4).
 # A run config's plugins.user_llm.bayes: {c0, lambda, w, rho} always overrides these.
@@ -37,7 +44,7 @@ defaults:
 
 personas:
   #                        c0     lambda  w     rho    kappa   -> steady-state e* (no burden)
-  veteran_attending:      {c0: 0.85, lambda: 0.40, w: 1.3, rho: 0.2, kappa: -0.5}  # high·robust    digs in (e*~0.44)
+  veteran_attending:      {c0: 0.75, lambda: 0.36, w: 1.35, rho: 0.2, kappa: -0.2} # high·robust    skeptical, movable (e*~0.29)
   exhausted_attending:    {c0: 0.85, lambda: 0.40, w: 1.3, rho: 1.5, kappa:  0.7}  # high·sensitive caves when spent (e*~0.44)
   eager_resident:         {c0: 0.55, lambda: 0.30, w: 1.0, rho: 0.2, kappa:  0.5}  # low·robust     defers to AI (e*~0.20)
   burned_out_resident:    {c0: 0.55, lambda: 0.30, w: 1.0, rho: 1.5, kappa:  1.0}  # low·sensitive  fully caves (e*~0.20)

@@ -1,3 +1,9 @@
 # Cumulative token-usage ledger (local, ever-changing — not tracked)
 token_usage_ledger.json
 token_usage_ledger_history.jsonl
+
+# generated outputs
+outputs/
+__pycache__/
+*.pyc
+.env

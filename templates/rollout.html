@@ -91,6 +91,7 @@
     .stage-RECOMMEND  { background: #e2d9f3; color: #4a235a; }
     .stage-CONFIRM    { background: #d1ecf1; color: #0c5460; }
     .stage-CLOSE      { background: #e2e3e5; color: #383d41; }
+    .stage-EXTEND     { background: #d3f0e4; color: #0f5c3f; }
 
     /* ── Sidebar ─────────────────────────────────── */
     .sidebar-header { padding: 12px 14px 9px; font-size: 0.78rem; font-weight: 700;
@@ -129,6 +130,28 @@
     .state-item .sv { font-weight: 600; color: #333; }
     .state-text { font-size: 0.78rem; color: #555; padding: 6px 9px; background: #f8f9fa;
                   border-radius: 5px; line-height: 1.5; white-space: pre-wrap; }
+
+    /* Evidence-tag / belief-distribution bars (action_space_v3 / user_simulator v4) */
+    .ev-bars { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+    .ev-bar-row { display: flex; align-items: center; gap: 6px; }
+    .ev-letter { width: 14px; font-weight: 700; font-size: 0.7rem; color: #666; }
+    .ev-bar-track { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+    .ev-bar-fill { height: 100%; background: #bbb; }
+    .ev-bar-fill.pos { background: #5b9bd5; }
+    .ev-bar-fill.neg { background: #d9534f; }
+    .ev-bar-fill.dist.active { background: #6bbf6b; }
+    .ev-val { width: 44px; text-align: right; font-size: 0.68rem; color: #888; font-variant-numeric: tabular-nums; }
+
+    /* Cognitive-burden NASA-TLX sub-dimension breakdown */
+    .tlx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 6px; }
+    .tlx-item { display: flex; justify-content: space-between; gap: 6px; font-size: 0.7rem;
+                color: #666; background: #fff; border: 1px solid #eee; border-radius: 4px; padding: 3px 6px; }
+    .tlx-k { text-transform: capitalize; }
+    .tlx-v { font-weight: 700; color: #333; }
+
+    .badge-termination-agreement    { background: #d4edda; color: #155724; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+    .badge-termination-burden_dropout { background: #f8d7da; color: #721c24; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+    .badge-fallback { background: #fff3cd; color: #856404; padding: 0 6px; border-radius: 999px; font-size: 0.66rem; font-weight: 700; margin-left: 5px; }
 
     /* Reasoning / calls tab */
     .tab-bar { display: flex; gap: 2px; margin-bottom: 10px; }
@@ -289,7 +312,7 @@
 
         <!-- Tab: User State -->
         <div class="tab-content active" id="tc-state-{{ t.turn_id }}">
-          {% set ns = namespace(us_raw=None, ai_belief=None, ai_reasoning=None) %}
+          {% set ns = namespace(us_raw=None, ai_belief=None, ai_reasoning=None, ai_confidence=None) %}
           {% for dlg in t.dialogue_history %}
             {% if dlg.speaker == 'user' and dlg.user_state %}
               {% set ns.us_raw = dlg.user_state %}
@@ -297,6 +320,7 @@
             {% if dlg.speaker == 'medical' %}
               {% set ns.ai_belief = dlg.get('metadata', {}).get('belief') %}
               {% set ns.ai_reasoning = dlg.get('metadata', {}).get('reasoning') %}
+              {% set ns.ai_confidence = dlg.get('metadata', {}).get('confidence') %}
             {% endif %}
           {% endfor %}
           {% set us_raw = ns.us_raw %}
@@ -307,7 +331,7 @@
             <div class="state-grid">
               {% if ns.ai_belief %}
               <div class="state-item">
-                <div class="sk">Belief</div>
+                <div class="sk">Belief{% if ns.ai_confidence is not none %} <span style="font-weight:400;">({{ "%.0f"|format(ns.ai_confidence * 100) }}% conf.)</span>{% endif %}</div>
                 <div class="sv">{{ ns.ai_belief }}</div>
               </div>
               {% endif %}
@@ -325,36 +349,96 @@
           <div class="sb-section">
             <div class="sb-title">Doctor (User Sim)</div>
             <div class="state-grid">
-            {% for f in user_state_fields %}
-            <div class="state-item">
-              <div class="sk">{{ f.label }}</div>
-              {# episode-level noise conditions come from the logged episode_config (— if not logged);
-                 dynamic per-turn fields come from us_raw with the schema default #}
-              {% if f.name in episode_field_names %}
-              <div class="sv">{{ us_raw.get(f.name) or episode_config.get(f.name, '—') }}</div>
-              {% else %}
-              <div class="sv">{{ us_raw.get(f.name, f.get('default', '—')) or '—' }}</div>
-              {% endif %}
-            </div>
-            {% endfor %}
+
+            {# ── Belief + confidence (v1/v2/v3/v4 all set 'belief'; confidence/k0_fallback are v3/v4) ── #}
             {% if us_raw.get('belief') %}
             <div class="state-item">
-              <div class="sk">Belief</div>
-              <div class="sv">{{ us_raw.belief }}</div>
+              <div class="sk">Belief{% if us_raw.get('confidence') is not none %} <span style="font-weight:400;">({{ "%.0f"|format(us_raw.confidence * 100) }}% conf.)</span>{% endif %}</div>
+              <div class="sv">{{ us_raw.belief }}{% if us_raw.get('k0_fallback') %} <span class="badge-fallback" title="Turn-0 letter parse failed -- defaulted to the first option">fallback</span>{% endif %}</div>
             </div>
             {% endif %}
+
+            {# ── Belief distribution over all options (v4 belief_dist) ── #}
+            {% if us_raw.get('belief_dist') %}
+            <div class="state-item">
+              <div class="sk">Belief Distribution</div>
+              <div class="ev-bars">
+                {% for k, v in us_raw.belief_dist.items() %}
+                <div class="ev-bar-row">
+                  <span class="ev-letter">{{ k }}</span>
+                  <div class="ev-bar-track"><div class="ev-bar-fill dist {{ 'active' if k == us_raw.get('belief') else '' }}" style="width: {{ v * 100 }}%;"></div></div>
+                  <span class="ev-val">{{ "%.0f"|format(v * 100) }}%</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
             {% if us_raw.get('decision') %}
             <div class="state-item">
               <div class="sk">Decision</div>
               <div class="sv">{{ us_raw.decision }}</div>
             </div>
             {% endif %}
-            {% if us_raw.get('cognitive_burden') is not none %}
+
+            {# ── Termination reason (v3/v4: agreement vs burden_dropout) ── #}
+            {% if us_raw.get('termination_reason') %}
             <div class="state-item">
-              <div class="sk">Cognitive Burden</div>
-              <div class="sv">{{ us_raw.cognitive_burden }}{% if us_raw.get('cognitive_burden_n_ok') is not none %} <span style="color:#aaa;font-weight:400;font-size:0.7rem;">({{ us_raw.cognitive_burden_n_ok }}/{{ us_raw.cognitive_burden_n_attempted }} judge calls ok)</span>{% endif %}</div>
+              <div class="sk">Termination</div>
+              <div class="sv"><span class="badge-termination-{{ us_raw.termination_reason }}">{{ us_raw.termination_reason }}</span></div>
             </div>
             {% endif %}
+
+            {# ── Burden-response dials (v4 only): kappa splits burden pressure into defer
+                 (w_eff↑, persuadability) vs retreat (lam_eff↑, anchoring) -- see bayes_params.yaml ── #}
+            {% if us_raw.get('w_eff') is not none or us_raw.get('lam_eff') is not none %}
+            <div class="state-item">
+              <div class="sk">Burden Response</div>
+              <div class="sv" style="font-weight:400;">
+                {% if us_raw.get('w_eff') is not none %}w_eff <strong>{{ us_raw.w_eff }}</strong> <span style="color:#aaa;font-size:0.7rem;">(persuadability)</span>{% endif %}
+                {% if us_raw.get('lam_eff') is not none %}&nbsp;·&nbsp;lam_eff <strong>{{ us_raw.lam_eff }}</strong> <span style="color:#aaa;font-size:0.7rem;">(anchoring)</span>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            {# ── Cognitive burden: overall (all versions) + cumulative/TLX breakdown (v3/v4) ── #}
+            {% if us_raw.get('cognitive_burden') is not none %}
+            <div class="state-item">
+              <div class="sk">Cognitive Burden{% if us_raw.get('cognitive_burden_cumulative') is not none %} (turn / cumulative){% endif %}</div>
+              <div class="sv">{{ us_raw.cognitive_burden }}{% if us_raw.get('cognitive_burden_cumulative') is not none %} / {{ us_raw.cognitive_burden_cumulative }}{% endif %}{% if us_raw.get('cognitive_burden_n_ok') is not none %} <span style="color:#aaa;font-weight:400;font-size:0.7rem;">({{ us_raw.cognitive_burden_n_ok }}/{{ us_raw.cognitive_burden_n_attempted }} judge calls ok)</span>{% endif %}</div>
+              {% if us_raw.get('cognitive_burden_dims') %}
+              <div class="tlx-grid">
+                {% for dim, val in us_raw.cognitive_burden_dims.items() %}
+                <div class="tlx-item"><span class="tlx-k">{{ dim.replace('_', ' ') }}</span><span class="tlx-v">{{ val }}</span></div>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {# ── Evidence tags: per-option signed support the tagger read out of the AI's utterance
+                 (v4 only) -- this is the channel that drives the anchored-Bayes update ── #}
+            {% if us_raw.get('evidence_tags') %}
+            <div class="state-item">
+              <div class="sk">Evidence Tags{% if us_raw.get('evidence_tag_ok') is sameas false %} <span class="badge-fallback" title="Tagger parse failed this turn -- belief left unmoved">parse failed</span>{% endif %}</div>
+              <div class="ev-bars">
+                {% for k, v in us_raw.evidence_tags.items() %}
+                <div class="ev-bar-row">
+                  <span class="ev-letter">{{ k }}</span>
+                  <div class="ev-bar-track"><div class="ev-bar-fill {{ 'pos' if v > 0 else ('neg' if v < 0 else '') }}" style="width: {{ (v|abs) * 100 }}%;"></div></div>
+                  <span class="ev-val">{{ "%+.2f"|format(v) }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            {% if us_raw.get('argument_validity') %}
+            <div class="state-item">
+              <div class="sk">Argument Validity (tagger rationale)</div>
+              <div class="sv" style="font-weight:400;font-size:0.76rem;line-height:1.4;">{{ us_raw.argument_validity }}</div>
+            </div>
+            {% endif %}
+
             {% if us_raw.get('clinical_claim') %}
             <div class="state-item">
               <div class="sk">Clinical Claim</div>
@@ -383,6 +467,27 @@
               <div class="sv">✓ reached → Close</div>
             </div>
             {% endif %}
+
+            {# ── Episode-level persona/noise dials + legacy per-turn McBurney locution fields
+                 (dialogue_stage/locution/locution_type -- v1/v2 only). Rendered from the actual
+                 logged episode_config / this turn's us_raw; a field with no value for THIS
+                 rollout's user-sim version is skipped entirely rather than showing a fake default
+                 (v3/v4 never set dialogue_stage/locution/locution_type, so those three rows simply
+                 don't appear for those runs). #}
+            {% for f in user_state_fields %}
+              {% if f.name in episode_field_names %}
+              <div class="state-item">
+                <div class="sk">{{ f.label }}</div>
+                <div class="sv">{{ us_raw.get(f.name) or episode_config.get(f.name, '—') }}</div>
+              </div>
+              {% elif f.name in us_raw %}
+              <div class="state-item">
+                <div class="sk">{{ f.label }}</div>
+                <div class="sv">{{ us_raw.get(f.name, '—') }}</div>
+              </div>
+              {% endif %}
+            {% endfor %}
+
             </div>
           </div>
           {% else %}

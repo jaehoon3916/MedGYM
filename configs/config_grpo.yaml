@@ -15,6 +15,8 @@ plugins:
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 256
     temperature: 0.8
+    timeout: 45.0                  # per-call seconds before openai client aborts (default 45.0; SDK default w/o this is 600s)
+    max_retries: 3                 # SDK-level retry w/ backoff on timeout/connection/5xx/429 (default 3)
 
   medical_llm:
     type: vllm
@@ -22,6 +24,8 @@ plugins:
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 512
     temperature: 0.7
+    timeout: 45.0
+    max_retries: 3
 
   fact_validator_llm:
     type: vllm
@@ -29,6 +33,8 @@ plugins:
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 384
     temperature: 0.0
+    timeout: 45.0
+    max_retries: 3
 
   final_judge:
     enabled: true                  # GRPO needs r_final (user reached gold)
@@ -37,6 +43,8 @@ plugins:
     model: deepseek/deepseek-chat-v3-0324
     max_tokens: 256
     temperature: 0.0
+    timeout: 45.0
+    max_retries: 3
 
   # ── policy = the GRPO-trained agent (local Qwen + LoRA) ──
   policy:

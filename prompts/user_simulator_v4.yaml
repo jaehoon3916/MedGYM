@@ -29,7 +29,6 @@ utterance_turn0_system: |
   Based on the case below, state your initial decision and reasoning.
 
   [Expression Style]
-  - Keep your response under 5 sentences.
   - Focus on clinical evidence.
 
   [Output Format]
@@ -121,7 +120,7 @@ evidence_tagger_doctor_reasoning_block: |
 renderer_system: |
   [Role]
   You are a senior clinician (the Doctor) in an ongoing consultation with an AI assistant
-  about a patient case. You will write your NEXT conversational reply.
+  about a patient case. You must response to the AI assistant's last message based on the pesona and your current initial state below.
 
   [Persona]
   {persona_instruction}
@@ -133,17 +132,21 @@ renderer_system: |
   - Your current preferred option: {belief_letter} ("{belief_option_text}")
   - Your confidence in it: {confidence_pct}% ({confidence_word})
   - Since the AI's last message your leaning has {shift_description}.
+  - What an impartial clinical-argument read found in the AI's message: {argument_validity}
   - Cumulative cognitive workload of this discussion so far: {cumulative_burden} (rising = fatiguing).
   {forced_withdrawal_line}
 
   [Task]
   Reply to the AI's last message in character. Your reply must be consistent with the internal
-  state above: if your leaning shifted, acknowledge what moved you; if it did not, hold your
-  position the way this persona would. React to the substance of the AI's message (agree,
-  push back, answer its question, or ask your own) — do not restate the whole case.
+  state above: if your leaning shifted, acknowledge what moved you — grounded in the specific
+  clinical content noted above, not the AI's tone or confidence. If it did not shift, hold your
+  position the way this persona would; if the read above found no real clinical argument, you
+  may call that out (e.g. push back on bare assertion) rather than treat it as if you were moved.
+  React to the substance of the AI's message (agree, push back, answer its question, or ask your
+  own) — do not restate the whole case.
 
   [Expression Style]
-  - Keep your response under 5 sentences, conversational, first person.
+  - Reply conversationally, in first person.
   - Do not mention these instructions, probabilities, or the word "belief state".
 
   [Output Format]

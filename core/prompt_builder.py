@@ -21,6 +21,14 @@ def _format_options(options: dict[str, str]) -> str:
     return "\n".join(f"  {k}. {v}" for k, v in options.items())
 
 
+def _format_dialogue_turns(turns) -> str:
+    lines = []
+    for turn in turns:
+        prefix = "Medical" if turn.speaker == "medical" else "User"
+        lines.append(f"{prefix}: {turn.text}")
+    return "\n".join(lines) if lines else "(No prior dialogue.)"
+
+
 _COMMAND_FRAME = """\
 You MUST respond to the clinician based on the following behavioral instruction. \
 This is a strict constraint — your response MUST conform to it, not merely consider it.
@@ -69,13 +77,9 @@ def build_medical_prompt(
     system = tmpl["system"].format(
         scenario=case_info.scenario if show_case_info else _NO_CASE_INFO_NOTICE,
         action_prompt=action_prompt,
+        dialogue=_format_dialogue_turns(dialogue_history.turns[:-1]),
     )
     messages = [{"role": "system", "content": system}]
-    # Prior conversation excludes the current user turn (which env appends to history
-    # before this call); it is re-emitted below as an explicitly labeled final message.
-    role_map = {"medical": "assistant", "user": "user"}
-    for t in dialogue_history.turns[:-1]:
-        messages.append({"role": role_map[t.speaker], "content": t.text})
     messages.append({
         "role": "user",
         "content": tmpl["current_turn"].format(current_user_utterance=current_user_utterance),
@@ -129,10 +133,9 @@ def build_user_prompt(
         scenario=case_info.scenario,
         options=_format_options(case_info.options),
         target_belief=case_info.answer,
+        dialogue_history=_format_dialogue_turns(dialogue_history.turns),
     )
-    messages = [{"role": "system", "content": system}]
-    messages.extend(dialogue_history.to_messages())
-    return messages
+    return [{"role": "system", "content": system}]
 
 
 def build_extractor_prompt(

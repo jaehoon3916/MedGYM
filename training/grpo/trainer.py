@@ -1,7 +1,7 @@
 """Custom GRPO trainer for the multi-turn medical dialogue policy.
 
 Per training item (case × persona) = one group: sample G full trajectories through the agent-external
-env (policy in sampling mode), score each with R(τ) (core/reward.py: r_align + r_final + length), compute
+env (policy in sampling mode), score each with R(τ) (core/reward.py: r_final + r_fmt + cost/leak terms), compute
 group-relative advantages, and update the LoRA policy with a per-token policy-gradient + KL-to-reference
 loss. Reference = frozen SFT adapter when available; otherwise adapter-disabled base forward.
 """
@@ -14,7 +14,13 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from core.reward import Trajectory, trajectory_return, group_advantages, leak_score
+from core.reward import (
+    Trajectory,
+    group_advantages,
+    leak_score_v3,
+    trajectory_components,
+    trajectory_return,
+)
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker, TokenTracker
 from core.schemas import EpisodeConfig
@@ -82,6 +88,16 @@ class GRPOTrainer:
                 ))
 
     # ── rollout one trajectory (sampling) ────────────────────────────────────
+    @staticmethod
+    def _phi_from_user_state(user_state, correct_option: str) -> float | None:
+        if user_state is None:
+            return None
+        dist = user_state.model_dump().get("belief_dist") or {}
+        try:
+            return float(dist.get(str(correct_option).strip().upper()))
+        except (TypeError, ValueError):
+            return None
+
     def _rollout(self, env, case_info, episode_config, tag: str):
         """Run one sampled rollout on `env` (checked out from the pool). Returns
         (traj, sub_tracker, logger, tag); the caller persists tokens/transcript sequentially
@@ -94,6 +110,7 @@ class GRPOTrainer:
         traj = Trajectory()
         with _tracker.redirect(sub):   # every plugin record()/begin_turn()/flush_turn() -> sub
             obs = env.reset(case_info, episode_config, max_turns=self.max_turns)
+            traj.phi_start = self._phi_from_user_state(obs.user_state, case_info.correct_option)
             while not obs.done:
                 with self._policy_lock:   # serialize the one shared GPU policy's generate
                     po = self.policy.sample_action(
@@ -101,10 +118,16 @@ class GRPOTrainer:
                     )
                 res = env.step(po)
                 logger.log_step(res, dialogue_snapshot=[t.model_dump() for t in env._history.turns])
-                traj.step_align.append(float(res.metadata.get("r_align", 0.0)))
                 traj.step_fmt.append(float(res.metadata.get("r_fmt", 0.0)))
-                # O2 guard: flag turns whose generated guidance names the correct option (core/reward.py)
-                traj.step_leak.append(leak_score(po.action_prompt, case_info.correct_option, case_info.answer))
+                # v3-aware O2 guard: flag answer-naming guidance only when it cannot be
+                # attributed to the medical LLM's own belief (core/reward.py).
+                traj.step_leak.append(leak_score_v3(
+                    po.action_prompt,
+                    case_info.correct_option,
+                    case_info.answer,
+                    res.metadata.get("medical_belief"),
+                    case_info.options,
+                ))
                 traj.steps.append((po.metadata.get("prompt_ids", []), po.metadata.get("action_ids", [])))
                 # Burden from the user's response to this AI turn (NASA-TLX overall_workload, 1-5).
                 # Zero when no user turn follows (max_turns terminal: _advance_user_turn skipped).
@@ -112,13 +135,18 @@ class GRPOTrainer:
                 _burden = float(_next_us.model_dump().get("cognitive_burden", 0.0)) if _next_us else 0.0
                 if res.done and res.metadata.get("closed_by") == "max_turns":
                     _burden = 0.0
+                else:
+                    _phi = self._phi_from_user_state(_next_us, case_info.correct_option)
+                    if _phi is not None:
+                        traj.step_phi.append(_phi)
                 traj.step_burden.append(_burden)
                 if res.done:
                     fj = res.metadata.get("final_judgement")
+                    traj.closed_by = res.metadata.get("closed_by")
                     traj.is_correct = bool(fj and fj.get("is_correct"))
-                    logger.finalize(fj, res.metadata.get("closed_by"))
+                    logger.finalize(fj, traj.closed_by)
                 obs = env.observation
-        traj.num_turns = len(traj.step_align)
+        traj.num_turns = len(traj.step_fmt)
         return traj, sub, logger, tag
 
     def _persist_rollout(self, traj, sub, logger, tag: str, case_id: str) -> None:
@@ -167,20 +195,30 @@ class GRPOTrainer:
 
             returns = [trajectory_return(t, self.weights) for t in group]
             advs = group_advantages(returns)
+            comps = [trajectory_components(t, self.weights) for t in group]
 
             # reward ledger: per-rollout R(τ) + group advantage (one line per sample per step)
             self.rollout_dir.mkdir(parents=True, exist_ok=True)
             with open(self.save_dir / "train_log.jsonl", "a") as lf:
-                for g, (traj, R, adv) in enumerate(zip(group, returns, advs)):
+                for g, (traj, R, adv, comp) in enumerate(zip(group, returns, advs, comps)):
+                    phi_end = traj.step_phi[-1] if traj.step_phi else None
                     lf.write(json.dumps({
                         "step": step, "sample": g, "case_id": case_info.case_id,
                         "persona": episode_config.persona if episode_config else None,
                         "R": round(R, 4), "advantage": round(adv, 4),
                         "is_correct": traj.is_correct, "num_turns": traj.num_turns,
+                        "closed_by": traj.closed_by,
                         "sum_burden": round(sum(traj.step_burden), 3),
                         "sum_leak": round(sum(traj.step_leak), 1),
-                        "sum_r_align": round(sum(traj.step_align), 4),
-                        "step_rewards": [round(x, 3) for x in traj.step_align],
+                        "sum_fmt": round(sum(traj.step_fmt), 4),
+                        "phi_start": round(traj.phi_start, 4) if traj.phi_start is not None else None,
+                        "phi_end": round(phi_end, 4) if phi_end is not None else None,
+                        "phi_gain": (
+                            round(phi_end - traj.phi_start, 4)
+                            if phi_end is not None and traj.phi_start is not None else None
+                        ),
+                        "step_phi": [round(x, 4) for x in traj.step_phi],
+                        **{k: round(v, 4) for k, v in comp.items()},
                     }) + "\n")
 
             total_steps = sum(len(t.steps) for t in group) or 1
@@ -212,9 +250,18 @@ class GRPOTrainer:
             acc = sum(1 for t in group if t.is_correct) / len(group)
             mean_R = sum(returns) / len(returns)
             mean_turns = sum(t.num_turns for t in group) / len(group)
+            phi_gains = [
+                t.step_phi[-1] - t.phi_start
+                for t in group
+                if t.phi_start is not None and t.step_phi
+            ]
+            mean_phi_gain = sum(phi_gains) / len(phi_gains) if phi_gains else 0.0
+            n_drop = sum(1 for t in group if t.closed_by == "burden_dropout")
+            n_leak = sum(sum(t.step_leak) for t in group)
             print(
                 f"[grpo step {step}] meanR={mean_R:.3f} acc={acc:.2f} "
-                f"meanTurns={mean_turns:.1f} loss={loss_sum:.4f} kl={kl_acc / n_tok:.4f}"
+                f"meanTurns={mean_turns:.1f} meanPhiGain={mean_phi_gain:.3f} "
+                f"drop={n_drop} leak={n_leak:.0f} loss={loss_sum:.4f} kl={kl_acc / n_tok:.4f}"
             )
             # per-step metrics for plotting (loss / reward / acc / kl vs step)
             with open(self.metrics_path, "a") as mf:
@@ -222,6 +269,9 @@ class GRPOTrainer:
                     "step": step, "meanR": round(mean_R, 4), "acc": round(acc, 4),
                     "meanTurns": round(mean_turns, 2), "loss": round(loss_sum, 4),
                     "kl": round(kl_acc / n_tok, 6),
+                    "meanPhiGain": round(mean_phi_gain, 6),
+                    "dropout_count": n_drop,
+                    "leak_count": round(n_leak, 3),
                 }) + "\n")
 
             if (step + 1) % self.save_every == 0:

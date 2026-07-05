@@ -1,0 +1,76 @@
+# User-state oracle prompt-policy baseline for action_space_v3 (A3: EXTEND / RECOMMEND).
+#
+# Unlike poc_0704_oracle_a3.yaml / poc_0704_meta_oracle_a3.yaml, this does NOT reveal anything
+# about correctness or y* (no correct-option letter, no AI-alone/doctor-correctness quadrant).
+# It instead gives the policy perfect knowledge of the DOCTOR's own state: belief_dist,
+# confidence, burden-adjusted w_eff/lam_eff, cumulative burden, and the persona's static C/BS
+# Bayes params (c0, lambda, w, rho, kappa, burden_dropout_threshold). Tests whether perfect
+# human-state visibility alone (no correctness signal) is enough to beat the naive baseline on
+# the accuracy/burden frontier, isolated from the r_t-quadrant question the other two oracles test.
+#
+# Usage:
+#   python scripts/run_poc.py --config configs/poc_0704_user_state_oracle_a3.yaml
+#
+# Note: reveal_user_state requires plugins.policy.persona to be set per condition -- run_sweep()
+# in scripts/run_poc.py sets this automatically from plugins.user_llm.persona for each of the 4
+# personas below, so nothing extra is needed here.
+
+experiment:
+  name: poc_0704_user_state_oracle_a3
+  seed: 42
+  max_turns: 8
+  data_dir: data/sample_data
+  n_cases: 25
+  token_ledger: token_usage_ledger.json
+  checkpoints: [1, 2, 3, 4, 5, 6, 7, 8]
+  measure_ai_alone: true
+  ai_alone_cache: outputs/_cache/ai_alone_deepseek_v3_2.json
+
+plugins:
+  user_llm:
+    type: v4
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-4o-mini
+    max_tokens: 512
+    temperature: 0.8
+    burden_samples_per_item: 3
+    force_full_turns: true
+    show_options: true
+    persona: [veteran_attending, exhausted_attending, eager_resident, burned_out_resident]
+    info_condition: full
+    information_sparsity: dense
+
+  medical_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    frame_style: command
+    show_case_info: true
+    max_tokens: 512
+    temperature: 0.7
+
+  fact_validator_llm:
+    type: vllm
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 384
+    temperature: 0.0
+
+  final_judge:
+    enabled: false
+
+  policy:
+    type: oracle_a3
+    use_fact_validator: true
+    reveal_correct_option: false
+    reveal_quadrant_meta: false
+    reveal_quadrant_meta_raw: false
+    reveal_user_state: true
+    ai_alone_cache: outputs/_cache/ai_alone_deepseek_v3_2.json
+    base_url: https://openrouter.ai/api/v1
+    model: deepseek/deepseek-v3.2
+    max_tokens: 512
+    temperature: 0.0
+
+action_space_path: configs/action_space_v3.yaml
+concurrency: 25

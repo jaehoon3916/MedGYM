@@ -1106,6 +1106,10 @@ def run_sweep(base_config: dict) -> dict[str, dict]:
             cfg = copy.deepcopy(base_config)
             cfg["plugins"]["user_llm"]["persona"] = persona
             cfg["plugins"]["user_llm"]["info_condition"] = info_condition
+            # Ground-truth persona label for this condition, passed through to the policy too --
+            # harmless for policies that ignore it; consumed by e.g. ActionSpaceV3OraclePolicy's
+            # reveal_user_state mode (needs the persona to look up its BS/C Bayes params).
+            cfg["plugins"]["policy"]["persona"] = persona
             cfg["experiment"]["name"] = f"{base_name}/{persona}_{info_condition}"
             print(f"\n{'#' * 96}\n# Condition: {cond}\n{'#' * 96}")
             all_scores[cond] = run(cfg)

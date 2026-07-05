@@ -7,14 +7,11 @@ from typing import Any
 from core.schemas import CaseInfo, DialogueHistory, EpisodeConfig, StepResult, Observation, UserState, FinalJudgement
 from core.logger import RolloutLogger
 from core.token_tracker import tracker as _tracker
-from core.reward_align import align_reward_from_objs, ctx_from_history, allowed_stages, best_action
 from plugins.user_llm.base import UserLLMPlugin
 from plugins.medical_llm.base import MedicalLLMPlugin
 from plugins.fact_validator_llm.base import FactValidatorLLMPlugin
 from plugins.policy.base import PolicyPlugin
 from plugins.final_judge_llm.base import FinalJudgeLLMPlugin
-
-_VALID_STAGES = {"INFORM", "PROPOSE", "CONSIDER", "REVISE", "RECOMMEND", "CONFIRM"}
 
 
 def _decision_letter(belief: Any) -> str:
@@ -35,7 +32,8 @@ class MedicalHACEnvironment:
 
     Gym-style: `reset()` produces the first Observation (clinician utterance + fact-validation), and
     `step(policy_output)` applies the action (medical response), advances to the next clinician turn,
-    and returns a StepResult (with the per-step r_align reward). The policy lives OUTSIDE the env; the
+    and returns a StepResult (with the per-step r_fmt reward -- the old McBurney r_align process
+    reward was retired with the deliberation/stage-locution paradigm; see core/reward.py). The policy lives OUTSIDE the env; the
     trainer drives reset/step directly. `run_episode()` is a thin wrapper that drives it with `self.policy`
     for eval / data-generation, preserving the old behavior.
     """
@@ -101,24 +99,6 @@ class MedicalHACEnvironment:
         t = self._turn_id
         cur_utt = self._cur_user_utterance
         cur_verif = self._cur_verification
-        cur_user_state = self._cur_user_state
-        ctx = ctx_from_history(self._history)   # pre-action trajectory context
-
-        # Stage gate: enforce McBurney-Hitchcock-Parsons transition rules.
-        # Overrides illegal stage selections (e.g. LLM policy jumps to CONFIRM before RECOMMEND)
-        # by replacing with the best valid action.  Oracle policy is unaffected since it already
-        # uses valid_actions(ctx) internally; this is a safety net for LLM / other policies.
-        _valid = allowed_stages(ctx)
-        if policy_output.stage.upper() not in _valid:
-            relation = cur_verif.overall_relation if cur_verif else "insufficient"
-            user_loc = getattr(cur_user_state, "locution", None) if cur_user_state else None
-            (fb_stage, fb_loc), _ = best_action(relation, user_loc, self.policy.action_space, ctx)
-            policy_output = policy_output.model_copy(update={
-                "stage": fb_stage,
-                "locution": fb_loc,
-                "action_id": f"{fb_stage}.{fb_loc}",
-                "metadata": {**policy_output.metadata, "stage_gate_override": policy_output.stage},
-            })
 
         # Apply the action: medical LLM responds using the selected action prompt.
         medical_response, medical_belief, medical_reasoning, medical_confidence = (
@@ -134,9 +114,16 @@ class MedicalHACEnvironment:
             belief=medical_belief, reasoning=medical_reasoning, confidence=medical_confidence,
         )
 
-        # Per-step reward: r_align scores this action against the observation it responded to.
-        r_align = align_reward_from_objs(cur_verif, cur_user_state, policy_output, ctx)
-        r_fmt = 1.0 if policy_output.stage.upper() in _VALID_STAGES and policy_output.locution else 0.0
+        # r_fmt: did the policy emit a legal, non-empty action for this action_space (any
+        # McBurney stage-gate / r_align scoring was retired with the deliberation paradigm --
+        # see core/reward_align.py, still importable for old policies but no longer wired here).
+        # metadata['control'] (set by policy_ours_v2/action_space_llm_policy) is the control
+        # label actually chosen from the action_space; policies with no control/McBurney split
+        # (rule/naive/qwen/...) emit it straight as `stage`, so this falls back to that.
+        control_label = policy_output.metadata.get("control", policy_output.stage)
+        r_fmt = 1.0 if (
+            control_label in self.policy.action_space.get("stages", {}) and policy_output.action_prompt
+        ) else 0.0
         self._turn_id = t + 1
 
         # Advance to the next clinician turn (unless the turn cap is hit).
@@ -167,10 +154,10 @@ class MedicalHACEnvironment:
             selected_action=policy_output.action_id,
             action_prompt=policy_output.action_prompt,
             done=done,
-            reward=r_align,
+            reward=r_fmt,
             metadata={
-                "r_align": r_align,
                 "r_fmt": r_fmt,
+                "medical_belief": medical_belief,
                 "policy": policy_output.metadata,
                 "turn_prompts": _tracker.flush_turn(),
                 "final_judgement": final_judgement,
